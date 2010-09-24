@@ -1,0 +1,6 @@
+RiNOO
+-----
+
+RiNOO is a library for asynchronous socket management. It includes an event
+based scheduler and a high level socket API in order to easily create
+client/server applications with high scalability.
