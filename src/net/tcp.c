@@ -22,12 +22,18 @@ static void		tcp_fsm(t_socket *socket, t_schedevent event);
  * @param ip If server mode, IP to bind, if client mode, destination IP.
  * @param port If server mode, port to bind, if client mode, destination port.
  * @param mode Mode to use for this connection (server/client).
+ * @param timeout Max number of milliseconds without activity.
  * @param event_fsm Pointer to the function to call for each event.
  *
  * @return Pointer to the new tcp structure, or NULL if an error occurs.
  */
-t_tcpsocket	*tcp_create(t_sched *sched, t_ip ip, u32 port, t_tcpmode mode,
-			    void (*event_fsm)(t_tcpsocket *tcpsock, t_tcpevent event))
+t_tcpsocket	*tcp_create(t_sched *sched,
+			    t_ip ip,
+			    u32 port,
+			    t_tcpmode mode,
+			    u32 timeout,
+			    void (*event_fsm)(t_tcpsocket *tcpsock,
+					      t_tcpevent event))
 {
   int			enabled;
   t_tcpsocket		*tcpsock;
@@ -38,6 +44,7 @@ t_tcpsocket	*tcp_create(t_sched *sched, t_ip ip, u32 port, t_tcpmode mode,
   tcpsock = xcalloc(1, sizeof(*tcpsock));
   XASSERT(tcpsock != NULL, NULL);
   tcpsock->socket.fd = -1;
+  tcpsock->socket.sched = sched;
   tcpsock->socket.rdbuf = buffer_create(RDBUF_INITSIZE, RDBUF_MAXSIZE);
   if (tcpsock->socket.rdbuf == NULL)
     {
@@ -50,7 +57,6 @@ t_tcpsocket	*tcp_create(t_sched *sched, t_ip ip, u32 port, t_tcpmode mode,
       tcp_destroy(tcpsock);
       XASSERT(0, NULL);
     }
-  tcpsock->socket.sched = sched;
   tcpsock->socket.data = tcpsock;
   tcpsock->ip = ip;
   tcpsock->port = port;
@@ -97,11 +103,16 @@ t_tcpsocket	*tcp_create(t_sched *sched, t_ip ip, u32 port, t_tcpmode mode,
 	}
       tcpsock->socket.event_fsm = tcp_connect;
     }
-  if (sched_insert(&tcpsock->socket, (mode == MODE_TCP_SERVER) ? EVENT_SCHED_IN : EVENT_SCHED_OUT) == -1)
+  if (sched_insert(&tcpsock->socket,
+		   (mode == MODE_TCP_SERVER ?
+		    EVENT_SCHED_IN : EVENT_SCHED_OUT),
+		   (mode == MODE_TCP_SERVER ? 0 : timeout)) == -1)
     {
       tcp_destroy(tcpsock);
       XASSERT(0, NULL);
     }
+  /* This should be used only in MODE_TCP_SERVER */
+  tcpsock->child_timeout = timeout;
   return (tcpsock);
 }
 
@@ -204,7 +215,9 @@ static void		tcp_accept(t_socket *socket, t_schedevent event)
       newsock->port = ntohs(addr.sin_port);
       newsock->mode = MODE_TCP_CLIENT;
       newsock->event_fsm = tcpsock->event_fsm;
-      if (sched_insert(&newsock->socket, EVENT_SCHED_IN) == -1)
+      if (sched_insert(&newsock->socket,
+		       EVENT_SCHED_IN,
+		       tcpsock->child_timeout) == -1)
 	{
 	  tcp_destroy(newsock);
 	  XASSERTN(0);
@@ -215,6 +228,9 @@ static void		tcp_accept(t_socket *socket, t_schedevent event)
       tcp_destroy(tcpsock);
       XASSERTN(0);
     case EVENT_SCHED_TIMEOUT:
+      tcp_destroy(tcpsock);
+      XASSERTN(0);
+      break;
     case EVENT_SCHED_ERROR:
       tcp_error(tcpsock, EVENT_TCP_ERROR);
       break;
@@ -268,7 +284,6 @@ static void	tcp_connect(t_socket *socket, t_schedevent event)
       tcpsock->event_fsm(tcpsock, EVENT_TCP_CONNECT);
       break;
     case EVENT_SCHED_TIMEOUT:
-      tcpsock->errorstep = EVENT_TCP_CONNECT;
       tcpsock->event_fsm(tcpsock, EVENT_TCP_TIMEOUT);
       tcp_destroy(tcpsock);
       break;
@@ -347,6 +362,8 @@ static void	tcp_fsm(t_socket *socket, t_schedevent event)
       tcpsock->event_fsm(tcpsock, EVENT_TCP_OUT);
       break;
     case EVENT_SCHED_TIMEOUT:
+      tcpsock->event_fsm(tcpsock, EVENT_TCP_TIMEOUT);
+      tcp_destroy(tcpsock);
       break;
     case EVENT_SCHED_ERROR:
       tcp_error(tcpsock, EVENT_TCP_ERROR);

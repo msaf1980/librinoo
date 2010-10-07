@@ -22,17 +22,23 @@ static int	jobqueue_cmp(void *node1, void *node2)
 {
   t_job		*job1 = (t_job *) node1;
   t_job		*job2 = (t_job *) node2;
-  u32		ms;
 
   XDASSERT(node1 != NULL, 1);
   XDASSERT(node2 != NULL, 1);
 
   if (node1 == node2)
-    return (0);
-  ms = (job1->tv.tv_sec - job2->tv.tv_sec) * 1000 + (job1->tv.tv_usec - job2->tv.tv_usec) / 1000;
-  if (ms == 0)
-    return (1);
-  return (ms);
+    return 0;
+  if (job1->exectime.tv_sec > job2->exectime.tv_sec)
+    return 1;
+  if (job1->exectime.tv_sec < job2->exectime.tv_sec)
+    return -1;
+  if (job1->exectime.tv_usec > job2->exectime.tv_usec)
+    return 1;
+  if (job1->exectime.tv_usec < job2->exectime.tv_usec)
+    return -1;
+
+  /* Always make a difference between jobs */
+  return 1;
 }
 
 /**
@@ -63,11 +69,79 @@ void		jobqueue_destroy(void *ptr)
  *
  * @param ptr Pointer to the job to destroy.
  */
-static void	jobqueue_destroy_job(void *ptr)
+static void	jobqueue_destroyjob(void *ptr)
 {
-  XDASSERTN(ptr != NULL);
+  t_job		*job = (t_job *) ptr;
 
-  xfree(ptr);
+  XDASSERTN(job != NULL);
+
+  xfree(job);
+}
+
+/**
+ * Remove a job from the main jobqueue.
+ *
+ * @param sched Pointer to the scheduler to use.
+ * @param job Pointer to the job to remove.
+ */
+void		jobqueue_removejob(t_job *job)
+{
+  XDASSERTN(job != NULL);
+  XDASSERTN(job->sched != NULL);
+
+  list_removenode(job->sched->jobqueue, job->listnode, TRUE);
+}
+
+/**
+ * Schedule a job to a certain a time.
+ *
+ * @param sched Pointer to the scheduler to use.
+ * @param job Pointer to the job to modify.
+ * @param tv New time to set up.
+ *
+ * @return 0 on success, or -1 if an error occurs.
+ */
+int		jobqueue_schedule(struct s_sched *sched,
+				  t_job *job,
+				  const struct timeval *tv)
+{
+  XDASSERT(sched != NULL, -1);
+  XDASSERT(sched->jobqueue != NULL, -1);
+  XDASSERT(job != NULL, -1);
+
+  job->creatime = sched->curtime;
+  job->exectime = *tv;
+  if (job->listnode != NULL &&
+      unlikely(list_removenode(job->sched->jobqueue, job->listnode, FALSE) == FALSE))
+    {
+      return (-1);
+    }
+  job->listnode = list_add(sched->jobqueue, job, jobqueue_destroyjob);
+  if (unlikely(job->listnode == NULL))
+    return (-1);
+  job->sched = sched;
+  return (0);
+}
+
+/**
+ * Reschedule a job.
+ *
+ * @param sched Pointer to the scheduler to use.
+ * @param job Pointer to the job to modify.
+ *
+ * @return 0 on success, or -1 if an error occurs.
+ */
+int		jobqueue_reschedule(struct s_sched *sched, t_job *job)
+{
+  struct timeval	tmp;
+
+  XDASSERT(sched != NULL, -1);
+  XDASSERT(sched->jobqueue != NULL, -1);
+  XDASSERT(job != NULL, -1);
+
+  timersub(&job->exectime, &job->creatime, &tmp);
+  timeradd(&sched->curtime, &tmp, &job->exectime);
+  return jobqueue_schedule(sched, job, &job->exectime);
 }
 
 /**
@@ -81,7 +155,6 @@ static void	jobqueue_destroy_job(void *ptr)
  * @return Pointer to the created job or NULL if an error occurs.
  */
 t_job		*jobqueue_add(struct s_sched *sched,
-			      struct s_socket *socket,
 			      t_jobstate (*func)(t_job *job),
 			      void *args,
 			      const struct timeval *tv)
@@ -96,10 +169,7 @@ t_job		*jobqueue_add(struct s_sched *sched,
   XASSERT(new != NULL, FALSE);
   new->func = func;
   new->args = args;
-  new->tv = *tv;
-  new->socket = socket;
-  new->listnode = list_add(sched->jobqueue, new, jobqueue_destroy_job);
-  if (unlikely(new->listnode == NULL))
+  if (unlikely(jobqueue_schedule(sched, new, tv) != 0))
     {
       xfree(new);
       return (NULL);
@@ -111,7 +181,6 @@ t_job		*jobqueue_add(struct s_sched *sched,
  * Add a job into a job queue
  *
  * @param sched Pointer to the scheduler to use
- * @param socket Pointer to a socket to which associate the job
  * @param func Pointer to the function to call
  * @param args Pointer to arguments to pass to the function
  * @param msec Number of milliseconds before executing the function
@@ -119,46 +188,14 @@ t_job		*jobqueue_add(struct s_sched *sched,
  * @return Pointer to the created job or NULL if an error occurs
  */
 t_job		*jobqueue_addms(struct s_sched *sched,
-				struct s_socket *socket,
 				t_jobstate (*func)(t_job *job),
 				void *args,
 				const u32 msec)
 {
-  struct timeval	tv;
+  struct timeval	tmp;
 
-  tv.tv_sec = sched->curtime.tv_sec + (msec / 1000) +
-    (sched->curtime.tv_usec + (msec % 1000) * 1000) / 1000000;
-  tv.tv_usec = (sched->curtime.tv_usec + (msec % 1000) * 1000) % 1000000;
-  return (jobqueue_add(sched, socket, func, args, &tv));
-}
-
-/**
- * Reschedule a job to a certain a time.
- *
- * @param sched Pointer to the scheduler to use.
- * @param job Pointer to the job to modify.
- * @param tv New time to set up.
- *
- * @return 0 on success, or -1 if an error occurs.
- */
-int		jobqueue_reschedule(struct s_sched *sched,
-				    t_job *job,
-				    const struct timeval *tv)
-{
-  XDASSERT(sched != NULL, -1);
-  XDASSERT(sched->jobqueue != NULL, -1);
-  XDASSERT(job != NULL, -1);
-
-  job->tv = *tv;
-  if (job->listnode != NULL &&
-      unlikely(list_removenode(sched->jobqueue, job->listnode, FALSE) == FALSE))
-    {
-      return (-1);
-    }
-  job->listnode = list_add(sched->jobqueue, job, jobqueue_destroy_job);
-  if (unlikely(job->listnode == NULL))
-    return (-1);
-  return (0);
+  timeraddms(&sched->curtime, msec, &tmp);
+  return (jobqueue_add(sched, func, args, &tmp));
 }
 
 /**
@@ -169,11 +206,16 @@ int		jobqueue_reschedule(struct s_sched *sched,
  *
  * @return 0 on success, or -1 if an error occurs.
  */
-int		jobqueue_resettime(t_job *job, const struct timeval *tv)
+int		jobqueue_resettime(struct s_sched *sched,
+				   t_job *job,
+				   const struct timeval *tv)
 {
+  XDASSERT(sched != NULL, -1);
   XDASSERT(job != NULL, -1);
+  XDASSERT(tv != NULL, -1);
 
-  job->tv = *tv;
+  job->creatime = sched->curtime;
+  job->exectime = *tv;
   return (0);
 }
 
@@ -185,20 +227,17 @@ int		jobqueue_resettime(t_job *job, const struct timeval *tv)
  *
  * @return 0 on success, or -1 if an error occurs.
  */
-int		jobqueue_resettimems(t_job *job, const u32 msec)
+int		jobqueue_resettimems(struct s_sched *sched,
+				     t_job *job,
+				     const u32 msec)
 {
-  t_sched		*sched;
-  struct timeval	tv;
+  struct timeval	tmp;
 
+  XDASSERT(sched != NULL, -1);
   XDASSERT(job != NULL, -1);
-  XDASSERT(job->socket != NULL, -1);
-  XDASSERT(job->socket->sched != NULL, -1);
 
-  sched = job->socket->sched;
-  tv.tv_sec = sched->curtime.tv_sec + (msec / 1000) +
-    (sched->curtime.tv_usec + (msec % 1000) * 1000) / 1000000;
-  tv.tv_usec = (sched->curtime.tv_usec + (msec % 1000) * 1000) % 1000000;
-  return (jobqueue_resettime(job, &tv));
+  timeraddms(&sched->curtime, msec, &tmp);
+  return (jobqueue_resettime(sched, job, &tmp));
 }
 
 /**
@@ -245,7 +284,7 @@ static t_job	*jobqueue_gethead(struct s_sched *sched)
  *
  * @param sched Pointer to the scheduler to use.
  *
- * @return Return the number of milliseconds before the next job.
+ * @return The number of milliseconds before the next job.
  */
 u32		jobqueue_gettimeout(struct s_sched *sched)
 {
@@ -257,44 +296,50 @@ u32		jobqueue_gettimeout(struct s_sched *sched)
   job = jobqueue_gethead(sched);
   if (job == NULL)
     return (DEFAULT_TIMEOUT);
-  if (sched->curtime.tv_sec > job->tv.tv_sec)
+  if (sched->curtime.tv_sec > job->exectime.tv_sec)
     return (0);
-  if (sched->curtime.tv_sec == job->tv.tv_sec)
-    {
-      if (sched->curtime.tv_usec >= job->tv.tv_usec)
-	return (0);
-      return ((job->tv.tv_usec - sched->curtime.tv_usec > 1000) ?
-      	      ((job->tv.tv_usec - sched->curtime.tv_usec) / 1000) : 1);
-    }
-  return ((job->tv.tv_sec - sched->curtime.tv_sec) * 1000 +
-	  (job->tv.tv_usec - sched->curtime.tv_usec) / 1000);
+  return ((job->exectime.tv_sec - sched->curtime.tv_sec) * 1000 +
+	  (job->exectime.tv_usec - sched->curtime.tv_usec) / 1000);
 }
 
 /**
- * Execute all jobs where ptime <= now.
+ * Execute the first job where ptime <= now.
  *
  * @param sched Pointer to the scheduler to use.
  */
 void		jobqueue_exec(struct s_sched *sched)
 {
   t_job	       	*job;
+  t_jobstate	jobres;
 
   XDASSERTN(sched != NULL);
   XDASSERTN(sched->jobqueue != NULL);
 
   job = jobqueue_gethead(sched);
-  while (job != NULL &&
-	 (sched->curtime.tv_sec > job->tv.tv_sec ||
-	  ((sched->curtime.tv_sec == job->tv.tv_sec) &&
-	   sched->curtime.tv_usec >= job->tv.tv_usec)))
+  if (job != NULL &&
+      timercmp(&sched->curtime, &job->exectime, >=) != 0)
     {
-      job = jobqueue_pop(sched);
-      if (job->func(job) == JOB_DONE ||
-	  jobqueue_reschedule(sched, job, &job->tv) != 0)
+      jobres = job->func(job);
+      /**
+       * job could have been destroyed in the callback.
+       * if job is still available, then extract it from
+       * the queue.
+       */
+      if (jobqueue_gethead(sched) == job)
 	{
-#warning can lead to infinite loop
-	  jobqueue_destroy_job(job);
+	  job = jobqueue_pop(sched);
+	  switch (jobres)
+	    {
+	    case JOB_LOOP:
+	      jobqueue_schedule(sched, job, &sched->curtime);
+	      break;
+	    case JOB_REDO:
+	      jobqueue_reschedule(sched, job);
+	      break;
+	    case JOB_DONE:
+	      jobqueue_destroyjob(job);
+	      break;
+	    }
 	}
-      job = jobqueue_gethead(sched);
     }
 }

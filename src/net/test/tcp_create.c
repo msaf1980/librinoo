@@ -41,7 +41,7 @@ int		main()
 
   sched = sched_create();
   XTEST(sched != NULL);
-  tcpsock = tcp_create(sched, 0, 4242, MODE_TCP_CLIENT, event_fsm);
+  tcpsock = tcp_create(sched, 0, 4242, MODE_TCP_CLIENT, 0, event_fsm);
   XTEST(tcpsock != NULL);
   XTEST(tcpsock->socket.fd != 0);
   XTEST(tcpsock->socket.sched == sched);

@@ -150,7 +150,7 @@ int		main(int argc, char **argv)
     }
   sched = sched_create();
   signal(SIGINT, sig_handler);
-  tcpsock = tcp_create(sched, 0, atoi(argv[1]), MODE_TCP_SERVER, event_fsm);
+  tcpsock = tcp_create(sched, 0, atoi(argv[1]), MODE_TCP_SERVER, 5000, event_fsm);
   if (tcpsock == NULL)
     {
       return (-1);

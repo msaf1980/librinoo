@@ -27,6 +27,12 @@ t_sched		*sched_create()
   sched = xcalloc(1, sizeof(*sched));
   XASSERTSTR(sched != NULL, NULL, "Cannot create a new scheduler");
   sched->poller = &pollers[DEFAULT_POLLER];
+  sched->expirequeue = socket_expirequeue_create();
+  if (sched->expirequeue == NULL)
+    {
+      xfree(sched);
+      XASSERTSTR(0, NULL, "Timeout queue init failed");
+    }
   sched->jobqueue = jobqueue_create();
   if (sched->jobqueue == NULL)
     {
@@ -51,6 +57,7 @@ void		sched_destroy(t_sched *sched)
 {
   XASSERTN(sched != NULL);
 
+  socket_expirequeue_destroy(sched->expirequeue);
   jobqueue_destroy(sched->jobqueue);
   sched->poller->destroy(sched);
   xfree(sched);
@@ -88,15 +95,20 @@ void		sched_stop(t_sched *sched)
  * Insert a socket into the scheduler.
  *
  * @param socket Pointer to the socket to use.
+ * @param timeout Maximum number of milliseconds before raising a timeout.
  * @param mode Polling mode to add in the scheduler for this socket.
  *
  * @return 0 if succeeds, else -1.
  */
-int		sched_insert(t_socket *socket, t_schedevent mode)
+int		sched_insert(t_socket *socket, t_schedevent mode, u32 timeout)
 {
   XDASSERT(socket != NULL, -1);
   XASSERT(socket->fd < SCHED_MAXFDS, -1);
 
+  if (socket_settimeout(socket, timeout) != 0)
+    {
+      return (-1);
+    }
   if (socket->sched->poller->insert(socket, mode) != 0)
     return (-1);
   socket->sched->sock_pool[socket->fd] = socket;
@@ -141,6 +153,7 @@ int		sched_remove(t_socket *socket)
   if (socket->sched->poller->remove(socket) != 0)
     return (-1);
   socket->sched->sock_pool[socket->fd] = NULL;
+  socket_removetimeout(socket);
   return (0);
 }
 
@@ -153,7 +166,7 @@ int		sched_remove(t_socket *socket)
  */
 static int	sched_clock(t_sched *sched)
 {
-  return (gettimeofday(&sched->curtime, NULL));
+  return gettimeofday(&sched->curtime, NULL);
 }
 
 /**
@@ -166,14 +179,24 @@ static int	sched_clock(t_sched *sched)
 int		sched_loop(t_sched *sched)
 {
   int		i;
+  u32		t1;
+  u32		t2;
+  t_socket	*cursocket;
 
   XDASSERT(sched != NULL, -1);
-
+  t1 = socket_gettimeout(sched);
+  t2 = jobqueue_gettimeout(sched);
   while (sched->stop == 0 &&
-	 sched->poller->poll(sched, jobqueue_gettimeout(sched)) == 0)
+	 sched->poller->poll(sched, MIN(t1, t2)) == 0)
     {
       sched_clock(sched);
+      while ((cursocket = socket_getexpired(sched)) != NULL)
+	{
+	  cursocket->event_fsm(cursocket, EVENT_SCHED_TIMEOUT);
+	}
       jobqueue_exec(sched);
+      t1 = socket_gettimeout(sched);
+      t2 = jobqueue_gettimeout(sched);
     }
   /**
    * Now we stop the scheduler. All pending sockets should be destroyed.

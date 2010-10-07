@@ -45,6 +45,7 @@ static int		check_timeout()
       ((tv.tv_sec - lasttv.tv_sec) * 1000 +
        (tv.tv_usec - lasttv.tv_usec) / 1000) > last_timeout + DIFF_TOLERANCE)
     {
+      printf("Job scheduling was too slow (more than %dms)\n", DIFF_TOLERANCE);
       passed = 0;
       sched_stop(sched);
       return (-1);
@@ -55,15 +56,16 @@ static int		check_timeout()
 t_jobstate	job_callback(t_job *job)
 {
   int		counter = PTR_TO_INT(job->args);
+  u32		curtimeout;
 
   if (check_timeout() != 0)
     return JOB_DONE;
-  if (counter == 3)
+  if (counter == 4)
     {
       sched_stop(sched);
       return JOB_DONE;
     }
-  if (counter > 3)
+  if (counter > 4)
     {
       passed = 0;
       sched_stop(sched);
@@ -71,9 +73,23 @@ t_jobstate	job_callback(t_job *job)
     }
   counter++;
   job->args = INT_TO_PTR(counter);
-  set_timeout(100);
-
-  if (jobqueue_resettimems(job, 100) == -1)
+  switch (counter)
+    {
+    case 1:
+      curtimeout = 100;
+      break;
+    case 2:
+      curtimeout = 300;
+      break;
+    case 3:
+      curtimeout = 600;
+      break;
+    case 4:
+      curtimeout = 50;
+      break;
+    }
+  set_timeout(curtimeout);
+  if (jobqueue_resettimems(sched, job, curtimeout) == -1)
     {
       passed = 0;
       sched_stop(sched);
@@ -81,35 +97,11 @@ t_jobstate	job_callback(t_job *job)
   return JOB_REDO;
 }
 
-void		client_event_fsm(t_tcpsocket *unused(tcpsock), t_tcpevent event)
-{
-  switch (event)
-    {
-    case EVENT_TCP_CONNECT:
-    case EVENT_TCP_CLOSE:
-    case EVENT_TCP_IN:
-    case EVENT_TCP_OUT:
-    case EVENT_TCP_ERROR:
-    case EVENT_TCP_TIMEOUT:
-      break;
-    }
-}
-
 void		server_event_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
 {
   switch (event)
     {
     case EVENT_TCP_CONNECT:
-      set_timeout(100);
-      if (jobqueue_addms(sched,
-			 &tcpsock->socket,
-			 job_callback,
-			 NULL,
-			 100) == NULL)
-	{
-	  passed = 0;
-	  sched_stop(sched);
-	}
       break;
     case EVENT_TCP_CLOSE:
       break;
@@ -132,20 +124,22 @@ void		server_event_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
 int		main()
 {
   t_tcpsocket	*stcpsock;
-  t_tcpsocket	*ctcpsock;
   struct timeval	tv1;
   struct timeval	tv2;
 
   sched = sched_create();
   XTEST(sched != NULL);
-  stcpsock = tcp_create(sched, 0, 4242, MODE_TCP_SERVER, server_event_fsm);
+  stcpsock = tcp_create(sched, 0, 4242, MODE_TCP_SERVER, 0, server_event_fsm);
   XTEST(stcpsock != NULL);
-  ctcpsock = tcp_create(sched, 0, 4242, MODE_TCP_CLIENT, client_event_fsm);
-  XTEST(ctcpsock != NULL);
+  set_timeout(100);
+  XTEST(jobqueue_addms(sched,
+		       job_callback,
+		       NULL,
+		       100) != NULL)
   XTEST(gettimeofday(&tv1, NULL) == 0);
   sched_loop(sched);
   XTEST(gettimeofday(&tv2, NULL) == 0);
-  XTEST((tv2.tv_sec - tv1.tv_sec) * 1000 + (tv2.tv_usec - tv1.tv_usec) / 1000 < 500);
+  XTEST((tv2.tv_sec - tv1.tv_sec) * 1000 + (tv2.tv_usec - tv1.tv_usec) / 1000 < 1500);
   sched_destroy(sched);
   if (passed != 1)
     XFAIL();

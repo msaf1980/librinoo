@@ -67,7 +67,7 @@ int		main()
 
   sched = sched_create();
   XTEST(sched != NULL);
-  stcpsock = tcp_create(sched, 0, 4242, MODE_TCP_SERVER, server_event_fsm);
+  stcpsock = tcp_create(sched, 0, 4242, MODE_TCP_SERVER, 0, server_event_fsm);
   XTEST(stcpsock != NULL);
   XTEST(stcpsock->socket.fd != 0);
   XTEST(stcpsock->socket.sched == sched);
@@ -81,7 +81,7 @@ int		main()
   XTEST(stcpsock->mode == MODE_TCP_SERVER);
   XTEST(stcpsock->event_fsm == server_event_fsm);
   XTEST(stcpsock->errorstep == 0);
-  ctcpsock = tcp_create(sched, 0, 4242, MODE_TCP_CLIENT, client_event_fsm);
+  ctcpsock = tcp_create(sched, 0, 4242, MODE_TCP_CLIENT, 0, client_event_fsm);
   XTEST(ctcpsock != NULL);
   XTEST(ctcpsock->socket.fd != 0);
   XTEST(ctcpsock->socket.sched == sched);

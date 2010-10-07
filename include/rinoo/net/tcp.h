@@ -38,10 +38,16 @@ typedef struct	s_tcpsocket
   void		(*event_fsm)(struct s_tcpsocket *tcpsock, t_tcpevent event);
   void		*data;
   t_tcpevent	errorstep;
+  u32		child_timeout;
 }		t_tcpsocket;
 
-t_tcpsocket	*tcp_create(t_sched *sched, t_ip ip, u32 port, t_tcpmode mode,
-			    void (*event_fsm)(t_tcpsocket *tcpsock, t_tcpevent event));
+t_tcpsocket	*tcp_create(t_sched *sched,
+			    t_ip ip,
+			    u32 port,
+			    t_tcpmode mode,
+			    u32 timeout,
+			    void (*event_fsm)(t_tcpsocket *tcpsock,
+					      t_tcpevent event));
 inline void	tcp_destroy(t_tcpsocket *tcpsock);
 int		tcp_print(t_tcpsocket *socket, const char *format, ...);
 int		tcp_printdata(t_tcpsocket *socket, const char *data, size_t size);

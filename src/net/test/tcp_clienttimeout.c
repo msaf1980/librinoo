@@ -1,9 +1,9 @@
 /**
- * @file   tcp_serverinput.c
+ * @file   tcp_clienttimeout.c
  * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2010
  * @date   Wed Dec 30 19:58:33 2009
  *
- * @brief  tcp server input unit test
+ * @brief  tcp client connection unit test
  *
  *
  */
@@ -11,40 +11,45 @@
 
 static int	passed = 1;
 
+t_jobstate	client_cb(t_job *job)
+{
+  static int	counter = 0;
+  t_tcpsocket	*tcpsock;
+
+  tcpsock = job->args;
+  tcp_print(tcpsock, "ping");
+  counter++;
+  if (counter < 5)
+    {
+      return JOB_REDO;
+    }
+  rinoo_log("Engaging client timeout...\n");
+  return JOB_DONE;
+}
+
 void		client_event_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
 {
-  static int	step = 0;
-
   switch (event)
     {
     case EVENT_TCP_CONNECT:
-      printf("Client: connected!\n");
-      tcp_print(tcpsock, "a");
-      break;
-    case EVENT_TCP_OUT:
-      step++;
-      switch (step)
-	{
-	case 1:
-	  tcp_print(tcpsock, "b");
-	  break;
-	case 2:
-	  tcp_print(tcpsock, "c");
-	  break;
-	case 3:
-	  tcp_print(tcpsock, "d");
-	  break;
-	}
-      break;
-    case EVENT_TCP_CLOSE:
-      printf("Client: connection closed.\n");
-      sched_stop(tcpsock->socket.sched);
+      rinoo_log("Client: connected!\n");
+      jobqueue_addms(tcpsock->socket.sched, client_cb, tcpsock, 100);
       break;
     case EVENT_TCP_IN:
+      rinoo_log("Client: received \"%.*s\"\n",
+		buffer_len(tcpsock->socket.rdbuf),
+		tcpsock->socket.rdbuf->buf);
+      buffer_erase(tcpsock->socket.rdbuf, buffer_len(tcpsock->socket.rdbuf));
+      break;
+    case EVENT_TCP_OUT:
+      break;
     case EVENT_TCP_ERROR:
-    case EVENT_TCP_TIMEOUT:
+    case EVENT_TCP_CLOSE:
       passed = 0;
       sched_stop(tcpsock->socket.sched);
+      break;
+    case EVENT_TCP_TIMEOUT:
+      rinoo_log("Client timeout!\n");
       break;
     }
 }
@@ -54,25 +59,29 @@ void		server_event_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
   switch (event)
     {
     case EVENT_TCP_CONNECT:
-      printf("Server: new client connected!\n");
-      break;
-    case EVENT_TCP_IN:
-      printf("Server: input buffer = \"%.*s\"\n",
-	     buffer_len(tcpsock->socket.rdbuf),
-	     buffer_ptr(tcpsock->socket.rdbuf));
-      if (strncmp(buffer_ptr(tcpsock->socket.rdbuf),
-		  "abcd",
-		  buffer_len(tcpsock->socket.rdbuf)) == 0)
-	{
-	  tcp_destroy(tcpsock);
-	}
+      rinoo_log("Server: new client connected!\n");
       break;
     case EVENT_TCP_CLOSE:
-      printf("Server: shuting down...\n");
+      if (tcpsock->mode == MODE_TCP_CLIENT)
+	{
+	  rinoo_log("Server: client connection closed.\n");
+	  sched_stop(tcpsock->socket.sched);
+	}
+      else
+	rinoo_log("Server: shuting down...\n");
+      break;
+    case EVENT_TCP_IN:
+      rinoo_log("Server: received \"%.*s\"\n",
+		buffer_len(tcpsock->socket.rdbuf),
+		tcpsock->socket.rdbuf->buf);
+      buffer_erase(tcpsock->socket.rdbuf, buffer_len(tcpsock->socket.rdbuf));
+      tcp_print(tcpsock, "pong");
       break;
     case EVENT_TCP_OUT:
+      break;
     case EVENT_TCP_ERROR:
     case EVENT_TCP_TIMEOUT:
+      rinoo_log("Server: error or timeout!\n");
       passed = 0;
       sched_stop(tcpsock->socket.sched);
       break;
@@ -90,6 +99,8 @@ int		main()
   t_sched	*sched;
   t_tcpsocket	*stcpsock;
   t_tcpsocket	*ctcpsock;
+  struct timeval	tv1;
+  struct timeval	tv2;
 
   sched = sched_create();
   XTEST(sched != NULL);
@@ -107,7 +118,7 @@ int		main()
   XTEST(stcpsock->mode == MODE_TCP_SERVER);
   XTEST(stcpsock->event_fsm == server_event_fsm);
   XTEST(stcpsock->errorstep == 0);
-  ctcpsock = tcp_create(sched, 0, 4242, MODE_TCP_CLIENT, 0, client_event_fsm);
+  ctcpsock = tcp_create(sched, 0, 4242, MODE_TCP_CLIENT, 500, client_event_fsm);
   XTEST(ctcpsock != NULL);
   XTEST(ctcpsock->socket.fd != 0);
   XTEST(ctcpsock->socket.sched == sched);
@@ -121,7 +132,11 @@ int		main()
   XTEST(ctcpsock->mode == MODE_TCP_CLIENT);
   XTEST(ctcpsock->event_fsm == client_event_fsm);
   XTEST(ctcpsock->errorstep == 0);
+  XTEST(gettimeofday(&tv1, NULL) == 0);
   sched_loop(sched);
+  XTEST(gettimeofday(&tv2, NULL) == 0);
+  XTEST((tv2.tv_sec - tv1.tv_sec) * 1000 + (tv2.tv_usec - tv1.tv_usec) / 1000 >= 1000);
+  XTEST((tv2.tv_sec - tv1.tv_sec) * 1000 + (tv2.tv_usec - tv1.tv_usec) / 1000 < 1200);
   sched_destroy(sched);
   if (passed != 1)
     XFAIL();

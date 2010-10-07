@@ -30,7 +30,7 @@ int		main()
 
   sched = sched_create();
   XTEST(sched != NULL);
-  tcpsock = tcp_create(sched, 0, 42422, MODE_TCP_SERVER, event_fsm);
+  tcpsock = tcp_create(sched, 0, 42422, MODE_TCP_SERVER, 0, event_fsm);
   XTEST(tcpsock != NULL);
   sched_stop(sched);
   XTEST(sched->stop == 1);

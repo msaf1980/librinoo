@@ -214,6 +214,11 @@ int		xepoll_poll(t_sched *sched, u32 timeout)
 	{
 	  cursocket->event_fsm(cursocket, EVENT_SCHED_ERROR);
 	}
+      cursocket = sched_getsocket(sched, data->events[i].data.fd);
+      if (cursocket != NULL)
+	{
+	  socket_resettimeout(cursocket);
+	}
     }
   return (0);
 }
