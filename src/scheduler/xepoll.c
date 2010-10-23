@@ -31,18 +31,19 @@ int		xepoll_init(t_sched *sched)
       xfree(data);
       XASSERT(0, -1);
     }
-  if (sigaddset(&data->sigmask, SIGINT) < 0)
+  /* if (sigaddset(&data->sigmask, SIGINT) < 0) */
+  /*   { */
+  /*     close(data->fd); */
+  /*     xfree(data); */
+  /*     XASSERT(0, -1); */
+  /*   } */
+  if (sigaddset(&data->sigmask, SIGPIPE) < 0)
     {
       close(data->fd);
       xfree(data);
       XASSERT(0, -1);
     }
-/*   if (sigaddset(&data->sigmask, SIGPIPE) < 0) */
-/*     { */
-/*       close(data->fd); */
-/*       xfree(data); */
-/*       XASSERT(0, -1); */
-/*     } */
+  sigaction(SIGPIPE, &(struct sigaction){ .sa_handler = SIG_IGN }, NULL);
   sched->poller_data = data;
   return (0);
 }
@@ -188,7 +189,11 @@ int		xepoll_poll(t_sched *sched, u32 timeout)
 
   data = (t_epolldata *) sched->poller_data;
   nbevents = epoll_pwait(data->fd, data->events, MAX_EVENTS, timeout, &data->sigmask);
-  XASSERT(nbevents != -1, -1);
+  if (unlikely(nbevents == -1))
+    {
+      /* We don't want to raise an error in this case */
+      return (0);
+    }
   for (i = 0; i < nbevents; i++)
     {
       cursocket = sched_getsocket(sched, data->events[i].data.fd);

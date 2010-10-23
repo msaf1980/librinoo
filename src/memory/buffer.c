@@ -53,14 +53,15 @@ void		buffer_destroy(t_buffer *buf)
 }
 
 /**
- * Extends a buffer. It trys to add BUFFER_INCREMENT memory.
+ * Extends a buffer. It trys to add 'size' + BUFFER_INCREMENT of memory.
  * This function fails if the buffer maximum size is reached.
  *
  * @param buf Pointer to the buffer to extend.
+ * @param size New desired size.
  *
  * @return 1 if succeeds, 0 if the maximum size is reached, -1 on error.
  */
-int		buffer_extend(t_buffer *buf)
+int		buffer_extend(t_buffer *buf, size_t size)
 {
   int		newsize;
   void		*newbuf;
@@ -70,9 +71,13 @@ int		buffer_extend(t_buffer *buf)
 
   if (buf->size == buf->max_size)
     return (0);
-  newsize = (buf->size + BUFFER_INCREMENT > buf->max_size) ? buf->max_size : buf->size + BUFFER_INCREMENT;
+  size = (size > BUFFER_INCREMENT ?
+	  size + BUFFER_INCREMENT : BUFFER_INCREMENT);
+  newsize = (buf->size + size > buf->max_size ?
+	     buf->max_size : buf->size + size);
   newbuf = xrealloc(buf->buf, newsize);
-  if (newbuf == NULL) /* if realloc fails, buf->buf is untouched, we'll keep it */
+ /* if realloc fails, buf->buf is untouched, we'll keep it */
+  if (newbuf == NULL)
     XASSERT(0, -1);
   buf->buf = newbuf;
   buf->size = newsize;
@@ -103,7 +108,7 @@ int		buffer_vprint(t_buffer *buf, const char *format, va_list ap)
   while (((u32)(res = vsnprintf(buf->buf + buf->len,
 				buf->size - buf->len,
 				format, ap2)) >= buf->size - buf->len) &&
-	 buffer_extend(buf) == 1)
+	 buffer_extend(buf, res) == 1)
     {
       va_end(ap2);
       va_copy(ap2, ap);
@@ -129,7 +134,7 @@ int		buffer_add(t_buffer *buf, const char *data, size_t size)
   XDASSERT(buf->buf != NULL, -1);
   XDASSERT(data != NULL, -1);
 
-  if (size + buf->len > buf->size && buffer_extend(buf) != 1)
+  if (size + buf->len > buf->size && buffer_extend(buf, size + buf->len) != 1)
     return (-1);
   memcpy(buf->buf + buf->len, data, size);
   buf->len += size;

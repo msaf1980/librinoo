@@ -111,7 +111,7 @@ void		event_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
       switch (httpserver_read(tcpsock->socket.rdbuf, &uri))
 	{
 	case 1:
-	  printf("httpd - URI: %.*s\n", uri.len, uri.buf);
+	  rinoo_log("httpd - URI: %.*s", uri.len, uri.buf);
 	  httpserver_ok(tcpsock, &uri);
 	  break;
 	case 0:

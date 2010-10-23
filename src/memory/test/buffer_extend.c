@@ -26,7 +26,7 @@ int		main()
   XTEST(buf->len == 0);
   XTEST(buf->size == 10);
   XTEST(buf->max_size == 42);
-  XTEST(buffer_extend(buf) == 1);
+  XTEST(buffer_extend(buf, 0) == 1);
   XTEST(buf != NULL);
   XTEST(buf->buf != NULL);
   XTEST(buf->len == 0);

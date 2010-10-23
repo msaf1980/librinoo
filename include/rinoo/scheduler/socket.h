@@ -43,5 +43,6 @@ int		socket_resettimeout(t_socket *socket);
 void		socket_removetimeout(t_socket *socket);
 u32		socket_gettimeout(t_sched *sched);
 t_socket	*socket_getexpired(t_sched *sched);
+void		socket_flush(t_socket *socket);
 
 #endif		/* !RINOO_SOCKET_H_ */

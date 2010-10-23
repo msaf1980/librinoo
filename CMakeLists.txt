@@ -1,9 +1,13 @@
 cmake_minimum_required(VERSION 2.6)
 project(rinoo)
+
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "1")
-set(VERSION_PATCH "1")
+set(VERSION_PATCH "3")
 set(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
+
+include(CMakeForceCompiler)
+cmake_force_c_compiler(clang 0)
 
 list(APPEND common_flags "-W")
 list(APPEND common_flags "-Wall")
@@ -45,7 +49,9 @@ foreach (loop_var ${tmp_src_files})
   endif (NOT loop_var MATCHES "test/.*\\.c")
 endforeach (loop_var)
 
+add_library(${CMAKE_PROJECT_NAME}_static STATIC ${src_files})
 add_library(${CMAKE_PROJECT_NAME} SHARED ${src_files})
+
 target_link_libraries("${CMAKE_PROJECT_NAME}")
 ## !Library ##
 
@@ -102,7 +108,11 @@ set(CPACK_SOURCE_GENERATOR "TGZ;TBZ2;DEB")
 
 include(CPack)
 
-install(TARGETS ${CMAKE_PROJECT_NAME} LIBRARY DESTINATION lib)
+install(TARGETS
+  ${CMAKE_PROJECT_NAME}
+  ${CMAKE_PROJECT_NAME}_static
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib)
 install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/rinoo" DESTINATION include)
 
 ## !Packaging ##

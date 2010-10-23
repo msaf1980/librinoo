@@ -51,7 +51,6 @@ t_tcpsocket	*tcp_create(t_sched *sched,
 inline void	tcp_destroy(t_tcpsocket *tcpsock);
 int		tcp_print(t_tcpsocket *socket, const char *format, ...);
 int		tcp_printdata(t_tcpsocket *socket, const char *data, size_t size);
-
 inline t_tcpsocket	*tcp_getparent(t_tcpsocket *tcpsock);
 
 #endif		/* !RINOO_TCP_H_ */

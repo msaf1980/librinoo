@@ -14,6 +14,7 @@
 #define		_GNU_SOURCE
 
 # include	<time.h>
+# include	<ctype.h>
 # include	<stdio.h>
 # include	<fcntl.h>
 # include	<errno.h>

@@ -23,7 +23,7 @@ t_jobstate	client_cb(t_job *job)
     {
       return JOB_REDO;
     }
-  rinoo_log("Engaging client timeout...\n");
+  rinoo_log("Engaging client timeout...");
   return JOB_DONE;
 }
 
@@ -32,11 +32,11 @@ void		client_event_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
   switch (event)
     {
     case EVENT_TCP_CONNECT:
-      rinoo_log("Client: connected!\n");
+      rinoo_log("Client: connected!");
       jobqueue_addms(tcpsock->socket.sched, client_cb, tcpsock, 100);
       break;
     case EVENT_TCP_IN:
-      rinoo_log("Client: received \"%.*s\"\n",
+      rinoo_log("Client: received \"%.*s\"",
 		buffer_len(tcpsock->socket.rdbuf),
 		tcpsock->socket.rdbuf->buf);
       buffer_erase(tcpsock->socket.rdbuf, buffer_len(tcpsock->socket.rdbuf));
@@ -49,7 +49,7 @@ void		client_event_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
       sched_stop(tcpsock->socket.sched);
       break;
     case EVENT_TCP_TIMEOUT:
-      rinoo_log("Client timeout!\n");
+      rinoo_log("Client timeout!");
       break;
     }
 }
@@ -59,19 +59,19 @@ void		server_event_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
   switch (event)
     {
     case EVENT_TCP_CONNECT:
-      rinoo_log("Server: new client connected!\n");
+      rinoo_log("Server: new client connected!");
       break;
     case EVENT_TCP_CLOSE:
       if (tcpsock->mode == MODE_TCP_CLIENT)
 	{
-	  rinoo_log("Server: client connection closed.\n");
+	  rinoo_log("Server: client connection closed.");
 	  sched_stop(tcpsock->socket.sched);
 	}
       else
-	rinoo_log("Server: shuting down...\n");
+	rinoo_log("Server: shuting down...");
       break;
     case EVENT_TCP_IN:
-      rinoo_log("Server: received \"%.*s\"\n",
+      rinoo_log("Server: received \"%.*s\"",
 		buffer_len(tcpsock->socket.rdbuf),
 		tcpsock->socket.rdbuf->buf);
       buffer_erase(tcpsock->socket.rdbuf, buffer_len(tcpsock->socket.rdbuf));
@@ -81,7 +81,7 @@ void		server_event_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
       break;
     case EVENT_TCP_ERROR:
     case EVENT_TCP_TIMEOUT:
-      rinoo_log("Server: error or timeout!\n");
+      rinoo_log("Server: error or timeout!");
       passed = 0;
       sched_stop(tcpsock->socket.sched);
       break;

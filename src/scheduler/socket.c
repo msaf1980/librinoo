@@ -179,3 +179,15 @@ t_socket	*socket_getexpired(t_sched *sched)
     }
   return NULL;
 }
+
+/**
+ * Calls the socket event_fsm to force writing current buffer.
+ *
+ * @param socket Pointer to the socket to use.
+ */
+void		socket_flush(t_socket *socket)
+{
+  XDASSERTN(socket != NULL);
+
+  socket->event_fsm(socket, EVENT_SCHED_OUT);
+}

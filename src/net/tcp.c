@@ -337,7 +337,7 @@ static void	tcp_fsm(t_socket *socket, t_schedevent event)
 	}
       buffer_setlen(socket->rdbuf, buffer_len(socket->rdbuf) + res);
       if (buffer_isfull(socket->rdbuf))
-	buffer_extend(socket->rdbuf);
+	buffer_extend(socket->rdbuf, 0);
       tcpsock->event_fsm(tcpsock, EVENT_TCP_IN);
       break;
     case EVENT_SCHED_OUT:
