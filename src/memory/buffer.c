@@ -159,7 +159,10 @@ int		buffer_erase(t_buffer *buf, u32 len)
     {
       if (len > buf->len)
 	len = buf->len;
-      memmove(buf->buf, buf->buf + len, buf->size - len);
+      if (len < buf->len)
+	{
+	  memmove(buf->buf, buf->buf + len, buf->size - len);
+	}
       bzero(buf->buf + (buf->size - len), len);
       buf->len -= len;
       return (1);

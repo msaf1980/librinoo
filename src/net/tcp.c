@@ -419,13 +419,25 @@ int		tcp_printdata(t_tcpsocket *tcpsock, const char *data, size_t size)
 }
 
 /**
+ * This function says if a tcp socket is set to server mode or not.
+ *
+ * @param tcpsock Pointer to the socket to check.
+ *
+ * @return A non-zero value if tcpsock is a server socket, otherwise 0.
+ */
+int		tcp_isserver(t_tcpsocket *tcpsock)
+{
+  return (tcpsock->mode == MODE_TCP_SERVER);
+}
+
+/**
  * For tcp servers only, this returns the main socket of a child socket.
  *
  * @param tcpsock Pointer to the child socket.
  *
  * @return Pointer to the main server socket.
  */
-inline t_tcpsocket	*tcp_getparent(t_tcpsocket *tcpsock)
+t_tcpsocket	*tcp_getparent(t_tcpsocket *tcpsock)
 {
   XDASSERT(tcpsock != NULL, NULL);
 
@@ -436,5 +448,5 @@ inline t_tcpsocket	*tcp_getparent(t_tcpsocket *tcpsock)
       return (NULL);
     }
 
-  return ((t_tcpsocket *) tcpsock->socket.parent);
+  return ((t_tcpsocket *) tcpsock->socket.parent->data);
 }

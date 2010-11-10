@@ -13,5 +13,6 @@
 
 # include	"rinoo/debug/xassert.h"
 # include	"rinoo/debug/test.h"
+# include	"rinoo/debug/backtrace.h"
 
 #endif		/* !RINOO_MODULE_DEBUG_H_ */

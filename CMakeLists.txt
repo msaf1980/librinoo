@@ -3,7 +3,7 @@ project(rinoo)
 
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "1")
-set(VERSION_PATCH "3")
+set(VERSION_PATCH "4")
 set(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
 include(CMakeForceCompiler)
@@ -114,5 +114,5 @@ install(TARGETS
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib)
 install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/rinoo" DESTINATION include)
-
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/backtrace.gdb" DESTINATION include/rinoo)
 ## !Packaging ##
