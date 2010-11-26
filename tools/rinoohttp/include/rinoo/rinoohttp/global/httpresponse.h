@@ -1,6 +1,6 @@
 /**
  * @file   httpresponse.h
- * @author Reginald <reginald.l@gmail.com>
+ * @author Reginald <reginald.l@gmail.com> - Copyright 2010
  * @date   Mon Oct 25 18:05:40 2010
  *
  * @brief  Header file which describes http response structures

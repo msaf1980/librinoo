@@ -1,6 +1,6 @@
 /**
  * @file   http.h
- * @author Reginald <reginald.l@gmail.com>
+ * @author Reginald <reginald.l@gmail.com> - Copyright 2010
  * @date   Mon Oct 25 18:01:12 2010
  *
  * @brief  Header file which describes global http structures

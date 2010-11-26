@@ -1,6 +1,6 @@
 /**
  * @file   smtpclient_read.c
- * @author Reginald <reginald.l@gmail.com>
+ * @author Reginald <reginald.l@gmail.com> - Copyright 2010
  * @date   Wed Nov 24 16:20:09 2010
  *
  * @brief  SMTP client read functions

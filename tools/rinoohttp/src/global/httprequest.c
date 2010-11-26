@@ -1,6 +1,6 @@
 /**
  * @file   httprequest.c
- * @author Reginald <reginald.l@gmail.com>
+ * @author Reginald <reginald.l@gmail.com> - Copyright 2010
  * @date   Wed Nov 10 15:42:36 2010
  *
  * @brief  HTTP request functions

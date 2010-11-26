@@ -1,6 +1,6 @@
 /**
  * @file   httpresponse.c
- * @author Reginald <reginald.l@gmail.com>
+ * @author Reginald <reginald.l@gmail.com> - Copyright 2010
  * @date   Fri Nov 19 12:49:12 2010
  *
  * @brief  HTTP response functions

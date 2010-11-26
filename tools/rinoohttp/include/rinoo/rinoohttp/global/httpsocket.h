@@ -1,6 +1,6 @@
 /**
  * @file   httpsocket.h
- * @author Reginald <reginald.l@gmail.com>
+ * @author Reginald <reginald.l@gmail.com> - Copyright 2010
  * @date   Tue Oct 26 08:28:48 2010
  *
  * @brief  Header file for http socket declarations.
