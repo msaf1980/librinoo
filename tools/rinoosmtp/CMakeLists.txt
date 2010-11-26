@@ -1,9 +1,8 @@
 cmake_minimum_required(VERSION 2.6)
-project(rinoo)
-
+project(rinoosmtp)
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "1")
-set(VERSION_PATCH "5")
+set(VERSION_PATCH "0")
 set(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
 include(CMakeForceCompiler)
@@ -32,6 +31,21 @@ check_poller(poll HAS_POLL)
 check_poller(select HAS_SELECT)
 ## !Dependencies ##
 
+## Ragel - compile Ragel files ##
+find_program(cmd_ragel ragel)
+if (NOT EXISTS ${cmd_ragel})
+  message(FATAL_ERROR "Ragel is not installed!")
+endif (NOT EXISTS ${cmd_ragel})
+file(GLOB_RECURSE ragel_files "src/*.rl")
+foreach (loop_var ${ragel_files})
+  message("Ragel file found: ${loop_var}")
+  execute_process(COMMAND ${cmd_ragel} "${loop_var}" OUTPUT_VARIABLE ragel_out ERROR_VARIABLE ragel_err)
+  if (NOT ${ragel_err} STREQUAL "")
+    message(FATAL_ERROR "${ragel_err}")
+  endif (NOT ${ragel_err} STREQUAL "")
+endforeach(loop_var)
+## !Ragel ##
+
 add_definitions(${common_flags})
 include_directories(include)
 
@@ -51,8 +65,6 @@ endforeach (loop_var)
 
 add_library(${CMAKE_PROJECT_NAME}_static STATIC ${src_files})
 add_library(${CMAKE_PROJECT_NAME} SHARED ${src_files})
-
-target_link_libraries("${CMAKE_PROJECT_NAME}")
 ## !Library ##
 
 
@@ -90,7 +102,7 @@ execute_process(COMMAND "uname" "-m" OUTPUT_VARIABLE MACHINE)
 string(REPLACE "\n" "" MACHINE "${MACHINE}")
 set(CPACK_SYSTEM_NAME ${CMAKE_SYSTEM_NAME}-${MACHINE})
 
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "rinoo library")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "rinoo smtp client")
 set(CPACK_PACKAGE_VENDOR "NoX")
 set(CPACK_PACKAGE_CONTACT "nox@puffy.fr")
 set(CPACK_PACKAGE_NAME lib${CMAKE_PROJECT_NAME})
@@ -100,11 +112,13 @@ set(CPACK_PACKAGE_VERSION_MAJOR ${VERSION_MAJOR})
 set(CPACK_PACKAGE_VERSION_MINOR ${VERSION_MINOR})
 set(CPACK_PACKAGE_VERSION_PATCH ${VERSION_PATCH})
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "/usr/lib/")
+#set(CPACK_PACKAGING_INSTALL_PREFIX "/usr")
+#set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${CMAKE_CURRENT_SOURCE_DIR}/preinst;${CMAKE_CURRENT_SOURCE_DIR}/postinst")
 set(CPACK_GENERATOR "DEB")
 
-set(CPACK_SOURCE_IGNORE_FILES "/\\\\.git/;\\\\.#.*;#.*#;.*~;CMakeFiles;_CPack_Packages;.*\\\\.cmake;install_manifest.txt;CMakeCache.txt;${CMAKE_PACKAGE_NAME}.*\\\\.(tar\\\\.gz|tar\\\\.bz2|deb);Makefile;")
+set(CPACK_SOURCE_IGNORE_FILES "/\\\\.git/;\\\\.#;/#;.*~;CMakeFiles;_CPack_Packages;.*\\\\.cmake;install_manifest.txt;CMakeCache.txt;${CMAKE_PACKAGE_NAME}.*\\\\.(tar\\\\.gz|tar\\\\.bz2|deb);Makefile;")
 set(CPACK_SOURCE_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${VERSION}")
-set(CPACK_SOURCE_GENERATOR "TGZ;TBZ2;DEB")
+set(CPACK_SOURCE_GENERATOR "TGZ;TBZ2")
 
 include(CPack)
 
@@ -113,6 +127,7 @@ install(TARGETS
   ${CMAKE_PROJECT_NAME}_static
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib)
-install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/rinoo" DESTINATION include)
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/backtrace.gdb" DESTINATION include/rinoo)
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/rinoo/rinoosmtp" DESTINATION include/rinoo)
+install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/include/rinoo/rinoosmtp.h" DESTINATION include/rinoo)
+
 ## !Packaging ##

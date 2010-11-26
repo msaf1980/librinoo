@@ -243,3 +243,33 @@ void		*list_gethead(t_list *list)
     return (NULL);
   return (list->head->node);
 }
+
+/**
+ * Gets next element of a list. This element will be stored in
+ * a list iterator to easily access to the next element in the
+ * next call.
+ *
+ * @param list Pointer to the list to use.
+ * @param iterator Pointer to a list iterator where to store the current element.
+ *
+ * @return A pointer to the current element or NULL if the end is reached.
+ */
+void		*list_getnext(t_list *list, t_listiterator *iterator)
+{
+  XDASSERT(list != NULL, NULL);
+  XDASSERT(iterator != NULL, NULL);
+
+  if (unlikely(*iterator == NULL))
+    {
+      *iterator = list->head;
+    }
+  else
+    {
+      *iterator = (*iterator)->next;
+      if (unlikely(*iterator == NULL))
+	{
+	  return NULL;
+	}
+    }
+  return (*iterator)->node;
+}

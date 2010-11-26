@@ -27,6 +27,8 @@ typedef struct	s_list
   int		(*cmp_func)(void *node1, void *node2);
 }		t_list;
 
+typedef t_listnode	*t_listiterator;
+
 t_list		*list_create(int (*cmp_func)(void *node1, void *node2));
 void		list_destroy(void *ptr);
 t_listnode	*list_add(t_list *list,
@@ -37,5 +39,6 @@ int		list_remove(t_list *list, void *node, u32 needfree);
 void		*list_find(t_list *list, void *node);
 void		*list_pophead(t_list *list);
 void		*list_gethead(t_list *list);
+void		*list_getnext(t_list *list, t_listiterator *iterator);
 
 #endif		/* !RINOO_LIST_H_ */

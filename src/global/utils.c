@@ -57,7 +57,7 @@ void		rinoo_log(const char *format, ...)
   va_start(ap, format);
   res = vsnprintf(logline, 2048, format, ap);
   va_end(ap);
-  res = (res > sizeof(logline) ? sizeof(logline) : res);
+  res = (res > sizeof(logline) ? sizeof(logline) - 1 : res);
   for (i = 0; i < res; i++)
     {
       switch (logline[i])
