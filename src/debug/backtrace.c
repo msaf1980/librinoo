@@ -33,7 +33,7 @@ void	rinoo_generate_backtrace(int signum)
 	   getpid(),
 	   backtrace_file);
   system(gdbcmd);
-  signal(signum,SIG_DFL);
+  signal(signum, SIG_DFL);
   raise(signum);
 }
 

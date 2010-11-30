@@ -11,8 +11,6 @@
 #ifndef		RINOO_BACKTRACE_H_
 # define	RINOO_BACKTRACE_H_
 
-struct	s_sched;
-
-void	rinoo_enable_backtrace(struct s_sched *sched);
+void	rinoo_enable_backtrace();
 
 #endif		/* !RINOO_BACKTRACE_H_ */
