@@ -1,6 +1,6 @@
 /**
  * @file   module.h
- * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
  * @date   Wed Dec 30 17:04:54 2009
  *
  * @brief  Header file for the net module.

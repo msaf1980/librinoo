@@ -1,6 +1,6 @@
 /**
  * @file   smtpsocket.c
- * @author Reginald <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
  * @date   Wed Nov 24 16:08:09 2010
  *
  * @brief  Functions to create and manage SMTP sockets.

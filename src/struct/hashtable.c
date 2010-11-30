@@ -1,6 +1,6 @@
 /**
  * @file   hashtable.c
- * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
  * @date   Wed Apr 28 14:42:05 2010
  *
  * @brief  Functions to manage hash table structures.

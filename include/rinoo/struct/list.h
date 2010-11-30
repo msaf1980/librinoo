@@ -1,6 +1,6 @@
 /**
  * @file   list.h
- * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
  * @date   Tue Apr 27 10:17:48 2010
  *
  * @brief  Header file for list functions declarations.

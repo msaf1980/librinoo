@@ -1,6 +1,6 @@
 /**
  * @file   hashtable.h
- * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
  * @date   Wed Apr 28 14:43:14 2010
  *
  * @brief  Header file for hash table functions declarations.

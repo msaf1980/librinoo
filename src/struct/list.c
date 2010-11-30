@@ -1,6 +1,6 @@
 /**
  * @file   list.c
- * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
  * @date   Tue Apr 27 10:16:26 2010
  *
  * @brief  Functions to manage linked list structures.

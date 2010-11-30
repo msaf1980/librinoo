@@ -1,6 +1,6 @@
 /**
  * @file   httpsocket.c
- * @author Reginald <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
  * @date   Tue Oct 26 21:20:23 2010
  *
  * @brief  Functions to create and manage http sockets

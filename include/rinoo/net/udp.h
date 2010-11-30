@@ -1,6 +1,6 @@
 /**
  * @file   udp.h
- * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
  * @date   Wed Dec 30 17:05:32 2009
  *
  * @brief  Header file for udp functions declarations.

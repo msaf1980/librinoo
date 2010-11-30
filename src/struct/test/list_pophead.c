@@ -1,6 +1,6 @@
 /**
  * @file   list_pophead.c
- * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
  * @date   Tue May 11 10:02:07 2010
  *
  * @brief  list_pophead unit test

@@ -1,6 +1,6 @@
 /**
  * @file   xepoll.c
- * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
  * @date   Mon Dec 28 01:27:39 2009
  *
  * @brief  This file manages calls to epoll.

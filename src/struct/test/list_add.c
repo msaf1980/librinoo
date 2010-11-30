@@ -1,6 +1,6 @@
 /**
  * @file   list_add.c
- * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
  * @date   Wed Apr 28 16:42:20 2010
  *
  * @brief  list_add unit test

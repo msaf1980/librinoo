@@ -1,6 +1,6 @@
 /**
  * @file   poller.c
- * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
  * @date   Mon Dec 28 02:37:33 2009
  *
  * @brief  This file describes a poller API which is an abstraction of select/epoll/poll...

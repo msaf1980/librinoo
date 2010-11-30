@@ -1,6 +1,6 @@
 /**
  * @file   smtpclient.c
- * @author Reginald <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
  * @date   Wed Nov 24 21:50:44 2010
  *
  * @brief  RiNOO SMTP Client

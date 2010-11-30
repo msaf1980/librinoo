@@ -1,6 +1,6 @@
 /**
  * @file   xepoll.h
- * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
  * @date   Mon Dec 28 02:41:48 2009
  *
  * @brief  Header file for the epoll functions declarations.

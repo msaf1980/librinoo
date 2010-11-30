@@ -1,6 +1,6 @@
 /**
  * @file   httpserver.c
- * @author Reginald <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
  * @date   Wed Nov 10 14:41:50 2010
  *
  * @brief  RinOO HTTP server library

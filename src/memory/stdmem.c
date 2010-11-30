@@ -1,6 +1,6 @@
 /**
  * @file   stdmem.c
- * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
  * @date   Mon Oct 26 13:04:23 2009
  *
  * @brief  Contains functions to allocate and free memory

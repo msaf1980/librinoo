@@ -1,6 +1,6 @@
 /**
  * @file   xselect.c
- * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
  * @date   Wed Jan 27 11:36:30 2010
  *
  * @brief  This file manages calls to select.

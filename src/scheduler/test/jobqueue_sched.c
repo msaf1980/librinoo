@@ -1,6 +1,6 @@
 /**
  * @file   jobqueue_sched.c
- * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
  * @date   Mon May 10 15:32:30 2010
  *
  * @brief  jobqueue scheduling unit test

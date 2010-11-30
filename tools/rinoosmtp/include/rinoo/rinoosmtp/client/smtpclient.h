@@ -1,6 +1,6 @@
 /**
  * @file   smtpclient.h
- * @author Reginald <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
  * @date   Thu Nov 25 14:44:48 2010
  *
  * @brief  Header file for SMTP client function declarations.

@@ -1,6 +1,6 @@
 /**
  * @file   module.h
- * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
  * @date   Tue Dec 15 02:19:17 2009
  *
  * @brief  Header file for memory module

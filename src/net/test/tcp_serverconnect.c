@@ -1,6 +1,6 @@
 /**
  * @file   tcp_serverconnect.c
- * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
  * @date   Wed Dec 30 19:58:33 2009
  *
  * @brief  tcp server connection unit test

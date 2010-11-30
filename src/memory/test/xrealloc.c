@@ -1,6 +1,6 @@
 /**
  * @file   xrealloc.c
- * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
  * @date   Thu Jan 21 18:18:54 2010
  *
  * @brief  xrealloc unit test

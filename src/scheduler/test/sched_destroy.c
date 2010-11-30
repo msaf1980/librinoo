@@ -1,9 +1,9 @@
 /**
- * @file   sched_stop.c
+ * @file   sched_destroy.c
  * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
- * @date   Sun Jan  3 16:02:21 2010
+ * @date   Tue Nov 30 13:57:00 2010
  *
- * @brief  Test file for sched_stop function
+ * @brief  Test file for sched_destroy function
  *
  *
  */
@@ -15,7 +15,7 @@ void		event_fsm(t_tcpsocket *unused(tcpsock),
 }
 
 /**
- * This test will check if a scheduler stops correctly.
+ * This test will check if a scheduler is destroyed correctly.
  *
  * @return 0 if test passed
  */
@@ -28,10 +28,6 @@ int		main()
   XTEST(sched != NULL);
   tcpsock = tcp_create(sched, 0, 42422, MODE_TCP_SERVER, 0, event_fsm);
   XTEST(tcpsock != NULL);
-  sched_stop(sched);
-  XTEST(sched->stop == 1);
-  /* sched_loop should leave immadiately */
-  sched_loop(sched);
   sched_destroy(sched);
   XPASS();
 }

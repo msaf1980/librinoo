@@ -1,6 +1,6 @@
 /**
  * @file   tcp.c
- * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
  * @date   Mon Dec 28 22:29:31 2009
  *
  * @brief  Manages a TCP connection based on asynchronous event system as epoll.

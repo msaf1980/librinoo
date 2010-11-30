@@ -1,6 +1,6 @@
 /**
  * @file   stdmem.h
- * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
  * @date   Mon Oct 26 13:39:56 2009
  *
  * @brief  Header file for stdmem function declarations

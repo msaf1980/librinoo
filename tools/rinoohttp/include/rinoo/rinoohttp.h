@@ -1,6 +1,6 @@
 /**
  * @file   rinoohttp.h
- * @author Reginald <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
  * @date   Mon Oct 25 18:09:32 2010
  *
  * @brief  Global header file which includes all modules for HTTP.

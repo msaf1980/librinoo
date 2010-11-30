@@ -1,6 +1,6 @@
 /**
  * @file   sched_addmode.c
- * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
  * @date   Sun Jan  3 16:06:23 2010
  *
  * @brief  Test file for sched_addmode function.

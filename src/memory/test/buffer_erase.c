@@ -1,6 +1,6 @@
 /**
  * @file   buffer_erase.c
- * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
  * @date   Thu Jan 21 18:27:58 2010
  *
  * @brief  buffer_erase unit test

@@ -1,6 +1,6 @@
 /**
  * @file   jobqueue.h
- * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
  * @date   Wed Apr 28 19:38:24 2010
  *
  * @brief  Header file for the job queue function declarations.

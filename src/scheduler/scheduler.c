@@ -1,6 +1,6 @@
 /**
  * @file   scheduler.c
- * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
  * @date   Tue Dec 22 17:30:27 2009
  *
  * @brief  Functions to manage a scheduler.
@@ -55,8 +55,21 @@ t_sched		*sched_create()
  */
 void		sched_destroy(t_sched *sched)
 {
+  int		i;
+
   XASSERTN(sched != NULL);
 
+  /**
+   * Destroying all pending sockets.
+   */
+  for (i = 0; i < SCHED_MAXFDS; i++)
+    {
+      if (sched->sock_pool[i] != NULL)
+	{
+	  sched->sock_pool[i]->event_fsm(sched->sock_pool[i],
+					 EVENT_SCHED_STOP);
+	}
+    }
   socket_expirequeue_destroy(sched->expirequeue);
   jobqueue_destroy(sched->jobqueue);
   sched->poller->destroy(sched);
@@ -178,7 +191,6 @@ static int	sched_clock(t_sched *sched)
  */
 int		sched_loop(t_sched *sched)
 {
-  int		i;
   u32		t1;
   u32		t2;
   t_socket	*cursocket;
@@ -197,14 +209,6 @@ int		sched_loop(t_sched *sched)
       jobqueue_exec(sched);
       t1 = socket_gettimeout(sched);
       t2 = jobqueue_gettimeout(sched);
-    }
-  /**
-   * Now we stop the scheduler. All pending sockets should be destroyed.
-   */
-  for (i = 0; i < SCHED_MAXFDS; i++)
-    {
-      if (sched->sock_pool[i] != NULL)
-	sched->sock_pool[i]->event_fsm(sched->sock_pool[i], EVENT_SCHED_STOP);
     }
   return (0);
 }

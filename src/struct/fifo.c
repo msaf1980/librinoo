@@ -1,6 +1,6 @@
 /**
  * @file   fifo.c
- * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
  * @date   Fri Jan 29 15:00:41 2010
  *
  * @brief  Functions to manage fifo list structures.

@@ -1,6 +1,6 @@
 /**
  * @file   httprequest.h
- * @author Reginald <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
  * @date   Mon Oct 25 17:48:47 2010
  *
  * @brief  Header file which describes http request structures

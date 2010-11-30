@@ -1,6 +1,6 @@
 /**
  * @file   daemon.c
- * @author Reginald <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
  * @date   Wed Nov 10 14:58:24 2010
  *
  * @brief  HTTP server daemon for test purpose.
