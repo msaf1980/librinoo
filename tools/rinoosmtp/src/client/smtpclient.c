@@ -19,19 +19,19 @@ t_smtpsocket	*smtpclient_create(t_sched *sched,
 				   void (*event_fsm)(t_smtpsocket *smtpsock,
 						     t_smtpevent event))
 {
-  t_tcpsocket	*servsock;
+  t_tcpsocket	*tcpsock;
   t_smtpsocket	*smtpsock;
 
   XDASSERT(sched != NULL, NULL);
 
-  servsock = tcp_create(sched,
-			ip,
-			port,
-			MODE_TCP_CLIENT,
-			timeout,
-			smtpclient_fsm);
-  XASSERT(servsock != NULL, NULL);
-  smtpsock = smtpsocket_create(servsock, event_fsm);
+  tcpsock = tcp_create(sched,
+		       ip,
+		       port,
+		       MODE_TCP_CLIENT,
+		       timeout,
+		       smtpclient_fsm);
+  XASSERT(tcpsock != NULL, NULL);
+  smtpsock = smtpsocket_create(tcpsock, event_fsm);
   XASSERT(smtpsock != NULL, NULL);
   return smtpsock;
 }
