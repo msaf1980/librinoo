@@ -1,6 +1,6 @@
 /**
  * @file   poller.h
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
  * @date   Mon Dec 28 02:33:18 2009
  *
  * @brief  Header file which defines a poller.

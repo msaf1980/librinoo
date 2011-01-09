@@ -1,6 +1,6 @@
 /**
  * @file   rinoo.h
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
  * @date   Tue Dec 22 17:29:14 2009
  *
  * @brief  This is the global header file.

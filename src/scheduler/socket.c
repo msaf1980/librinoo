@@ -1,6 +1,6 @@
 /**
  * @file   socket.c
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
  * @date   Wed Dec 30 17:25:49 2009
  *
  * @brief  All functions needed to manage sockets.

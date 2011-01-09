@@ -1,6 +1,6 @@
 /**
  * @file   sched_destroy.c
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
  * @date   Tue Nov 30 13:57:00 2010
  *
  * @brief  Test file for sched_destroy function

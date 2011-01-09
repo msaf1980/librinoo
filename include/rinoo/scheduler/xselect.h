@@ -1,6 +1,6 @@
 /**
  * @file   xselect.h
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
  * @date   Wed Jan 27 11:38:57 2010
  *
  * @brief  Header file for the select functions declarations.

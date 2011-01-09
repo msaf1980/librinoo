@@ -1,6 +1,6 @@
 /**
  * @file   scheduler.c
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
  * @date   Tue Dec 22 17:30:27 2009
  *
  * @brief  Functions to manage a scheduler.

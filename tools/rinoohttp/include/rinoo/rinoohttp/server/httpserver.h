@@ -1,6 +1,6 @@
 /**
  * @file   httpserver.h
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
  * @date   Tue Oct 26 21:48:01 2010
  *
  * @brief  Header file for http server declarations

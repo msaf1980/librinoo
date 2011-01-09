@@ -1,6 +1,6 @@
 /**
  * @file   tcp_clientconnect.c
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
  * @date   Wed Dec 30 19:58:33 2009
  *
  * @brief  tcp client connection unit test

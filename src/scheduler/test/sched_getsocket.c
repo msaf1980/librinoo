@@ -1,6 +1,6 @@
 /**
  * @file   sched_getsocket.c
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
  * @date   Sun Jan  3 15:35:15 2010
  *
  * @brief  Test file for sched_getsocket function.

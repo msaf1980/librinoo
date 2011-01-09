@@ -1,6 +1,6 @@
 /**
  * @file   fifo_pop.c
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
  * @date   Wed Apr 28 16:42:20 2010
  *
  * @brief  fifo_pop unit test

@@ -1,6 +1,6 @@
 /**
  * @file   httpserver.c
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
  * @date   Wed Nov 10 14:41:50 2010
  *
  * @brief  RinOO HTTP server library
@@ -39,7 +39,6 @@ t_httpsocket	*httpserver_create(t_sched *sched,
 void		httpserver_generate_response(t_httpsocket *httpsock)
 {
   char		*version;
-  u64		contentlength;
 
   switch (httpsock->request.version)
     {
@@ -51,17 +50,11 @@ void		httpserver_generate_response(t_httpsocket *httpsock)
       break;
     }
 
-  if (buffer_len(&httpsock->response.body) > 0)
+  if (httpsock->response.code == 0||
+      httpsock->response.msg.buf == NULL ||
+      httpsock->response.msg.len == 0)
     {
-      contentlength = buffer_len(&httpsock->response.body);
-    }
-  else if (httpsock->response.contentlength > 0)
-    {
-      contentlength = httpsock->response.contentlength;
-    }
-  else
-    {
-      contentlength = 0;
+      httpresponse_setdefaultmsg(httpsock);
     }
 
   tcp_print(httpsock->tcpsock,
@@ -72,15 +65,7 @@ void		httpserver_generate_response(t_httpsocket *httpsock)
 	    httpsock->response.code,
 	    buffer_len(&httpsock->response.msg),
 	    buffer_ptr(&httpsock->response.msg),
-	    contentlength);
-
-  if (buffer_len(&httpsock->response.body) > 0)
-    {
-      tcp_print(httpsock->tcpsock,
-		"%.*s",
-		buffer_len(&httpsock->response.body),
-		buffer_ptr(&httpsock->response.body));
-    }
+	    httpsock->response.contentlength);
 }
 
 static void	httpserver_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
@@ -189,22 +174,21 @@ static void	httpserver_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
 	case EVENT_HTTP_REQUEST:
 	case EVENT_HTTP_REQBODY:
 	  httpsock->event_fsm(httpsock, EVENT_HTTP_RESPONSE);
-	  if (httpsock->response.code != 0)
-	    {
-	      httpserver_generate_response(httpsock);
-	    }
-	  if (buffer_len(&httpsock->response.body) == 0)
-	    {
-	      httpsock->last_event = EVENT_HTTP_RESPONSE;
-	    }
-	  else
+	  httpsock->last_event = EVENT_HTTP_RESPONSE;
+	  /* no break */
+	case EVENT_HTTP_RESPONSE:
+	  httpserver_generate_response(httpsock);
+	  if (httpsock->response.contentlength == 0)
 	    {
 	      httpsock->last_event = EVENT_HTTP_RESPBODY;
+	      break;
 	    }
-	  break;
-	case EVENT_HTTP_RESPONSE:
+	  /* no break */
 	case EVENT_HTTP_RESPBODY:
-	  httpsock->event_fsm(httpsock, EVENT_HTTP_RESPBODY);
+	  if (httpsock->response.contentlength > 0)
+	    {
+	      httpsock->event_fsm(httpsock, EVENT_HTTP_RESPBODY);
+	    }
 	  httpsock->last_event = EVENT_HTTP_RESPBODY;
 	  if (buffer_len(tcpsock->socket.wrbuf) == 0)
 	    {

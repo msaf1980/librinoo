@@ -1,6 +1,6 @@
 /**
  * @file   rinoosmtp.h
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
  * @date   Wed Nov 24 15:21:00 2010
  *
  * @brief  Global header file which includes all modules for SMTP.

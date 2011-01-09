@@ -1,6 +1,6 @@
 /**
  * @file   server.c
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
  * @date   Sun Dec 27 23:47:50 2009
  *
  * @brief  Test file for libroo, server side.

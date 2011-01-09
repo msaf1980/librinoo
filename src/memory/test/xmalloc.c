@@ -1,6 +1,6 @@
 /**
  * @file   xmalloc.c
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
  * @date   Thu Jan 21 18:18:54 2010
  *
  * @brief  xmalloc unit test

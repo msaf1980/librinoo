@@ -1,6 +1,6 @@
 /**
  * @file   httprequest.c
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
  * @date   Wed Nov 10 15:42:36 2010
  *
  * @brief  HTTP request functions
@@ -14,12 +14,12 @@
  * Reset all member of an HTTP request.
  * This function is useful for keep-alive connections.
  *
- * @param req Pointer to the request to reset.
+ * @param httpsock Pointer to the HTTP socket to use.
  */
-void		httprequest_reset(t_httprequest *req)
+void		httprequest_reset(struct s_httpsocket *httpsock)
 {
-  req->length = 0;
-  req->received = 0;
-  req->contentlength = 0;
-  buffer_erase(req->uri, buffer_len(req->uri));
+  httpsock->request.length = 0;
+  httpsock->request.received = 0;
+  httpsock->request.contentlength = 0;
+  buffer_erase(httpsock->request.uri, buffer_len(httpsock->request.uri));
 }

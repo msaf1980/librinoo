@@ -1,6 +1,6 @@
 /**
  * @file   list.c
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
  * @date   Tue Apr 27 10:16:26 2010
  *
  * @brief  Functions to manage linked list structures.
@@ -266,10 +266,10 @@ void		*list_getnext(t_list *list, t_listiterator *iterator)
   else
     {
       *iterator = (*iterator)->next;
-      if (unlikely(*iterator == NULL))
-	{
-	  return NULL;
-	}
+    }
+  if (unlikely(*iterator == NULL))
+    {
+      return NULL;
     }
   return (*iterator)->node;
 }

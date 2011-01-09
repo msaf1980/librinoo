@@ -1,6 +1,6 @@
 /**
  * @file   sched_remove.c
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
  * @date   Sun Jan  3 16:06:23 2010
  *
  * @brief  Test file for sched_remove function.

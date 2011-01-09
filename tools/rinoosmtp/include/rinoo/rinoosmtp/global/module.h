@@ -1,6 +1,6 @@
 /**
  * @file   module.h
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
  * @date   Wed Nov 24 15:20:32 2010
  *
  * @brief  Global header file which includes module dependencies.

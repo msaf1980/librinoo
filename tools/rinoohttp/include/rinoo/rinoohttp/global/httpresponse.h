@@ -1,6 +1,6 @@
 /**
  * @file   httpresponse.h
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
  * @date   Mon Oct 25 18:05:40 2010
  *
  * @brief  Header file which describes http response structures
@@ -18,9 +18,12 @@ typedef struct	s_httpresponse
   t_buffer	msg;
   t_hashtable	*headers;
   u64		contentlength;
-  t_buffer	body;
 }		t_httpresponse;
 
-void		httpresponse_reset(t_httpresponse *resp);
+struct s_httpsocket;
+
+void		httpresponse_reset(struct s_httpsocket *httpsock);
+inline void	httpresponse_setmsg(struct s_httpsocket *httpsock, const char *msg);
+void		httpresponse_setdefaultmsg(struct s_httpsocket *httpsock);
 
 #endif		/* !RINOOHTTP_GLOBAL_HTTPRESPONSE_H_ */

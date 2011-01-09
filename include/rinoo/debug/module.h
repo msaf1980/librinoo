@@ -1,6 +1,6 @@
 /**
  * @file   module.h
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
  * @date   Mon Oct 26 13:13:59 2009
  *
  * @brief  Header file for debug module

@@ -1,6 +1,6 @@
 /**
  * @file   httprequest_read.rl
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
  * @date   Wed Nov 10 14:36:40 2010
  *
  * @brief  Functions which give ability to read http request.

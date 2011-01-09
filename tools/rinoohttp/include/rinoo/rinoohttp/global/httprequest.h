@@ -1,6 +1,6 @@
 /**
  * @file   httprequest.h
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
  * @date   Mon Oct 25 17:48:47 2010
  *
  * @brief  Header file which describes http request structures
@@ -26,6 +26,6 @@ struct		s_httpsocket;
 
 int		httprequest_read(struct s_httpsocket *httpsock);
 int		httprequest_readbody(struct s_httpsocket *httpsock);
-void		httprequest_reset(t_httprequest *req);
+void		httprequest_reset(struct s_httpsocket *httpsock);
 
 #endif		/* !RINOOHTTP_GLOBAL_HTTPREQUEST_H_ */

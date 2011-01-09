@@ -1,6 +1,6 @@
 /**
  * @file   backtrace.h
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
  * @date   Fri Nov  5 15:08:34 2010
  *
  * @brief  Backtracing function declarations.

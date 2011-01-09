@@ -1,6 +1,6 @@
 /**
  * @file   macros.h
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
  * @date   Sun Dec 27 23:32:50 2009
  *
  * @brief  Header file for global macros

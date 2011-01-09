@@ -1,6 +1,6 @@
 /**
  * @file   scheduler.h
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
  * @date   Mon Dec 28 00:14:20 2009
  *
  * @brief  Header file for the scheduler function declarations.

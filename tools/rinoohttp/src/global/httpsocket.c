@@ -1,6 +1,6 @@
 /**
  * @file   httpsocket.c
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
  * @date   Tue Oct 26 21:20:23 2010
  *
  * @brief  Functions to create and manage http sockets
@@ -79,6 +79,6 @@ void		httpsocket_destroy(t_httpsocket *httpsock)
  */
 void		httpsocket_reset(t_httpsocket *httpsock)
 {
-  httprequest_reset(&httpsock->request);
-  httpresponse_reset(&httpsock->response);
+  httprequest_reset(httpsock);
+  httpresponse_reset(httpsock);
 }

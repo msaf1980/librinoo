@@ -1,6 +1,6 @@
 /**
  * @file   smtp.h
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
  * @date   Wed Nov 24 15:22:00 2010
  *
  * @brief  Header file which describes global SMTP structures

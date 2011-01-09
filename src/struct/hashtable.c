@@ -1,6 +1,6 @@
 /**
  * @file   hashtable.c
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2010
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
  * @date   Wed Apr 28 14:42:05 2010
  *
  * @brief  Functions to manage hash table structures.
@@ -131,4 +131,36 @@ void		*hashtable_find(t_hashtable *htab, void *node)
 
   return (list_find(htab->table[htab->hash_func(node) % htab->hashsize],
 		    node));
+}
+
+/**
+ * Get next element of a hashtable. The hash iterator stores the current hash
+ * and a listiterator to easily access to the next element in the next call.
+ *
+ * @param htab Pointer to the hashtable to use.
+ * @param iterator Pointer to a hashtable iterator where to store the current hash & list iterator.
+ *
+ * @return A pointer to the current element or NULL if the end is reached.
+ */
+void		*hashtable_getnext(t_hashtable *htab, t_hashiterator *iterator)
+{
+  u32		i;
+  void		*result;
+
+  XDASSERT(htab != NULL, NULL);
+  XDASSERT(iterator != NULL, NULL);
+
+  for (i = iterator->hash; i < htab->hashsize; i++)
+    {
+      iterator->hash = i;
+      result = list_getnext(htab->table[i], &iterator->list_iterator);
+      if (result != NULL)
+	{
+	  return result;
+	}
+    }
+
+  iterator->hash = 0;
+  iterator->list_iterator = NULL;
+  return NULL;
 }
