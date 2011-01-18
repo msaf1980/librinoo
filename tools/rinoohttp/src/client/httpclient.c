@@ -1,6 +1,6 @@
 /**
  * @file   httpclient.c
- * @author Reginald LIPS <reginald.l@gmail.com>
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
  * @date   Tue Jan 18 21:49:56 2011
  *
  * @brief  RinOO HTTP client library

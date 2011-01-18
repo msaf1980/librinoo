@@ -1,6 +1,6 @@
 /**
  * @file   debug.c
- * @author Reginald LIPS <reginald.l@gmail.com>
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
  * @date   Fri Nov  5 14:47:27 2010
  *
  * @brief  Enables debug information

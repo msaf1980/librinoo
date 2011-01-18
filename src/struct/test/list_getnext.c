@@ -1,6 +1,6 @@
 /**
  * @file   list_getnext.c
- * @author Reginald LIPS <reginald.l@gmail.com>
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
  * @date   Thu Nov 25 16:50:14 2010
  *
  * @brief  list_getnext unit test
