@@ -11,4 +11,6 @@
 #ifndef		RINOOHTTP_MODULE_CLIENT_H_
 # define	RINOOHTTP_MODULE_CLIENT_H_
 
+# include	"rinoo/rinoohttp/client/httpclient.h"
+
 #endif		/* !RINOOHTTP_MODULE_CLIENT_H_ */

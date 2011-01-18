@@ -18,8 +18,8 @@ typedef struct	s_httprequest
   t_httpversion	version;
   t_hashtable	*headers;
   u64		length;
-  u64		contentlength;
   u64		received;
+  u64		contentlength;
 }		t_httprequest;
 
 struct		s_httpsocket;
@@ -27,5 +27,6 @@ struct		s_httpsocket;
 int		httprequest_read(struct s_httpsocket *httpsock);
 int		httprequest_readbody(struct s_httpsocket *httpsock);
 void		httprequest_reset(struct s_httpsocket *httpsock);
+void		httprequest_setdefaultheaders(struct s_httpsocket *httpsock);
 
 #endif		/* !RINOOHTTP_GLOBAL_HTTPREQUEST_H_ */

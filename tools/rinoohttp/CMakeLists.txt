@@ -5,8 +5,8 @@ set(VERSION_MINOR "1")
 set(VERSION_PATCH "0")
 set(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
-#include(CMakeForceCompiler)
-#cmake_force_c_compiler(clang 0)
+include(CMakeForceCompiler)
+cmake_force_c_compiler(clang 0)
 
 list(APPEND common_flags "-W")
 list(APPEND common_flags "-Wall")
@@ -15,7 +15,7 @@ list(APPEND common_flags "-DRINOO_DEBUG")
 list(APPEND common_flags "-DVERSION_MAJOR=${VERSION_MAJOR}")
 list(APPEND common_flags "-DVERSION_MINOR=${VERSION_MINOR}")
 list(APPEND common_flags "-DVERSION_PATCH=${VERSION_PATCH}")
-list(APPEND common_flags "-DVERSION=${VERSION}")
+list(APPEND common_flags "-DVERSION=\"${VERSION}\"")
 
 ## Dependencies checks ##
 include(CheckFunctionExists)
@@ -67,8 +67,12 @@ add_library(${CMAKE_PROJECT_NAME}_static STATIC ${src_files})
 add_library(${CMAKE_PROJECT_NAME} SHARED ${src_files})
 
 add_executable(${CMAKE_PROJECT_NAME}d "test/daemon.c")
-target_link_libraries(${CMAKE_PROJECT_NAME}d rinoo_static)
+target_link_libraries(${CMAKE_PROJECT_NAME}d rinoo)
 target_link_libraries(${CMAKE_PROJECT_NAME}d ${CMAKE_PROJECT_NAME}_static)
+
+add_executable(${CMAKE_PROJECT_NAME}c "test/client.c")
+target_link_libraries(${CMAKE_PROJECT_NAME}c rinoo)
+target_link_libraries(${CMAKE_PROJECT_NAME}c ${CMAKE_PROJECT_NAME}_static)
 ## !Library ##
 
 

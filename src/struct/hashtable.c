@@ -24,7 +24,7 @@ static int	hashtable_cmpfunc(void *unused(node1), void *unused(node2))
  * @return Pointer to the new hash table.
  */
 t_hashtable	*hashtable_create(u32 hashsize,
-				  u32 (*hash_func)(),
+				  u32 (*hash_func)(void *node),
 				  int (*cmp_func)(void *node1, void *node2))
 {
   u32		i;
@@ -80,7 +80,7 @@ void		hashtable_destroy(void *ptr)
  */
 int		hashtable_add(t_hashtable *htab,
 			      void *node,
-			      void (*free_func)())
+			      void (*free_func)(void *node))
 {
   XDASSERT(htab != NULL, FALSE);
 

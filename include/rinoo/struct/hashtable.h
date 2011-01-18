@@ -26,12 +26,12 @@ typedef struct	s_hashiterator
 }		t_hashiterator;
 
 t_hashtable	*hashtable_create(u32 hashsize,
-				  u32 (*hash_func)(),
+				  u32 (*hash_func)(void *node),
 				  int (*cmp_func)(void *node1, void *node2));
 void		hashtable_destroy(void *ptr);
 int		hashtable_add(t_hashtable *htab,
 			      void *node,
-			      void (*free_func)());
+			      void (*free_func)(void *node));
 int		hashtable_remove(t_hashtable *htab, void *node, u32 needfree);
 void		*hashtable_find(t_hashtable *htab, void *node);
 void		*hashtable_getnext(t_hashtable *htab, t_hashiterator *iterator);

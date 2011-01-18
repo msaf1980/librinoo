@@ -23,3 +23,20 @@ void		httprequest_reset(struct s_httpsocket *httpsock)
   httpsock->request.contentlength = 0;
   buffer_erase(httpsock->request.uri, buffer_len(httpsock->request.uri));
 }
+
+void		httprequest_setdefaultheaders(struct s_httpsocket *httpsock)
+{
+  char		tmp[24];
+
+  if (httpheader_get(httpsock->request.headers, "Content-Length") == NULL)
+    {
+      if (snprintf(tmp, 42, "%llu", httpsock->request.contentlength) > 0)
+	{
+	  httpheader_add(httpsock->request.headers, "Content-Length", tmp);
+	}
+    }
+  if (httpheader_get(httpsock->request.headers, "Host") == NULL)
+    {
+      httpheader_add(httpsock->request.headers, "Host", "localhost");
+    }
+}

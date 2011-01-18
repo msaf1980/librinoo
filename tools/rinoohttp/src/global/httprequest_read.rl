@@ -34,12 +34,12 @@
   }
   action parseerror	{ return (-1); }
 
-  crlf = ('\r\n' | '\n');
-  method = ('GET' %{ httpsock->request.method = HTTP_GET; } |
-	    'POST' %{ httpsock->request.method = HTTP_POST; });
+  crlf = '\r\n' | '\n';
+  method = ('GET' %{ httpsock->request.method = HTTP_METHOD_GET; } |
+	    'POST' %{ httpsock->request.method = HTTP_METHOD_POST; });
   uri = (ascii* -- crlf);
-  http = 'HTTP/1.' ('0' %{ httpsock->request.version = HTTP_10; } |
-		    '1' %{ httpsock->request.version = HTTP_11; });
+  http = 'HTTP/1.' ('0' %{ httpsock->request.version = HTTP_VERSION_10; } |
+		    '1' %{ httpsock->request.version = HTTP_VERSION_11; });
   contentlength = 'Content-length: 'i (digit+) >startcl %endcl crlf;
   header = (alnum | punct)+ ': ' (ascii* -- crlf) crlf;
   main := (method ' ' uri >starturi %enduri ' ' http crlf

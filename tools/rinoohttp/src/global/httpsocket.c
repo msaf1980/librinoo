@@ -31,7 +31,19 @@ t_httpsocket	*httpsocket_create(t_tcpsocket *tcpsock,
   httpsock->request.uri = buffer_create(URI_INITSIZE, URI_MAXSIZE);
   if (httpsock->request.uri == NULL)
     {
-      xfree(httpsock);
+      httpsocket_free(httpsock);
+      XASSERT(0, NULL);
+    }
+  httpsock->request.headers = httpheader_createtable();
+  if (httpsock->request.headers == NULL)
+    {
+      httpsocket_free(httpsock);
+      XASSERT(0, NULL);
+    }
+  httpsock->response.headers = httpheader_createtable();
+  if (httpsock->response.headers == NULL)
+    {
+      httpsocket_free(httpsock);
       XASSERT(0, NULL);
     }
   httpsock->tcpsock = tcpsock;
@@ -51,6 +63,16 @@ void		httpsocket_free(t_httpsocket *httpsock)
     {
       buffer_destroy(httpsock->request.uri);
       httpsock->request.uri = NULL;
+    }
+  if (httpsock->request.headers != NULL)
+    {
+      httpheader_destroytable(httpsock->request.headers);
+      httpsock->request.headers = NULL;
+    }
+  if (httpsock->response.headers != NULL)
+    {
+      httpheader_destroytable(httpsock->response.headers);
+      httpsock->response.headers = NULL;
     }
   xfree(httpsock);
 }
@@ -81,4 +103,5 @@ void		httpsocket_reset(t_httpsocket *httpsock)
 {
   httprequest_reset(httpsock);
   httpresponse_reset(httpsock);
+  httpsock->last_event = EVENT_HTTP_CONNECT;
 }

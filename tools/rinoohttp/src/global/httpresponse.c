@@ -22,7 +22,11 @@ void		httpresponse_reset(t_httpsocket *httpsock)
   httpsock->response.code = 0;
   httpsock->response.msg.buf = NULL;
   httpsock->response.msg.len = 0;
+  httpsock->response.length = 0;
+  httpsock->response.received = 0;
   httpsock->response.contentlength = 0;
+  httpheader_destroytable(httpsock->response.headers);
+  httpsock->response.headers = httpheader_createtable();
 }
 
 /**
@@ -31,7 +35,7 @@ void		httpresponse_reset(t_httpsocket *httpsock)
  * @param httpsock Pointer to the HTTP socket to use.
  * @param msg HTTP response message to use.
  */
-inline void		httpresponse_setmsg(struct s_httpsocket *httpsock, const char *msg)
+void		httpresponse_setmsg(struct s_httpsocket *httpsock, const char *msg)
 {
   httpsock->response.msg.buf = (char *) msg;
   httpsock->response.msg.len = strlen(msg);
@@ -171,5 +175,22 @@ void		httpresponse_setdefaultmsg(struct s_httpsocket *httpsock)
       httpsock->response.code = 500;
       httpresponse_setmsg(httpsock, "Internal Error");
       break;
+    }
+}
+
+void		httpresponse_setdefaultheaders(struct s_httpsocket *httpsock)
+{
+  char		tmp[24];
+
+  if (httpheader_get(httpsock->response.headers, "Content-Length") == NULL)
+    {
+      if (snprintf(tmp, 42, "%llu", httpsock->response.contentlength) > 0)
+	{
+	  httpheader_add(httpsock->response.headers, "Content-Length", tmp);
+	}
+    }
+  if (httpheader_get(httpsock->response.headers, "Server") == NULL)
+    {
+      httpheader_add(httpsock->response.headers, "Server", HTTPHEADER_DEFAULT_SERVER);
     }
 }

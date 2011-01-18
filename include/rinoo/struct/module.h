@@ -14,5 +14,6 @@
 # include	"rinoo/struct/fifo.h"
 # include	"rinoo/struct/list.h"
 # include	"rinoo/struct/hashtable.h"
+# include	"rinoo/struct/murmurhash.h"
 
 #endif		/* !RINOO_MODULE_STRUCT_H_ */

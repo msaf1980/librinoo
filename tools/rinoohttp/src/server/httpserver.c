@@ -38,14 +38,17 @@ t_httpsocket	*httpserver_create(t_sched *sched,
 
 void		httpserver_generate_response(t_httpsocket *httpsock)
 {
-  char		*version;
+  char			*version;
+  t_httpheader		*header;
+  t_hashiterator	iterator = { 0, 0 };
 
   switch (httpsock->request.version)
     {
-    case HTTP_10:
+    case HTTP_VERSION_10:
       version = "HTTP/1.0";
       break;
-    case HTTP_11:
+    case HTTP_VERSION_NONE:
+    case HTTP_VERSION_11:
       version = "HTTP/1.1";
       break;
     }
@@ -57,15 +60,26 @@ void		httpserver_generate_response(t_httpsocket *httpsock)
       httpresponse_setdefaultmsg(httpsock);
     }
 
+  httpresponse_setdefaultheaders(httpsock);
+
   tcp_print(httpsock->tcpsock,
-	    "%s %d %.*s\r\n"
-	    "Server: RinOO/0.1\r\n"
-	    "Content-length: %d\r\n\r\n",
+	    "%s %d %.*s\r\n",
 	    version,
 	    httpsock->response.code,
 	    buffer_len(&httpsock->response.msg),
-	    buffer_ptr(&httpsock->response.msg),
-	    httpsock->response.contentlength);
+	    buffer_ptr(&httpsock->response.msg));
+
+  while ((header = (t_httpheader *) hashtable_getnext(httpsock->response.headers,
+						      &iterator)) != NULL)
+    {
+      tcp_print(httpsock->tcpsock,
+		"%.*s: %.*s\r\n",
+		buffer_len(&header->key),
+		buffer_ptr(&header->key),
+		buffer_len(&header->value),
+		buffer_ptr(&header->value));
+    }
+  tcp_print(httpsock->tcpsock, "\r\n");
 }
 
 static void	httpserver_fsm(t_tcpsocket *tcpsock, t_tcpevent event)

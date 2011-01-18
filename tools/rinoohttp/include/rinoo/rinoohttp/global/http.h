@@ -13,21 +13,16 @@
 
 typedef enum	e_httpmethod
   {
-    HTTP_GET = 0,
-    HTTP_POST,
-    HTTP_NOTIMPLEM
+    HTTP_METHOD_NONE = 0,
+    HTTP_METHOD_GET,
+    HTTP_METHOD_POST
   }		t_httpmethod;
 
 typedef enum	e_httpversion
   {
-    HTTP_10 = 0,
-    HTTP_11
+    HTTP_VERSION_NONE = 0,
+    HTTP_VERSION_10,
+    HTTP_VERSION_11
   }		t_httpversion;
-
-typedef struct	s_httpheader
-{
-  t_buffer	key;
-  t_buffer	value;
-}		t_httpheader;
 
 #endif		/* !RINOOHTTP_GLOBAL_HTTP_H_ */

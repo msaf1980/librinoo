@@ -12,6 +12,7 @@
 # define	RINOOHTTP_MODULE_GLOBAL_H_
 
 # include	"rinoo/rinoohttp/global/http.h"
+# include	"rinoo/rinoohttp/global/httpheader.h"
 # include	"rinoo/rinoohttp/global/httprequest.h"
 # include	"rinoo/rinoohttp/global/httpresponse.h"
 # include	"rinoo/rinoohttp/global/httpsocket.h"
