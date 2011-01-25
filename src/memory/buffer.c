@@ -23,6 +23,7 @@ t_buffer	*buffer_create(u32 init_size, u32 maxsize)
   t_buffer	*buf;
 
   XDASSERT(init_size <= maxsize, NULL);
+  XDASSERT(init_size > 0, NULL);
 
   buf = xcalloc(1, sizeof(*buf));
   XASSERT(buf != NULL, NULL);
@@ -47,6 +48,8 @@ void		buffer_destroy(t_buffer *buf)
 {
   XDASSERTN(buf != NULL);
   XDASSERTN(buf->buf != NULL);
+  /* Means buf->buf has been allocated, see strtobuffer macro in buffer.h */
+  XDASSERTN(buf->max_size > 0);
 
   xfree(buf->buf);
   xfree(buf);
@@ -139,6 +142,20 @@ int		buffer_add(t_buffer *buf, const char *data, size_t size)
   memcpy(buf->buf + buf->len, data, size);
   buf->len += size;
   return (size);
+}
+
+/**
+ * Adds a string to a buffer. It actually calls buffer_add with strlen
+ * of str as size parameter.
+ *
+ * @param buf Buffer where the string will be added
+ * @param str String to add to the buffer
+ *
+ * @return Number of bytes added on success, or -1 if an error occurs
+ */
+int		buffer_addstr(t_buffer *buf, const char *str)
+{
+  return buffer_add(buf, str, strlen(str));
 }
 
 /**

@@ -24,8 +24,12 @@ typedef struct	s_httpheader
 
 t_hashtable	*httpheader_createtable();
 void		httpheader_destroytable(t_hashtable *headertab);
-int		httpheader_add(t_hashtable *headertab, char *key, char *value);
-int		httpheader_remove(t_hashtable *headertab, char *key);
-t_httpheader	*httpheader_get(t_hashtable *headertab, char *key);
+int		httpheader_adddata(t_hashtable *headertab,
+				   const char *key,
+				   const char *value,
+				   u32 size);
+int		httpheader_add(t_hashtable *headertab, const char *key, const char *value);
+int		httpheader_remove(t_hashtable *headertab, const char *key);
+t_httpheader	*httpheader_get(t_hashtable *headertab, const char *key);
 
 #endif		/* !RINOOHTTP_GLOBAL_HTTPHEADER_H_ */

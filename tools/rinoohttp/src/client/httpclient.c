@@ -123,33 +123,17 @@ static void	httpclient_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
 	    case 1:
 	      httpsock->event_fsm(httpsock, EVENT_HTTP_RESPONSE);
 	      httpsock->last_event = EVENT_HTTP_RESPONSE;
-	      if (httpsock->response.length < buffer_len(tcpsock->socket.rdbuf))
+	      buffer_erase(tcpsock->socket.rdbuf, httpsock->response.length);
+	      if (buffer_len(tcpsock->socket.rdbuf) == 0)
 		{
-		  buffer_erase(tcpsock->socket.rdbuf, httpsock->response.length);
-		  switch (httpresponse_readbody(httpsock))
-		    {
-		    case 0:
-		      httpsock->event_fsm(httpsock, EVENT_HTTP_RESPBODY);
-		      httpsock->last_event = EVENT_HTTP_RESPBODY;
-		      break;
-		    case -1:
-		      /* bad request */
-		      httpsocket_destroy(httpsock);
-		      return;
-		    case 1:
-		      httpsock->event_fsm(httpsock, EVENT_HTTP_RESPBODY);
-		      httpsock->last_event = EVENT_HTTP_RESPBODY;
-		      sched_delmode(&tcpsock->socket, EVENT_SCHED_IN);
-		      sched_addmode(&tcpsock->socket, EVENT_SCHED_OUT);
-		      httpsock->last_event = EVENT_HTTP_CONNECT;
-		      break;
-		    }
+		  return;
 		}
 	      break;
 	    }
+	  /* no break */
 	case EVENT_HTTP_RESPONSE:
 	case EVENT_HTTP_RESPBODY:
-	  switch (httprequest_readbody(httpsock))
+	  switch (httpresponse_readbody(httpsock))
 	    {
 	    case 0:
 	      httpsock->event_fsm(httpsock, EVENT_HTTP_RESPBODY);
@@ -171,7 +155,6 @@ static void	httpclient_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
 	default:
 	  break;
 	}
-      buffer_erase(tcpsock->socket.rdbuf, buffer_len(tcpsock->socket.rdbuf));
       break;
     case EVENT_TCP_OUT:
       switch (httpsock->last_event)

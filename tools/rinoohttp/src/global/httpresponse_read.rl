@@ -92,7 +92,7 @@ int		httpresponse_readbody(t_httpsocket *httpsock)
   if (httpsock->response.contentlength > 0 &&
       httpsock->response.received < httpsock->response.contentlength)
     {
-      httpsock->response.received += buffer_len(httpsock->tcpsock->socket.rdbuf);
+      httpsock->response.received = buffer_len(httpsock->tcpsock->socket.rdbuf);
       if (httpsock->response.received >= httpsock->response.contentlength)
 	{
 	  return 1;

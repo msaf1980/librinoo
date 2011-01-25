@@ -155,9 +155,9 @@ static void	httpserver_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
 		}
 	      httpsock->event_fsm(httpsock, EVENT_HTTP_REQUEST);
 	      httpsock->last_event = EVENT_HTTP_REQUEST;
-	      if (httpsock->request.length < buffer_len(tcpsock->socket.rdbuf))
+	      buffer_erase(tcpsock->socket.rdbuf, httpsock->request.length);
+	      if (buffer_len(tcpsock->socket.rdbuf) > 0)
 		{
-		  buffer_erase(tcpsock->socket.rdbuf, httpsock->request.length);
 		  switch (httprequest_readbody(httpsock))
 		    {
 		    case 0:

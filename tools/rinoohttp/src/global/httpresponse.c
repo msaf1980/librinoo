@@ -18,14 +18,8 @@
  */
 void		httpresponse_reset(t_httpsocket *httpsock)
 {
-  httpsock->response.version = 0;
-  httpsock->response.code = 0;
-  httpsock->response.msg.buf = NULL;
-  httpsock->response.msg.len = 0;
-  httpsock->response.length = 0;
-  httpsock->response.received = 0;
-  httpsock->response.contentlength = 0;
   httpheader_destroytable(httpsock->response.headers);
+  memset(&httpsock->response, 0, sizeof(httpsock->response));
   httpsock->response.headers = httpheader_createtable();
 }
 
@@ -37,8 +31,7 @@ void		httpresponse_reset(t_httpsocket *httpsock)
  */
 void		httpresponse_setmsg(struct s_httpsocket *httpsock, const char *msg)
 {
-  httpsock->response.msg.buf = (char *) msg;
-  httpsock->response.msg.len = strlen(msg);
+  strtobuffer(httpsock->response.msg, msg);
 }
 
 /**

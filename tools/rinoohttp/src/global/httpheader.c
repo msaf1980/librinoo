@@ -92,9 +92,55 @@ void		httpheader_free(void *node)
 
   XDASSERTN(header != NULL);
 
-  xfree(header->key.buf);
-  xfree(header->value.buf);
+  xfree(buffer_ptr(&header->key));
+  xfree(buffer_ptr(&header->value));
   xfree(header);
+}
+
+
+/**
+ *  Adds a new HTTP header to the hashtable.
+ *
+ * @param headertab Pointer to the hashtable where to store new header.
+ * @param key HTTP header key.
+ * @param value HTTP header value.
+ * @param size Size of the HTTP header value.
+ *
+ * @return 0 on success, or -1 if an error occurs.
+ */
+int		httpheader_adddata(t_hashtable *headertab,
+				   const char *key,
+				   const char *value,
+				   u32 size)
+{
+  t_httpheader	dummy;
+  t_httpheader	*new;
+
+  XASSERT(headertab != NULL, -1);
+  XASSERT(key != NULL, -1);
+  XASSERT(value != NULL, -1);
+  XASSERT(size > 0, -1);
+
+  strtobuffer(dummy.key, key);
+  value = strndup(value, size);
+  new = (t_httpheader *) hashtable_find(headertab, &dummy);
+  if (new != NULL)
+    {
+      xfree(new->value.buf);
+      strtobuffer(new->value, value);
+      return 0;
+    }
+
+  new = xcalloc(1, sizeof(*new));
+  key = strdup(key);
+  strtobuffer(new->key, key);
+  strtobuffer(new->value, value);
+  if (hashtable_add(headertab, new, httpheader_free) == 0)
+    {
+      httpheader_free(new);
+      return -1;
+    }
+  return 0;
 }
 
 /**
@@ -106,37 +152,9 @@ void		httpheader_free(void *node)
  *
  * @return 0 on success, or -1 if an error occurs.
  */
-int		httpheader_add(t_hashtable *headertab, char *key, char *value)
+int		httpheader_add(t_hashtable *headertab, const char *key, const char *value)
 {
-  t_httpheader	dummy;
-  t_httpheader	*new;
-
-  XDASSERT(headertab != NULL, -1);
-  XDASSERT(key != NULL, -1);
-  XDASSERT(value != NULL, -1);
-
-  dummy.key.buf = key;
-  dummy.key.len = strlen(key);
-  new = (t_httpheader *) hashtable_find(headertab, &dummy);
-  if (new != NULL)
-    {
-      xfree(new->value.buf);
-      new->value.buf = strdup(value);
-      new->value.len = strlen(value);
-      return 0;
-    }
-
-  new = xcalloc(1, sizeof(*new));
-  new->key.buf = strdup(key);
-  new->key.len = dummy.key.len;
-  new->value.buf = strdup(value);
-  new->value.len = strlen(value);
-  if (hashtable_add(headertab, new, httpheader_free) == 0)
-    {
-      xfree(new);
-      return -1;
-    }
-  return 0;
+  return httpheader_adddata(headertab, key, value, strlen(value));
 }
 
 /**
@@ -147,15 +165,14 @@ int		httpheader_add(t_hashtable *headertab, char *key, char *value)
  *
  * @return 0 on sucess, or -1 if an error occurs.
  */
-int		httpheader_remove(t_hashtable *headertab, char *key)
+int		httpheader_remove(t_hashtable *headertab, const char *key)
 {
   t_httpheader	dummy;
 
   XDASSERT(headertab != NULL, -1);
   XDASSERT(key != NULL, -1);
 
-  dummy.key.buf = key;
-  dummy.key.len = strlen(key);
+  strtobuffer(dummy.key, key);
   if (hashtable_remove(headertab, &dummy, TRUE) == FALSE)
     {
       return -1;
@@ -171,14 +188,13 @@ int		httpheader_remove(t_hashtable *headertab, char *key)
  *
  * @return A pointer to a HTTP header structure, or NULL if not found.
  */
-t_httpheader	*httpheader_get(t_hashtable *headertab, char *key)
+t_httpheader	*httpheader_get(t_hashtable *headertab, const char *key)
 {
   t_httpheader	dummy;
 
   XDASSERT(headertab != NULL, NULL);
   XDASSERT(key != NULL, NULL);
 
-  dummy.key.buf = key;
-  dummy.key.len = strlen(key);
+  strtobuffer(dummy.key, key);
   return (t_httpheader *) hashtable_find(headertab, &dummy);
 }

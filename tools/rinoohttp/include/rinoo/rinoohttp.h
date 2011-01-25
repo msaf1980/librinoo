@@ -16,5 +16,6 @@
 # include	"rinoo/rinoohttp/global/module.h"
 # include	"rinoo/rinoohttp/server/module.h"
 # include	"rinoo/rinoohttp/client/module.h"
+# include	"rinoo/rinoohttp/simple/module.h"
 
 #endif		/* !RINOOHTTP_H_ */
