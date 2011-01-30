@@ -60,7 +60,8 @@ void		server_event_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
       printf("Server: input buffer = \"%.*s\"\n",
 	     buffer_len(tcpsock->socket.rdbuf),
 	     buffer_ptr(tcpsock->socket.rdbuf));
-      if (strncmp(buffer_ptr(tcpsock->socket.rdbuf),
+      if (buffer_len(tcpsock->socket.rdbuf) == 4 &&
+	  strncmp(buffer_ptr(tcpsock->socket.rdbuf),
 		  "abcd",
 		  buffer_len(tcpsock->socket.rdbuf)) == 0)
 	{

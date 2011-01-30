@@ -26,41 +26,28 @@ typedef enum	e_udpevent
     EVENT_UDP_TIMEOUT
   }		t_udpevent;
 
-typedef struct	s_udphost
-{
-  t_ip		ip;
-  u32		port;
-}		t_udphost;
-
-typedef struct	s_udppacket
-{
-  t_udphost	host;
-  t_buffer	buffer;
-}		t_udppacket;
-
 typedef struct	s_udpsocket
 {
   t_socket	socket;
   t_ip		ip;
   u32		port;
   t_udpmode	mode;
-  void		(*event_fsm)(struct s_udpsocket *udpsock,
-			     t_udpevent event,
-			     t_udphost *host);
+  void		(*event_fsm)(struct s_udpsocket *udpsock, t_udpevent event);
   void		*data;
-  t_fifo	*wrfifo;
   t_udpevent	errorstep;
 }		t_udpsocket;
 
-t_udpsocket	*udp_create(t_sched *sched, t_ip ip,
-			    u32 port, t_udpmode mode,
+t_udpsocket	*udp_create(t_sched *sched,
+			    t_ip ip,
+			    u32 port,
+			    t_udpmode mode,
+			    u32 timeout,
 			    void (*event_fsm)(t_udpsocket *udpsock,
-					      t_udpevent event,
-					      t_udphost *host));
+					      t_udpevent event));
 inline void	udp_destroy(t_udpsocket *udpsock);
-int		udp_print(t_udpsocket *socket,
-			  t_udphost *host,
-			  const char *format, ...);
+int		udp_print(t_udpsocket *socket, const char *format, ...);
+int		udp_printdata(t_udpsocket *socket, const char *data, size_t size);
+int		udp_isserver(t_udpsocket *udpsock);
 
 #endif		/* !RINOO_UDP_H_ */
 

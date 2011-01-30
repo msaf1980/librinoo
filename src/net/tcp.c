@@ -257,7 +257,7 @@ static void	tcp_connect(t_socket *socket, t_schedevent event)
   XDASSERTN(socket != NULL);
   XDASSERTN(socket->data != NULL);
 
-  tcpsock = (t_tcpsocket *)socket->data;
+  tcpsock = (t_tcpsocket *) socket->data;
   switch (event)
     {
     case EVENT_SCHED_OUT:

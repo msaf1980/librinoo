@@ -11,8 +11,6 @@
 #ifndef		RINOO_UTILS_H_
 # define	RINOO_UTILS_H_
 
-# define	MIN(a, b) (a > b ? b : a)
-
 int		timeraddms(struct timeval *in, u32 ms, struct timeval *out);
 void		rinoo_log(const char *format, ...);
 

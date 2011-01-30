@@ -1,6 +1,6 @@
 /**
  * @file   simple.h
- * @author Reginald LIPS <reginald.l@gmail.com>
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
  * @date   Sun Jan 23 22:14:24 2011
  *
  * @brief  Header file which describes the simple http interface

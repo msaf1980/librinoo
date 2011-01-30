@@ -1,6 +1,6 @@
 /**
  * @file   rinoo_simplehttp.c
- * @author Reginald LIPS <reginald.l@gmail.com>
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
  * @date   Sun Jan 23 22:03:44 2011
  *
  * @brief  RiNOO Simple HTTP interface

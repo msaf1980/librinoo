@@ -26,11 +26,13 @@
 # include	<stdarg.h>
 # include	<limits.h>
 # include	<sys/types.h>
+# include	<sys/time.h>
 # include	<sys/ioctl.h>
 # include	<sys/socket.h>
 # include	<netinet/in.h>
 # include	<arpa/inet.h>
-# include	<sys/time.h>
+# include	<arpa/nameser.h>
+# include	<resolv.h>
 
 /* GLOBAL */
 # include	"rinoo/global/module.h"
@@ -49,5 +51,8 @@
 
 /* NET */
 # include	"rinoo/net/module.h"
+
+/* SERVICES */
+# include	"rinoo/services/module.h"
 
 #endif		/* !RINOO_H_ */
