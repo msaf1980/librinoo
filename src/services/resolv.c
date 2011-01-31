@@ -16,9 +16,21 @@ static int	rinoo_dns_parse_a(t_udpsocket *udpsock,
 				  const char *host,
 				  t_ip *ip);
 
+/**
+ * Start asynchronous resolving
+ *
+ * @param sched Pointer to the scheduler to use.
+ * @param host Host name to resolv.
+ * @param type DNS query type.
+ * @param timeout Force timeout. If 0, resolver will use system defaults (see man 5 resolver).
+ * @param result_cb Pointer to the callback function to get results.
+ *
+ * @return 0 on success, or -1 if an error occurs.
+ */
 int		rinoo_resolv(t_sched *sched,
 			     const char *host,
 			     t_dnstype type,
+			     u32 timeout,
 			     void (*result_cb)(t_dnsevent event, t_ip ip))
 {
   t_dnscontext	*ctx;
@@ -36,11 +48,15 @@ int		rinoo_resolv(t_sched *sched,
   ctx->host = host;
   ctx->query_type = type;
   ctx->result_cb = result_cb;
+  if (timeout == 0)
+    {
+      timeout = _res.retrans * 1000;
+    }
   udpsock = udp_create(sched,
 		       _res.nsaddr_list[0].sin_addr.s_addr,
 		       ntohs(_res.nsaddr_list[0].sin_port),
 		       MODE_UDP_CLIENT,
-		       _res.retrans * 1000,
+		       timeout,
 		       rinoo_resolv_fsm);
   if (udpsock == NULL)
     {
@@ -85,9 +101,10 @@ static void	rinoo_resolv_fsm(t_udpsocket *udpsock, t_udpevent event)
 	  sched_addmode(&udpsock->socket, EVENT_SCHED_IN);
 	}
       break;
+    case EVENT_UDP_TIMEOUT:
+      ctx->result_cb(EVENT_DNS_ERROR, 0);
     case EVENT_UDP_CLOSE:
     case EVENT_UDP_ERROR:
-    case EVENT_UDP_TIMEOUT:
       rinoo_resolv_destroy(ctx);
       break;
     }

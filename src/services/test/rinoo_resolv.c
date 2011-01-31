@@ -43,7 +43,7 @@ int		main()
 {
   sched = sched_create();
   XTEST(sched != NULL);
-  XTEST(rinoo_resolv(sched, "puffy.fr", TYPE_DNS_A, result_cb) == 0);
+  XTEST(rinoo_resolv(sched, "puffy.fr", TYPE_DNS_A, 0, result_cb) == 0);
   sched_loop(sched);
   sched_destroy(sched);
   if (passed == 0)
