@@ -10,9 +10,9 @@
 
 #include	"rinoo/rinoo.h"
 
-extern t_pollerapi	pollers[NB_POLLERS];
+extern t_rinoopoller	pollers[NB_POLLERS];
 
-static int	sched_clock(t_sched *sched);
+static int	rinoo_sched_clock(t_rinoosched *sched);
 
 /**
  * Creates a new scheduler.
@@ -20,21 +20,21 @@ static int	sched_clock(t_sched *sched);
  *
  * @return A pointer to the new scheduler if succeeds, else NULL.
  */
-t_sched		*sched_create()
+t_rinoosched	*rinoo_sched()
 {
-  t_sched	*sched;
+  t_rinoosched	*sched;
 
   sched = xcalloc(1, sizeof(*sched));
   XASSERTSTR(sched != NULL, NULL, "Cannot create a new scheduler");
   sched->poller = &pollers[DEFAULT_POLLER];
-  sched->expirequeue = socket_expirequeue_create();
-  if (sched->expirequeue == NULL)
+  sched->timeoutq = list_create(rinoo_socket_timeout_cmp);
+  if (sched->timeoutq == NULL)
     {
       xfree(sched);
       XASSERTSTR(0, NULL, "Timeout queue init failed");
     }
-  sched->jobqueue = jobqueue_create();
-  if (sched->jobqueue == NULL)
+  sched->jobq = jobqueue_create();
+  if (sched->jobq == NULL)
     {
       xfree(sched);
       XASSERTSTR(0, NULL, "Job queue init failed");
@@ -44,7 +44,7 @@ t_sched		*sched_create()
       xfree(sched);
       XASSERTSTR(0, NULL, "Poller init failed");
     }
-  sched_clock(sched);
+  rinoo_sched_clock(sched);
   return (sched);
 }
 
@@ -53,7 +53,7 @@ t_sched		*sched_create()
  *
  * @param sched Pointer to the scheduler to destroy.
  */
-void		sched_destroy(t_sched *sched)
+void		rinoo_sched_destroy(t_rinoosched *sched)
 {
   int		i;
 
@@ -62,7 +62,7 @@ void		sched_destroy(t_sched *sched)
   /**
    * Destroying all pending sockets.
    */
-  for (i = 0; i < SCHED_MAXFDS; i++)
+  for (i = 0; i < RINOO_SCHED_MAXFDS; i++)
     {
       if (sched->sock_pool[i] != NULL)
 	{
@@ -70,8 +70,8 @@ void		sched_destroy(t_sched *sched)
 					 EVENT_SCHED_STOP);
 	}
     }
-  socket_expirequeue_destroy(sched->expirequeue);
-  jobqueue_destroy(sched->jobqueue);
+  list_destroy(sched->timeoutq);
+  jobqueue_destroy(sched->jobq);
   sched->poller->destroy(sched);
   xfree(sched);
 }
@@ -80,13 +80,13 @@ void		sched_destroy(t_sched *sched)
  * Returns the socket corresponding to a file descriptor.
  *
  * @param sched Pointer to the scheduler to use.
- * @param fd File descriptor (< SCHED_MAXFDS).
+ * @param fd File descriptor (< RINOO_SCHED_MAXFDS).
  *
  * @return A pointer to the corresponding socket if found, else NULL.
  */
-t_socket	*sched_getsocket(t_sched *sched, int fd)
+t_rinoosocket	*rinoo_sched_getsocket(t_rinoosched *sched, int fd)
 {
-  XDASSERT(fd < SCHED_MAXFDS, NULL);
+  XDASSERT(fd < RINOO_SCHED_MAXFDS, NULL);
 
   return (sched->sock_pool[fd]);
 }
@@ -97,7 +97,7 @@ t_socket	*sched_getsocket(t_sched *sched, int fd)
  *
  * @param sched Pointer to the scheduler to stop.
  */
-void		sched_stop(t_sched *sched)
+void		rinoo_sched_stop(t_rinoosched *sched)
 {
   XDASSERTN(sched != NULL);
 
@@ -113,12 +113,14 @@ void		sched_stop(t_sched *sched)
  *
  * @return 0 if succeeds, else -1.
  */
-int		sched_insert(t_socket *socket, t_schedevent mode, u32 timeout)
+int		rinoo_sched_insert(t_rinoosocket *socket,
+				   t_rinoosched_event mode,
+				   u32 timeout)
 {
   XDASSERT(socket != NULL, -1);
-  XASSERT(socket->fd < SCHED_MAXFDS, -1);
+  XASSERT(socket->fd < RINOO_SCHED_MAXFDS, -1);
 
-  if (socket_settimeout(socket, timeout) != 0)
+  if (rinoo_socket_timeout_set(socket, timeout) != 0)
     {
       return (-1);
     }
@@ -136,7 +138,8 @@ int		sched_insert(t_socket *socket, t_schedevent mode, u32 timeout)
  *
  * @return 0 if succeeds, else -1.
  */
-int		sched_addmode(t_socket *socket, t_schedevent mode)
+int		rinoo_sched_addmode(t_rinoosocket *socket,
+				    t_rinoosched_event mode)
 {
   return (socket->sched->poller->addmode(socket, mode));
 }
@@ -149,7 +152,8 @@ int		sched_addmode(t_socket *socket, t_schedevent mode)
  *
  * @return 0 if succeeds, else -1.
  */
-int		sched_delmode(t_socket *socket, t_schedevent mode)
+int		rinoo_sched_delmode(t_rinoosocket *socket,
+				    t_rinoosched_event mode)
 {
   return (socket->sched->poller->delmode(socket, mode));
 }
@@ -161,12 +165,12 @@ int		sched_delmode(t_socket *socket, t_schedevent mode)
  *
  * @return 0 if succeeds, else -1.
  */
-int		sched_remove(t_socket *socket)
+int		rinoo_sched_remove(t_rinoosocket *socket)
 {
   if (socket->sched->poller->remove(socket) != 0)
     return (-1);
   socket->sched->sock_pool[socket->fd] = NULL;
-  socket_removetimeout(socket);
+  rinoo_socket_timeout_remove(socket);
   return (0);
 }
 
@@ -177,7 +181,7 @@ int		sched_remove(t_socket *socket)
  *
  * @return 0 on success, or -1 if an error occurs.
  */
-static int	sched_clock(t_sched *sched)
+static int	rinoo_sched_clock(t_rinoosched *sched)
 {
   return gettimeofday(&sched->curtime, NULL);
 }
@@ -189,25 +193,25 @@ static int	sched_clock(t_sched *sched)
  *
  * @return -1 if an error occurs, else 0.
  */
-int		sched_loop(t_sched *sched)
+int		rinoo_sched_loop(t_rinoosched *sched)
 {
   u32		t1;
   u32		t2;
-  t_socket	*cursocket;
+  t_rinoosocket	*cursocket;
 
   XDASSERT(sched != NULL, -1);
-  t1 = socket_gettimeout(sched);
+  t1 = rinoo_socket_timeout_getmin(sched);
   t2 = jobqueue_gettimeout(sched);
   while (sched->stop == 0 &&
 	 sched->poller->poll(sched, MIN(t1, t2)) == 0)
     {
-      sched_clock(sched);
-      while ((cursocket = socket_getexpired(sched)) != NULL)
+      rinoo_sched_clock(sched);
+      while ((cursocket = rinoo_socket_getexpired(sched)) != NULL)
 	{
 	  cursocket->event_fsm(cursocket, EVENT_SCHED_TIMEOUT);
 	}
       jobqueue_exec(sched);
-      t1 = socket_gettimeout(sched);
+      t1 = rinoo_socket_timeout_getmin(sched);
       t2 = jobqueue_gettimeout(sched);
     }
   return (0);

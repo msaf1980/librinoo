@@ -6,10 +6,11 @@ set(VERSION_MINOR "1")
 set(VERSION_PATCH "7")
 set(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
-#include(CMakeForceCompiler)
-#cmake_force_c_compiler(clang 0)
+include(CMakeForceCompiler)
+cmake_force_c_compiler(clang 0)
 
 list(APPEND common_flags "-W")
+list(APPEND common_flags "-Werror")
 list(APPEND common_flags "-Wall")
 list(APPEND common_flags "-g3")
 list(APPEND common_flags "-DRINOO_DEBUG")

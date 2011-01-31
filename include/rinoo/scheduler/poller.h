@@ -11,30 +11,30 @@
 #ifndef		RINOO_POLLER_H_
 # define	RINOO_POLLER_H_
 
-#  ifdef	HAS_EPOLL
+# ifdef		HAS_EPOLL
 #  define	DEFAULT_POLLER	POLLER_EPOLL
-#  else
-#   ifdef	HAS_SELECT
-#    define	DEFAULT_POLLER	POLLER_SELECT
-#   endif	/* !HAS_SELECT */
-#  endif	/* !HAS_EPOLL */
+# else
+#  ifdef	HAS_SELECT
+#   define	DEFAULT_POLLER	POLLER_SELECT
+#  endif	/* !HAS_SELECT */
+# endif		/* !HAS_EPOLL */
 
-typedef enum	e_pollertype
+typedef enum	e_rinoopoller_type
   {
     POLLER_SELECT = 0,
-    POLLER_EPOLL = 1,
+    POLLER_EPOLL,
     NB_POLLERS
-  }		t_pollertype;
+  }		t_rinoopoller_type;
 
-typedef struct	s_pollerapi
+typedef struct	s_rinoopoller
 {
-  int		(*init)(t_sched *sched);
-  void		(*destroy)(t_sched *sched);
-  int		(*insert)(t_socket *socket, t_schedevent mode);
-  int		(*addmode)(t_socket *socket, t_schedevent mode);
-  int		(*delmode)(t_socket *socket, t_schedevent mode);
-  int		(*remove)(t_socket *socket);
-  int		(*poll)(t_sched *sched, u32 timeout);
-}		t_pollerapi;
+  int		(*init)(t_rinoosched *sched);
+  void		(*destroy)(t_rinoosched *sched);
+  int		(*insert)(t_rinoosocket *socket, t_rinoosched_event mode);
+  int		(*addmode)(t_rinoosocket *socket, t_rinoosched_event mode);
+  int		(*delmode)(t_rinoosocket *socket, t_rinoosched_event mode);
+  int		(*remove)(t_rinoosocket *socket);
+  int		(*poll)(t_rinoosched *sched, u32 timeout);
+}		t_rinoopoller;
 
 #endif		/* !RINOO_POLLER_H_ */

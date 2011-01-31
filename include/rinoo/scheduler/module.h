@@ -11,8 +11,8 @@
 #ifndef		RINOO_MODULE_SCHEDULER_H_
 # define	RINOO_MODULE_SCHEDULER_H_
 
-# include	"rinoo/scheduler/jobqueue.h"
 # include	"rinoo/scheduler/scheduler.h"
+# include	"rinoo/scheduler/jobqueue.h"
 # include	"rinoo/scheduler/socket.h"
 # include	"rinoo/scheduler/poller.h"
 # include	"rinoo/scheduler/xselect.h"

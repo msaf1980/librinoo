@@ -12,7 +12,7 @@
 
 static void	smtpclient_fsm(t_tcpsocket *tcpsock, t_tcpevent event);
 
-t_smtpsocket	*smtpclient_create(t_sched *sched,
+t_smtpsocket	*smtpclient_create(t_rinoosched *sched,
 				   t_ip ip,
 				   u32 port,
 				   u32 timeout,

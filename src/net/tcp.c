@@ -11,9 +11,9 @@
 #include	"rinoo/rinoo.h"
 
 static inline void	tcp_error(t_tcpsocket *tcpsock, t_tcpevent errorstep);
-static void		tcp_accept(t_socket *socket, t_schedevent event);
-static void		tcp_connect(t_socket *socket, t_schedevent event);
-static void		tcp_fsm(t_socket *socket, t_schedevent event);
+static void		tcp_accept(t_rinoosocket *socket, t_rinoosched_event event);
+static void		tcp_connect(t_rinoosocket *socket, t_rinoosched_event event);
+static void		tcp_fsm(t_rinoosocket *socket, t_rinoosched_event event);
 
 /**
  * Creates a new tcp connection and add it to a scheduler.
@@ -27,7 +27,7 @@ static void		tcp_fsm(t_socket *socket, t_schedevent event);
  *
  * @return Pointer to the new tcp structure, or NULL if an error occurs.
  */
-t_tcpsocket	*tcp_create(t_sched *sched,
+t_tcpsocket	*tcp_create(t_rinoosched *sched,
 			    t_ip ip,
 			    u32 port,
 			    t_tcpmode mode,
@@ -103,10 +103,10 @@ t_tcpsocket	*tcp_create(t_sched *sched,
 	}
       tcpsock->socket.event_fsm = tcp_connect;
     }
-  if (sched_insert(&tcpsock->socket,
-		   (mode == MODE_TCP_SERVER ?
-		    EVENT_SCHED_IN : EVENT_SCHED_OUT),
-		   (mode == MODE_TCP_SERVER ? 0 : timeout)) == -1)
+  if (rinoo_sched_insert(&tcpsock->socket,
+			 (mode == MODE_TCP_SERVER ?
+			  EVENT_SCHED_IN : EVENT_SCHED_OUT),
+			 (mode == MODE_TCP_SERVER ? 0 : timeout)) == -1)
     {
       tcp_destroy(tcpsock);
       XASSERT(0, NULL);
@@ -128,8 +128,10 @@ void	tcp_destroy(t_tcpsocket *tcpsock)
 
   if (tcpsock->socket.fd > -1)
     {
-      if (sched_getsocket(tcpsock->socket.sched, tcpsock->socket.fd) != NULL)
-	sched_remove(&tcpsock->socket);
+      if (rinoo_sched_getsocket(tcpsock->socket.sched, tcpsock->socket.fd) != NULL)
+	{
+	  rinoo_sched_remove(&tcpsock->socket);
+	}
       close(tcpsock->socket.fd);
     }
   if (tcpsock->socket.rdbuf != NULL)
@@ -164,7 +166,7 @@ static inline void	tcp_error(t_tcpsocket *tcpsock, t_tcpevent errorstep)
  * @param socket Pointer to the socket to use.
  * @param event Scheduler event which is raised.
  */
-static void		tcp_accept(t_socket *socket, t_schedevent event)
+static void		tcp_accept(t_rinoosocket *socket, t_rinoosched_event event)
 {
   int			fd;
   int			enabled;
@@ -215,9 +217,9 @@ static void		tcp_accept(t_socket *socket, t_schedevent event)
       newsock->port = ntohs(addr.sin_port);
       newsock->mode = MODE_TCP_CLIENT;
       newsock->event_fsm = tcpsock->event_fsm;
-      if (sched_insert(&newsock->socket,
-		       EVENT_SCHED_IN,
-		       tcpsock->child_timeout) == -1)
+      if (rinoo_sched_insert(&newsock->socket,
+			     EVENT_SCHED_IN,
+			     tcpsock->child_timeout) == -1)
 	{
 	  tcp_destroy(newsock);
 	  XASSERTN(0);
@@ -248,7 +250,7 @@ static void		tcp_accept(t_socket *socket, t_schedevent event)
  * @param socket Pointer to the socket to use.
  * @param event Scheduler event which is raised.
  */
-static void	tcp_connect(t_socket *socket, t_schedevent event)
+static void	tcp_connect(t_rinoosocket *socket, t_rinoosched_event event)
 {
   int           val;
   socklen_t     size;
@@ -274,8 +276,8 @@ static void	tcp_connect(t_socket *socket, t_schedevent event)
 	  tcp_error(tcpsock, EVENT_TCP_CONNECT);
 	  return;
 	}
-      if (sched_delmode(socket, EVENT_SCHED_OUT) == -1 ||
-	  sched_addmode(socket, EVENT_SCHED_IN) == -1)
+      if (rinoo_sched_delmode(socket, EVENT_SCHED_OUT) == -1 ||
+	  rinoo_sched_addmode(socket, EVENT_SCHED_IN) == -1)
 	{
 	  tcp_error(tcpsock, EVENT_TCP_CONNECT);
 	  return;
@@ -304,7 +306,7 @@ static void	tcp_connect(t_socket *socket, t_schedevent event)
  * @param socket Pointer to the socket to use.
  * @param event Scheduler event which is raised.
  */
-static void	tcp_fsm(t_socket *socket, t_schedevent event)
+static void	tcp_fsm(t_rinoosocket *socket, t_rinoosched_event event)
 {
   int		res;
   t_tcpsocket	*tcpsock;
@@ -354,7 +356,7 @@ static void	tcp_fsm(t_socket *socket, t_schedevent event)
 	  buffer_erase(socket->wrbuf, res);
 	}
       if (buffer_len(socket->wrbuf) <= 0 &&
-	  sched_delmode(socket, EVENT_SCHED_OUT) == -1)
+	  rinoo_sched_delmode(socket, EVENT_SCHED_OUT) == -1)
 	{
 	  tcp_error(tcpsock, EVENT_TCP_OUT);
 	  return;
@@ -394,7 +396,9 @@ int		tcp_print(t_tcpsocket *socket, const char *format, ...)
   res = buffer_vprint(socket->socket.wrbuf, format, ap);
   va_end(ap);
   if (res > -1)
-    sched_addmode(&socket->socket, EVENT_SCHED_OUT);
+    {
+      rinoo_sched_addmode(&socket->socket, EVENT_SCHED_OUT);
+    }
   return (res);
 }
 
@@ -414,7 +418,9 @@ int		tcp_printdata(t_tcpsocket *tcpsock, const char *data, size_t size)
 
   res = buffer_add(tcpsock->socket.wrbuf, data, size);
   if (res > -1)
-    sched_addmode(&tcpsock->socket, EVENT_SCHED_OUT);
+    {
+      rinoo_sched_addmode(&tcpsock->socket, EVENT_SCHED_OUT);
+    }
   return (res);
 }
 

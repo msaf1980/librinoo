@@ -11,7 +11,7 @@
 #include	"rinoo/rinoo.h"
 
 static inline void	udp_error(t_udpsocket *udpsock, t_udpevent errorstep);
-static void		udp_fsm(t_socket *socket, t_schedevent event);
+static void		udp_fsm(t_rinoosocket *socket, t_rinoosched_event event);
 
 /**
  * Creates a new udp socket and add it to a scheduler.
@@ -25,7 +25,7 @@ static void		udp_fsm(t_socket *socket, t_schedevent event);
  *
  * @return Pointer to the new udp structure, or NULL if an error occurs.
  */
-t_udpsocket	*udp_create(t_sched *sched,
+t_udpsocket	*udp_create(t_rinoosched *sched,
 			    t_ip ip,
 			    u32 port,
 			    t_udpmode mode,
@@ -93,10 +93,10 @@ t_udpsocket	*udp_create(t_sched *sched,
 	}
     }
   udpsock->socket.event_fsm = udp_fsm;
-  if (sched_insert(&udpsock->socket,
-		   (mode == MODE_UDP_SERVER ?
-		    EVENT_SCHED_IN : EVENT_SCHED_OUT),
-		   (mode == MODE_UDP_SERVER ? 0 : timeout)) == -1)
+  if (rinoo_sched_insert(&udpsock->socket,
+			 (mode == MODE_UDP_SERVER ?
+			  EVENT_SCHED_IN : EVENT_SCHED_OUT),
+			 (mode == MODE_UDP_SERVER ? 0 : timeout)) == -1)
     {
       udp_destroy(udpsock);
       XASSERT(0, NULL);
@@ -116,8 +116,10 @@ void	udp_destroy(t_udpsocket *udpsock)
 
   if (udpsock->socket.fd > -1)
     {
-      if (sched_getsocket(udpsock->socket.sched, udpsock->socket.fd) != NULL)
-	sched_remove(&udpsock->socket);
+      if (rinoo_sched_getsocket(udpsock->socket.sched, udpsock->socket.fd) != NULL)
+	{
+	  rinoo_sched_remove(&udpsock->socket);
+	}
       close(udpsock->socket.fd);
     }
   if (udpsock->socket.rdbuf != NULL)
@@ -150,7 +152,7 @@ static inline void	udp_error(t_udpsocket *udpsock, t_udpevent errorstep)
  * @param socket Pointer to the socket to use.
  * @param event Scheduler event which is raised.
  */
-static void	udp_fsm(t_socket *socket, t_schedevent event)
+static void	udp_fsm(t_rinoosocket *socket, t_rinoosched_event event)
 {
   int		res;
   t_udpsocket	*udpsock;
@@ -200,7 +202,7 @@ static void	udp_fsm(t_socket *socket, t_schedevent event)
 	  buffer_erase(socket->wrbuf, res);
 	}
       if (buffer_len(socket->wrbuf) <= 0 &&
-	  sched_delmode(socket, EVENT_SCHED_OUT) == -1)
+	  rinoo_sched_delmode(socket, EVENT_SCHED_OUT) == -1)
 	{
 	  udp_error(udpsock, EVENT_UDP_OUT);
 	  return;
@@ -240,7 +242,9 @@ int		udp_print(t_udpsocket *socket, const char *format, ...)
   res = buffer_vprint(socket->socket.wrbuf, format, ap);
   va_end(ap);
   if (res > -1)
-    sched_addmode(&socket->socket, EVENT_SCHED_OUT);
+    {
+      rinoo_sched_addmode(&socket->socket, EVENT_SCHED_OUT);
+    }
   return (res);
 }
 
@@ -260,7 +264,9 @@ int		udp_printdata(t_udpsocket *udpsock, const char *data, size_t size)
 
   res = buffer_add(udpsock->socket.wrbuf, data, size);
   if (res > -1)
-    sched_addmode(&udpsock->socket, EVENT_SCHED_OUT);
+    {
+      rinoo_sched_addmode(&udpsock->socket, EVENT_SCHED_OUT);
+    }
   return (res);
 }
 

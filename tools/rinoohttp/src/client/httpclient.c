@@ -13,7 +13,7 @@
 
 static void	httpclient_fsm(t_tcpsocket *tcpsock, t_tcpevent event);
 
-t_httpsocket	*httpclient_create(t_sched *sched,
+t_httpsocket	*httpclient_create(t_rinoosched *sched,
 				   t_ip ip,
 				   u32 port,
 				   u32 timeout,
@@ -105,7 +105,7 @@ static void	httpclient_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
       httpsock->event_fsm(httpsock, EVENT_HTTP_CONNECT);
       httpsock->last_event = EVENT_HTTP_CONNECT;
       sched_delmode(&tcpsock->socket, EVENT_SCHED_IN);
-      sched_addmode(&tcpsock->socket, EVENT_SCHED_OUT);
+      rinoo_sched_addmode(&tcpsock->socket, EVENT_SCHED_OUT);
       break;
     case EVENT_TCP_IN:
       switch (httpsock->last_event)
@@ -147,7 +147,7 @@ static void	httpclient_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
 	      httpsock->event_fsm(httpsock, EVENT_HTTP_RESPBODY);
 	      httpsock->last_event = EVENT_HTTP_RESPBODY;
 	      sched_delmode(&tcpsock->socket, EVENT_SCHED_IN);
-	      sched_addmode(&tcpsock->socket, EVENT_SCHED_OUT);
+	      rinoo_sched_addmode(&tcpsock->socket, EVENT_SCHED_OUT);
 	      httpsock->last_event = EVENT_HTTP_CONNECT;
 	      break;
 	    }
@@ -170,7 +170,7 @@ static void	httpclient_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
 	  httpsock->last_event = EVENT_HTTP_REQBODY;
 	  if (buffer_len(tcpsock->socket.wrbuf) == 0)
 	    {
-	      sched_addmode(&tcpsock->socket, EVENT_SCHED_IN);
+	      rinoo_sched_addmode(&tcpsock->socket, EVENT_SCHED_IN);
 	    }
 	  break;
 	default:

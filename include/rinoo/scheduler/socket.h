@@ -16,33 +16,25 @@
 # define	WRBUF_INITSIZE		1024
 # define	WRBUF_MAXSIZE		1024 * 1024
 
-typedef struct		s_sockettimeout
-{
-  u32			ms;
-  struct timeval	expire;
-  t_listnode		*node;
-}			t_sockettimeout;
-
-typedef struct		s_socket
+typedef struct		s_rinoosocket
 {
   int			fd;
-  t_sched		*sched;
-  t_schedevent		poll_mode;
-  t_sockettimeout	timeout;
-  void			(*event_fsm)(struct s_socket *socket, t_schedevent event);
+  t_rinoosched		*sched;
+  t_rinoosched_event	poll_mode;
+  t_rinootimeout	timeout;
   void			*data;
-  struct s_socket	*parent;
   t_buffer		*rdbuf;
   t_buffer		*wrbuf;
-}			t_socket;
+  struct s_rinoosocket	*parent;
+  void			(*event_fsm)(struct s_rinoosocket *socket,
+				     t_rinoosched_event event);
+}			t_rinoosocket;
 
-t_list		*socket_expirequeue_create();
-void		socket_expirequeue_destroy(t_list *expirequeue);
-int		socket_settimeout(t_socket *socket, u32 timeout);
-int		socket_resettimeout(t_socket *socket);
-void		socket_removetimeout(t_socket *socket);
-u32		socket_gettimeout(t_sched *sched);
-t_socket	*socket_getexpired(t_sched *sched);
-void		socket_flush(t_socket *socket);
+int		rinoo_socket_timeout_cmp(void *node1, void *node2);
+int		rinoo_socket_timeout_set(t_rinoosocket *socket, u32 timeout);
+int		rinoo_socket_timeout_reset(t_rinoosocket *socket);
+void		rinoo_socket_timeout_remove(t_rinoosocket *socket);
+u32		rinoo_socket_timeout_getmin(t_rinoosched *sched);
+t_rinoosocket	*rinoo_socket_getexpired(t_rinoosched *sched);
 
-#endif		/* !RINOO_SOCKET_H_ */
+#endif		/* !RINOO_RINOO_SOCKET_H_ */

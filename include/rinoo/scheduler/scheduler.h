@@ -11,41 +11,50 @@
 #ifndef		RINOO_SCHEDULER_H_
 # define	RINOO_SCHEDULER_H_
 
-# define	SCHED_MAXFDS		1000000
+# define	RINOO_SCHED_MAXFDS		1000000
 
-typedef enum	e_schedevent
+struct s_rinoopoller; /* defined in poller.h */
+struct s_rinoosocket; /* defined in socket.h */
+
+typedef enum	e_rinoosched_event
   {
     EVENT_SCHED_IN = 1,
     EVENT_SCHED_OUT = 2,
     EVENT_SCHED_ERROR = 4,
     EVENT_SCHED_TIMEOUT = 8,
     EVENT_SCHED_STOP = 16
-  }		t_schedevent;
+  }		t_rinoosched_event;
 
-struct s_pollerapi; /* defined in poller.h */
-struct s_socket; /* defined in socket.h */
+typedef struct		s_rinootimeout
+{
+  u32			ms;
+  struct timeval	expire;
+  t_listnode		*node;
+}			t_rinootimeout;
 
-typedef struct		s_sched
+typedef struct		s_rinoosched
 {
   int			stop;
-  struct s_pollerapi	*poller;
+  struct s_rinoopoller	*poller;
   void			*poller_data;
-  struct s_socket	*sock_pool[SCHED_MAXFDS];
+  struct s_rinoosocket	*sock_pool[RINOO_SCHED_MAXFDS];
   struct timeval	curtime;
-  t_list		*expirequeue;
-  t_list		*jobqueue;
-}			t_sched;
+  t_list		*jobq;
+  t_list		*timeoutq;
+}			t_rinoosched;
 
-t_sched		*sched_create();
-void		sched_destroy(t_sched *sched);
-struct s_socket	*sched_getsocket(t_sched *sched, int fd);
-void		sched_stop(t_sched *sched);
-int		sched_insert(struct s_socket *socket,
-			     t_schedevent event,
-			     u32 timeout);
-int		sched_addmode(struct s_socket *socket, t_schedevent event);
-int		sched_delmode(struct s_socket *socket, t_schedevent event);
-int		sched_remove(struct s_socket *socket);
-int		sched_loop(struct s_sched *sched);
+t_rinoosched		*rinoo_sched();
+void			rinoo_sched_destroy(t_rinoosched *sched);
+struct s_rinoosocket	*rinoo_sched_getsocket(t_rinoosched *sched, int fd);
+void			rinoo_sched_stop(t_rinoosched *sched);
+int			rinoo_sched_insert(struct s_rinoosocket *socket,
+					  t_rinoosched_event event,
+					  u32 timeout);
+int			rinoo_sched_addmode(struct s_rinoosocket *socket,
+					   t_rinoosched_event event);
+int			rinoo_sched_delmode(struct s_rinoosocket *socket,
+					   t_rinoosched_event event);
+int			rinoo_sched_remove(struct s_rinoosocket *socket);
+int			rinoo_sched_loop(t_rinoosched *sched);
 
 #endif	        /* !RINOO_SCHEDULER_H */

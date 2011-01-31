@@ -26,26 +26,26 @@ void		event_fsm(t_tcpsocket *unused(tcpsock), t_tcpevent event)
  */
 int		main()
 {
-  t_sched	*sched;
+  t_rinoosched	*sched;
   t_tcpsocket	*tcpsock;
 
-  sched = sched_create();
+  sched = rinoo_sched();
   XTEST(sched != NULL);
   tcpsock = tcp_create(sched, 0, 42422, MODE_TCP_SERVER, 0, event_fsm);
   XTEST(tcpsock != NULL);
-  XTEST(sched_remove(&tcpsock->socket) == 0);
-  XTEST(sched_getsocket(sched, tcpsock->socket.fd) == NULL);
-  XTEST(sched_insert(&tcpsock->socket, EVENT_SCHED_IN, 0) == 0);
+  XTEST(rinoo_sched_remove(&tcpsock->socket) == 0);
+  XTEST(rinoo_sched_getsocket(sched, tcpsock->socket.fd) == NULL);
+  XTEST(rinoo_sched_insert(&tcpsock->socket, EVENT_SCHED_IN, 0) == 0);
   XTEST(tcpsock->socket.poll_mode == EVENT_SCHED_IN);
-  XTEST(sched_addmode(&tcpsock->socket, EVENT_SCHED_OUT) == 0);
+  XTEST(rinoo_sched_addmode(&tcpsock->socket, EVENT_SCHED_OUT) == 0);
   XTEST(tcpsock->socket.poll_mode == (EVENT_SCHED_IN | EVENT_SCHED_OUT));
-  XTEST(sched_delmode(&tcpsock->socket, EVENT_SCHED_OUT) == 0);
+  XTEST(rinoo_sched_delmode(&tcpsock->socket, EVENT_SCHED_OUT) == 0);
   XTEST(tcpsock->socket.poll_mode == EVENT_SCHED_IN);
-  XTEST(sched_addmode(&tcpsock->socket, EVENT_SCHED_OUT) == 0);
+  XTEST(rinoo_sched_addmode(&tcpsock->socket, EVENT_SCHED_OUT) == 0);
   XTEST(tcpsock->socket.poll_mode == (EVENT_SCHED_IN | EVENT_SCHED_OUT));
-  XTEST(sched_delmode(&tcpsock->socket, EVENT_SCHED_IN) == 0);
+  XTEST(rinoo_sched_delmode(&tcpsock->socket, EVENT_SCHED_IN) == 0);
   XTEST(tcpsock->socket.poll_mode == EVENT_SCHED_OUT);
   tcp_destroy(tcpsock);
-  sched_destroy(sched);
+  rinoo_sched_destroy(sched);
   XPASS();
 }

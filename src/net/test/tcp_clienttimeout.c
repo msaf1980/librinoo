@@ -11,7 +11,7 @@
 
 static int	passed = 1;
 
-t_jobstate	client_cb(t_job *job)
+t_rinoojob_state	client_cb(t_rinoojob *job)
 {
   static int	counter = 0;
   t_tcpsocket	*tcpsock;
@@ -46,7 +46,7 @@ void		client_event_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
     case EVENT_TCP_ERROR:
     case EVENT_TCP_CLOSE:
       passed = 0;
-      sched_stop(tcpsock->socket.sched);
+      rinoo_sched_stop(tcpsock->socket.sched);
       break;
     case EVENT_TCP_TIMEOUT:
       rinoo_log("Client timeout!");
@@ -65,7 +65,7 @@ void		server_event_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
       if (tcpsock->mode == MODE_TCP_CLIENT)
 	{
 	  rinoo_log("Server: client connection closed.");
-	  sched_stop(tcpsock->socket.sched);
+	  rinoo_sched_stop(tcpsock->socket.sched);
 	}
       else
 	rinoo_log("Server: shuting down...");
@@ -83,7 +83,7 @@ void		server_event_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
     case EVENT_TCP_TIMEOUT:
       rinoo_log("Server: error or timeout!");
       passed = 0;
-      sched_stop(tcpsock->socket.sched);
+      rinoo_sched_stop(tcpsock->socket.sched);
       break;
     }
 }
@@ -96,13 +96,13 @@ void		server_event_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
  */
 int		main()
 {
-  t_sched	*sched;
+  t_rinoosched	*sched;
   t_tcpsocket	*stcpsock;
   t_tcpsocket	*ctcpsock;
   struct timeval	tv1;
   struct timeval	tv2;
 
-  sched = sched_create();
+  sched = rinoo_sched();
   XTEST(sched != NULL);
   stcpsock = tcp_create(sched, 0, 4242, MODE_TCP_SERVER, 0, server_event_fsm);
   XTEST(stcpsock != NULL);
@@ -133,11 +133,11 @@ int		main()
   XTEST(ctcpsock->event_fsm == client_event_fsm);
   XTEST(ctcpsock->errorstep == 0);
   XTEST(gettimeofday(&tv1, NULL) == 0);
-  sched_loop(sched);
+  rinoo_sched_loop(sched);
   XTEST(gettimeofday(&tv2, NULL) == 0);
   XTEST((tv2.tv_sec - tv1.tv_sec) * 1000 + (tv2.tv_usec - tv1.tv_usec) / 1000 >= 1000);
   XTEST((tv2.tv_sec - tv1.tv_sec) * 1000 + (tv2.tv_usec - tv1.tv_usec) / 1000 < 1200);
-  sched_destroy(sched);
+  rinoo_sched_destroy(sched);
   if (passed != 1)
     XFAIL();
   XPASS();

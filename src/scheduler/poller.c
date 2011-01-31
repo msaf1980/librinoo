@@ -10,7 +10,7 @@
 
 #include	"rinoo/rinoo.h"
 
-t_pollerapi	pollers[NB_POLLERS] =
+t_rinoopoller	pollers[NB_POLLERS] =
   {
     { xselect_init, xselect_destroy, xselect_insert, xselect_addmode, xselect_delmode, xselect_remove, xselect_poll },
     { xepoll_init, xepoll_destroy, xepoll_insert, xepoll_addmode, xepoll_delmode, xepoll_remove, xepoll_poll }

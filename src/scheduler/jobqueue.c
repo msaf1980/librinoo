@@ -20,8 +20,8 @@
  */
 static int	jobqueue_cmp(void *node1, void *node2)
 {
-  t_job		*job1 = (t_job *) node1;
-  t_job		*job2 = (t_job *) node2;
+  t_rinoojob	*job1 = (t_rinoojob *) node1;
+  t_rinoojob	*job2 = (t_rinoojob *) node2;
 
   XDASSERT(node1 != NULL, 1);
   XDASSERT(node2 != NULL, 1);
@@ -71,7 +71,7 @@ void		jobqueue_destroy(void *ptr)
  */
 static void	jobqueue_destroyjob(void *ptr)
 {
-  t_job		*job = (t_job *) ptr;
+  t_rinoojob  	*job = (t_rinoojob *) ptr;
 
   XDASSERTN(job != NULL);
 
@@ -84,12 +84,12 @@ static void	jobqueue_destroyjob(void *ptr)
  * @param sched Pointer to the scheduler to use.
  * @param job Pointer to the job to remove.
  */
-void		jobqueue_removejob(t_job *job)
+void		jobqueue_removejob(t_rinoojob *job)
 {
   XDASSERTN(job != NULL);
   XDASSERTN(job->sched != NULL);
 
-  list_removenode(job->sched->jobqueue, job->listnode, TRUE);
+  list_removenode(job->sched->jobq, job->listnode, TRUE);
 }
 
 /**
@@ -101,22 +101,22 @@ void		jobqueue_removejob(t_job *job)
  *
  * @return 0 on success, or -1 if an error occurs.
  */
-int		jobqueue_schedule(struct s_sched *sched,
-				  t_job *job,
+int		jobqueue_schedule(t_rinoosched *sched,
+				  t_rinoojob *job,
 				  const struct timeval *tv)
 {
   XDASSERT(sched != NULL, -1);
-  XDASSERT(sched->jobqueue != NULL, -1);
+  XDASSERT(sched->jobq != NULL, -1);
   XDASSERT(job != NULL, -1);
 
   job->creatime = sched->curtime;
   job->exectime = *tv;
   if (job->listnode != NULL &&
-      unlikely(list_removenode(job->sched->jobqueue, job->listnode, FALSE) == FALSE))
+      unlikely(list_removenode(job->sched->jobq, job->listnode, FALSE) == FALSE))
     {
       return (-1);
     }
-  job->listnode = list_add(sched->jobqueue, job, jobqueue_destroyjob);
+  job->listnode = list_add(sched->jobq, job, jobqueue_destroyjob);
   if (unlikely(job->listnode == NULL))
     return (-1);
   job->sched = sched;
@@ -131,12 +131,12 @@ int		jobqueue_schedule(struct s_sched *sched,
  *
  * @return 0 on success, or -1 if an error occurs.
  */
-int		jobqueue_reschedule(struct s_sched *sched, t_job *job)
+int		jobqueue_reschedule(t_rinoosched *sched, t_rinoojob *job)
 {
   struct timeval	tmp;
 
   XDASSERT(sched != NULL, -1);
-  XDASSERT(sched->jobqueue != NULL, -1);
+  XDASSERT(sched->jobq != NULL, -1);
   XDASSERT(job != NULL, -1);
 
   timersub(&job->exectime, &job->creatime, &tmp);
@@ -154,15 +154,15 @@ int		jobqueue_reschedule(struct s_sched *sched, t_job *job)
  *
  * @return Pointer to the created job or NULL if an error occurs.
  */
-t_job		*jobqueue_add(struct s_sched *sched,
-			      t_jobstate (*func)(t_job *job),
+t_rinoojob	*jobqueue_add(t_rinoosched *sched,
+			      t_rinoojob_state (*func)(t_rinoojob *job),
 			      void *args,
 			      const struct timeval *tv)
 {
-  t_job		*new;
+  t_rinoojob	*new;
 
   XDASSERT(sched != NULL, NULL);
-  XDASSERT(sched->jobqueue != NULL, NULL);
+  XDASSERT(sched->jobq != NULL, NULL);
   XDASSERT(func != NULL, NULL);
 
   new = xcalloc(1, sizeof(*new));
@@ -187,8 +187,8 @@ t_job		*jobqueue_add(struct s_sched *sched,
  *
  * @return Pointer to the created job or NULL if an error occurs
  */
-t_job		*jobqueue_addms(struct s_sched *sched,
-				t_jobstate (*func)(t_job *job),
+t_rinoojob	*jobqueue_addms(t_rinoosched *sched,
+				t_rinoojob_state (*func)(t_rinoojob *job),
 				void *args,
 				const u32 msec)
 {
@@ -206,8 +206,8 @@ t_job		*jobqueue_addms(struct s_sched *sched,
  *
  * @return 0 on success, or -1 if an error occurs.
  */
-int		jobqueue_resettime(struct s_sched *sched,
-				   t_job *job,
+int		jobqueue_resettime(t_rinoosched *sched,
+				   t_rinoojob *job,
 				   const struct timeval *tv)
 {
   XDASSERT(sched != NULL, -1);
@@ -227,8 +227,8 @@ int		jobqueue_resettime(struct s_sched *sched,
  *
  * @return 0 on success, or -1 if an error occurs.
  */
-int		jobqueue_resettimems(struct s_sched *sched,
-				     t_job *job,
+int		jobqueue_resettimems(t_rinoosched *sched,
+				     t_rinoojob *job,
 				     const u32 msec)
 {
   struct timeval	tmp;
@@ -248,14 +248,14 @@ int		jobqueue_resettimems(struct s_sched *sched,
  *
  * @return Pointer to the job or NULL if the queue is empty.
  */
-static t_job	*jobqueue_pop(struct s_sched *sched)
+static t_rinoojob	*jobqueue_pop(t_rinoosched *sched)
 {
-  t_job		*head;
+  t_rinoojob		*head;
 
   XDASSERT(sched != NULL, NULL);
-  XDASSERT(sched->jobqueue != NULL, NULL);
+  XDASSERT(sched->jobq != NULL, NULL);
 
-  head = list_pophead(sched->jobqueue);
+  head = list_pophead(sched->jobq);
   if (head == NULL)
     {
       return NULL;
@@ -271,12 +271,12 @@ static t_job	*jobqueue_pop(struct s_sched *sched)
  *
  * @return Pointer to the job or NULL if the queue is empty
  */
-static t_job	*jobqueue_gethead(struct s_sched *sched)
+static t_rinoojob	*jobqueue_gethead(t_rinoosched *sched)
 {
   XDASSERT(sched != NULL, NULL);
-  XDASSERT(sched->jobqueue != NULL, NULL);
+  XDASSERT(sched->jobq != NULL, NULL);
 
-  return (list_gethead(sched->jobqueue));
+  return (list_gethead(sched->jobq));
 }
 
 /**
@@ -286,12 +286,12 @@ static t_job	*jobqueue_gethead(struct s_sched *sched)
  *
  * @return The number of milliseconds before the next job.
  */
-u32		jobqueue_gettimeout(struct s_sched *sched)
+u32		jobqueue_gettimeout(t_rinoosched *sched)
 {
-  t_job			*job;
+  t_rinoojob	*job;
 
   XDASSERT(sched != NULL, DEFAULT_TIMEOUT);
-  XDASSERT(sched->jobqueue != NULL, DEFAULT_TIMEOUT);
+  XDASSERT(sched->jobq != NULL, DEFAULT_TIMEOUT);
 
   job = jobqueue_gethead(sched);
   if (job == NULL)
@@ -307,13 +307,13 @@ u32		jobqueue_gettimeout(struct s_sched *sched)
  *
  * @param sched Pointer to the scheduler to use.
  */
-void		jobqueue_exec(struct s_sched *sched)
+void		jobqueue_exec(t_rinoosched *sched)
 {
-  t_job	       	*job;
-  t_jobstate	jobres;
+  t_rinoojob	       	*job;
+  t_rinoojob_state	jobres;
 
   XDASSERTN(sched != NULL);
-  XDASSERTN(sched->jobqueue != NULL);
+  XDASSERTN(sched->jobq != NULL);
 
   job = jobqueue_gethead(sched);
   if (job != NULL &&

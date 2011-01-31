@@ -11,7 +11,7 @@
 #ifndef		RINOOHTTP_SERVER_HTTPSERVER_H_
 # define	RINOOHTTP_SERVER_HTTPSERVER_H_
 
-t_httpsocket	*httpserver_create(t_sched *sched,
+t_httpsocket	*httpserver_create(t_rinoosched *sched,
 				   t_ip ip,
 				   u32 port,
 				   u32 timeout,

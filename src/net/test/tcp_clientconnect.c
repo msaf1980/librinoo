@@ -25,7 +25,7 @@ void		client_event_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
     case EVENT_TCP_CLOSE:
     case EVENT_TCP_TIMEOUT:
       passed = 0;
-      sched_stop(tcpsock->socket.sched);
+      rinoo_sched_stop(tcpsock->socket.sched);
       break;
     }
 }
@@ -41,7 +41,7 @@ void		server_event_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
       if (tcpsock->mode == MODE_TCP_CLIENT)
 	{
 	  printf("Server: client connection closed.\n");
-	  sched_stop(tcpsock->socket.sched);
+	  rinoo_sched_stop(tcpsock->socket.sched);
 	}
       else
 	printf("Server: shuting down...\n");
@@ -51,7 +51,7 @@ void		server_event_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
     case EVENT_TCP_ERROR:
     case EVENT_TCP_TIMEOUT:
       passed = 0;
-      sched_stop(tcpsock->socket.sched);
+      rinoo_sched_stop(tcpsock->socket.sched);
       break;
     }
 }
@@ -64,11 +64,11 @@ void		server_event_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
  */
 int		main()
 {
-  t_sched	*sched;
+  t_rinoosched	*sched;
   t_tcpsocket	*stcpsock;
   t_tcpsocket	*ctcpsock;
 
-  sched = sched_create();
+  sched = rinoo_sched();
   XTEST(sched != NULL);
   stcpsock = tcp_create(sched, 0, 4242, MODE_TCP_SERVER, 0, server_event_fsm);
   XTEST(stcpsock != NULL);
@@ -98,8 +98,8 @@ int		main()
   XTEST(ctcpsock->mode == MODE_TCP_CLIENT);
   XTEST(ctcpsock->event_fsm == client_event_fsm);
   XTEST(ctcpsock->errorstep == 0);
-  sched_loop(sched);
-  sched_destroy(sched);
+  rinoo_sched_loop(sched);
+  rinoo_sched_destroy(sched);
   if (passed != 1)
     XFAIL();
   XPASS();

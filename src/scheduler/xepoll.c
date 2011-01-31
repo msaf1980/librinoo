@@ -17,9 +17,9 @@
  *
  * @return 0 if succeeds, else -1.
  */
-int		xepoll_init(t_sched *sched)
+int		xepoll_init(t_rinoosched *sched)
 {
-  t_epolldata	*data;
+  t_rinooepoll	*data;
 
   data = xcalloc(1, sizeof(*data));
   XASSERT(data != NULL, -1);
@@ -31,12 +31,6 @@ int		xepoll_init(t_sched *sched)
       xfree(data);
       XASSERT(0, -1);
     }
-  /* if (sigaddset(&data->sigmask, SIGINT) < 0) */
-  /*   { */
-  /*     close(data->fd); */
-  /*     xfree(data); */
-  /*     XASSERT(0, -1); */
-  /*   } */
   if (sigaddset(&data->sigmask, SIGPIPE) < 0)
     {
       close(data->fd);
@@ -53,12 +47,12 @@ int		xepoll_init(t_sched *sched)
  *
  * @param sched Pointer to the scheduler to use.
  */
-void		xepoll_destroy(t_sched *sched)
+void		xepoll_destroy(t_rinoosched *sched)
 {
   XDASSERTN(sched != NULL);
   XDASSERTN(sched->poller_data != NULL);
 
-  close(((t_epolldata *) sched->poller_data)->fd);
+  close(((t_rinooepoll *) sched->poller_data)->fd);
   xfree(sched->poller_data);
 }
 
@@ -70,21 +64,27 @@ void		xepoll_destroy(t_sched *sched)
  *
  * @return 0 if succeeds, else -1.
  */
-int		xepoll_insert(t_socket *socket, t_schedevent mode)
+int		xepoll_insert(t_rinoosocket *socket, t_rinoosched_event mode)
 {
   struct epoll_event	ev = { 0, { 0 } };
 
   XDASSERT(socket != NULL, -1);
 
   if ((socket->poll_mode & mode) == mode)
-    return (0);
+    {
+      return (0);
+    }
   if ((mode & EVENT_SCHED_IN) == EVENT_SCHED_IN)
-    ev.events |= EPOLLIN;
+    {
+      ev.events |= EPOLLIN;
+    }
   if ((mode & EVENT_SCHED_OUT) == EVENT_SCHED_OUT)
-    ev.events |= EPOLLOUT;
+    {
+      ev.events |= EPOLLOUT;
+    }
   ev.events |= EPOLLRDHUP;
   ev.data.fd = socket->fd;
-  XASSERT(epoll_ctl(((t_epolldata *) socket->sched->poller_data)->fd,
+  XASSERT(epoll_ctl(((t_rinooepoll *) socket->sched->poller_data)->fd,
 		    EPOLL_CTL_ADD, socket->fd, &ev) >= 0, -1);
   socket->poll_mode |= mode;
   return (0);
@@ -98,22 +98,28 @@ int		xepoll_insert(t_socket *socket, t_schedevent mode)
  *
  * @return 0 if succeeds, else -1.
  */
-int		xepoll_addmode(t_socket *socket, t_schedevent mode)
+int		xepoll_addmode(t_rinoosocket *socket, t_rinoosched_event mode)
 {
   struct epoll_event	ev = { 0, { 0 } };
 
   XDASSERT(socket != NULL, -1);
 
   if ((socket->poll_mode & mode) == mode)
-    return (0);
+    {
+      return (0);
+    }
   mode |= socket->poll_mode;
   if ((mode & EVENT_SCHED_IN) == EVENT_SCHED_IN)
-    ev.events |= EPOLLIN;
+    {
+      ev.events |= EPOLLIN;
+    }
   if ((mode & EVENT_SCHED_OUT) == EVENT_SCHED_OUT)
-    ev.events |= EPOLLOUT;
+    {
+      ev.events |= EPOLLOUT;
+    }
   ev.events |= EPOLLRDHUP;
   ev.data.fd = socket->fd;
-  XASSERT(epoll_ctl(((t_epolldata *) socket->sched->poller_data)->fd,
+  XASSERT(epoll_ctl(((t_rinooepoll *) socket->sched->poller_data)->fd,
 		    EPOLL_CTL_MOD, socket->fd, &ev) >= 0, -1);
   socket->poll_mode = mode;
   return (0);
@@ -127,22 +133,28 @@ int		xepoll_addmode(t_socket *socket, t_schedevent mode)
  *
  * @return 0 if succeeds, else -1.
  */
-int		xepoll_delmode(t_socket *socket, t_schedevent mode)
+int		xepoll_delmode(t_rinoosocket *socket, t_rinoosched_event mode)
 {
   struct epoll_event	ev = { 0, { 0 } };
 
   XDASSERT(socket != NULL, -1);
 
   if ((socket->poll_mode & mode) == 0)
-    return (0);
+    {
+      return (0);
+    }
   mode = socket->poll_mode - mode;
   if ((mode & EVENT_SCHED_IN) == EVENT_SCHED_IN)
-    ev.events |= EPOLLIN;
+    {
+      ev.events |= EPOLLIN;
+    }
   if ((mode & EVENT_SCHED_OUT) == EVENT_SCHED_OUT)
-    ev.events |= EPOLLOUT;
+    {
+      ev.events |= EPOLLOUT;
+    }
   ev.events |= EPOLLRDHUP;
   ev.data.fd = socket->fd;
-  XASSERT(epoll_ctl(((t_epolldata *) socket->sched->poller_data)->fd,
+  XASSERT(epoll_ctl(((t_rinooepoll *) socket->sched->poller_data)->fd,
 		    EPOLL_CTL_MOD,
 		    socket->fd,
 		    &ev) >= 0, -1);
@@ -157,13 +169,15 @@ int		xepoll_delmode(t_socket *socket, t_schedevent mode)
  *
  * @return 0 if succeeds, else -1.
  */
-int		xepoll_remove(t_socket *socket)
+int		xepoll_remove(t_rinoosocket *socket)
 {
   XDASSERT(socket != NULL, -1);
 
   if (socket->poll_mode == 0)
-    return (0);
-  XASSERT(epoll_ctl(((t_epolldata *) socket->sched->poller_data)->fd,
+    {
+      return (0);
+    }
+  XASSERT(epoll_ctl(((t_rinooepoll *) socket->sched->poller_data)->fd,
 		    EPOLL_CTL_DEL,
 		    socket->fd,
 		    NULL) >= 0, -1);
@@ -178,16 +192,16 @@ int		xepoll_remove(t_socket *socket)
  *
  * @return 0 if succeeds, else -1.
  */
-int		xepoll_poll(t_sched *sched, u32 timeout)
+int		xepoll_poll(t_rinoosched *sched, u32 timeout)
 {
   int		i;
   int		nbevents;
-  t_socket	*cursocket;
-  t_epolldata	*data;
+  t_rinoosocket	*cursocket;
+  t_rinooepoll	*data;
 
   XDASSERT(sched != NULL, -1);
 
-  data = (t_epolldata *) sched->poller_data;
+  data = (t_rinooepoll *) sched->poller_data;
   nbevents = epoll_pwait(data->fd, data->events, MAX_EVENTS, timeout, &data->sigmask);
   if (unlikely(nbevents == -1))
     {
@@ -196,22 +210,22 @@ int		xepoll_poll(t_sched *sched, u32 timeout)
     }
   for (i = 0; i < nbevents; i++)
     {
-      cursocket = sched_getsocket(sched, data->events[i].data.fd);
+      cursocket = rinoo_sched_getsocket(sched, data->events[i].data.fd);
       if ((data->events[i].events & EPOLLIN) == EPOLLIN)
 	{
 	  cursocket->event_fsm(cursocket, EVENT_SCHED_IN);
 	}
-      cursocket = sched_getsocket(sched, data->events[i].data.fd);
+      cursocket = rinoo_sched_getsocket(sched, data->events[i].data.fd);
       /**
        * If cursocket has been removed in the EPOLLIN step,
-       * sched_getsocket will return NULL.
+       * rinoo_sched_getsocket will return NULL.
        */
       if (cursocket != NULL &&
 	  (data->events[i].events & EPOLLOUT) == EPOLLOUT)
 	{
 	  cursocket->event_fsm(cursocket, EVENT_SCHED_OUT);
 	}
-      cursocket = sched_getsocket(sched, data->events[i].data.fd);
+      cursocket = rinoo_sched_getsocket(sched, data->events[i].data.fd);
       if (cursocket != NULL &&
 	  ((data->events[i].events & EPOLLERR) == EPOLLERR ||
 	   (data->events[i].events & EPOLLERR) == EPOLLRDHUP ||
@@ -219,10 +233,10 @@ int		xepoll_poll(t_sched *sched, u32 timeout)
 	{
 	  cursocket->event_fsm(cursocket, EVENT_SCHED_ERROR);
 	}
-      cursocket = sched_getsocket(sched, data->events[i].data.fd);
+      cursocket = rinoo_sched_getsocket(sched, data->events[i].data.fd);
       if (cursocket != NULL)
 	{
-	  socket_resettimeout(cursocket);
+	  rinoo_socket_timeout_reset(cursocket);
 	}
     }
   return (0);

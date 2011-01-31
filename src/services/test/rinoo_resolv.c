@@ -10,7 +10,7 @@
 
 #include	"rinoo/rinoo.h"
 
-t_sched		*sched;
+t_rinoosched	*sched;
 int		passed = 0;
 
 void		result_cb(t_dnsevent event, t_ip ip)
@@ -30,7 +30,7 @@ void		result_cb(t_dnsevent event, t_ip ip)
     case EVENT_DNS_ERROR:
       break;
     }
-  sched_stop(sched);
+  rinoo_sched_stop(sched);
 }
 
 /**
@@ -41,11 +41,11 @@ void		result_cb(t_dnsevent event, t_ip ip)
  */
 int		main()
 {
-  sched = sched_create();
+  sched = rinoo_sched();
   XTEST(sched != NULL);
   XTEST(rinoo_resolv(sched, "puffy.fr", TYPE_DNS_A, 0, result_cb) == 0);
-  sched_loop(sched);
-  sched_destroy(sched);
+  rinoo_sched_loop(sched);
+  rinoo_sched_destroy(sched);
   if (passed == 0)
     {
       XFAIL();

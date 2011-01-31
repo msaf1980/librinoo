@@ -14,7 +14,7 @@
 static int		passed = 1;
 
 static u32		last_timeout;
-static t_sched		*sched;
+static t_rinoosched	*sched;
 static struct timeval	lasttv;
 
 static void		set_timeout(u32 timeout)
@@ -22,7 +22,7 @@ static void		set_timeout(u32 timeout)
   if (gettimeofday(&lasttv, NULL) != 0)
     {
       passed = 0;
-      sched_stop(sched);
+      rinoo_sched_stop(sched);
       return;
     }
   last_timeout = timeout;
@@ -35,7 +35,7 @@ static int		check_timeout()
   if (gettimeofday(&tv, NULL) != 0)
     {
       passed = 0;
-      sched_stop(sched);
+      rinoo_sched_stop(sched);
       return (-1);
     }
   printf("Recorded timeout: %ldms\n", ((tv.tv_sec - lasttv.tv_sec) * 1000 +
@@ -47,13 +47,13 @@ static int		check_timeout()
     {
       printf("Job scheduling was too slow (more than %dms)\n", DIFF_TOLERANCE);
       passed = 0;
-      sched_stop(sched);
+      rinoo_sched_stop(sched);
       return (-1);
     }
   return (0);
 }
 
-t_jobstate	job_callback(t_job *job)
+t_rinoojob_state	job_callback(t_rinoojob *job)
 {
   int		counter = PTR_TO_INT(job->args);
   u32		curtimeout;
@@ -62,13 +62,13 @@ t_jobstate	job_callback(t_job *job)
     return JOB_DONE;
   if (counter == 4)
     {
-      sched_stop(sched);
+      rinoo_sched_stop(sched);
       return JOB_DONE;
     }
   if (counter > 4)
     {
       passed = 0;
-      sched_stop(sched);
+      rinoo_sched_stop(sched);
       return JOB_DONE;
     }
   counter++;
@@ -92,7 +92,7 @@ t_jobstate	job_callback(t_job *job)
   if (jobqueue_resettimems(sched, job, curtimeout) == -1)
     {
       passed = 0;
-      sched_stop(sched);
+      rinoo_sched_stop(sched);
     }
   return JOB_REDO;
 }
@@ -110,7 +110,7 @@ void		server_event_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
     case EVENT_TCP_ERROR:
     case EVENT_TCP_TIMEOUT:
       passed = 0;
-      sched_stop(tcpsock->socket.sched);
+      rinoo_sched_stop(tcpsock->socket.sched);
       break;
     }
 }
@@ -127,7 +127,7 @@ int		main()
   struct timeval	tv1;
   struct timeval	tv2;
 
-  sched = sched_create();
+  sched = rinoo_sched();
   XTEST(sched != NULL);
   stcpsock = tcp_create(sched, 0, 4242, MODE_TCP_SERVER, 0, server_event_fsm);
   XTEST(stcpsock != NULL);
@@ -137,10 +137,10 @@ int		main()
 		       NULL,
 		       100) != NULL)
   XTEST(gettimeofday(&tv1, NULL) == 0);
-  sched_loop(sched);
+  rinoo_sched_loop(sched);
   XTEST(gettimeofday(&tv2, NULL) == 0);
   XTEST((tv2.tv_sec - tv1.tv_sec) * 1000 + (tv2.tv_usec - tv1.tv_usec) / 1000 < 1500);
-  sched_destroy(sched);
+  rinoo_sched_destroy(sched);
   if (passed != 1)
     XFAIL();
   XPASS();

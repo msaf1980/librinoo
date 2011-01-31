@@ -18,10 +18,10 @@
  *
  * @return Returns an integer less than, equal to, or greater than zero if node1, respectively, is less than, matches, or is greater than node2.
  */
-static int	socket_expirecmp(void *node1, void *node2)
+int		rinoo_socket_timeout_cmp(void *node1, void *node2)
 {
-  t_socket	*sock1 = (t_socket *) node1;
-  t_socket	*sock2 = (t_socket *) node2;
+  t_rinoosocket	*sock1 = (t_rinoosocket *) node1;
+  t_rinoosocket	*sock2 = (t_rinoosocket *) node2;
 
   XDASSERT(node1 != NULL, 1);
   XDASSERT(node2 != NULL, 1);
@@ -42,30 +42,6 @@ static int	socket_expirecmp(void *node1, void *node2)
 }
 
 /**
- * Create a new list called 'expire queue' to store socket
- * sorted by their expiration time.
- *
- *
- * @return Pointer to the new list, or NULL if an error occurs.
- */
-t_list	*socket_expirequeue_create()
-{
-  return (list_create(socket_expirecmp));
-}
-
-/**
- * Destroy an expire queue.
- *
- * @param expirequeue Pointer to the expire queue to destroy
- */
-void	socket_expirequeue_destroy(t_list *expirequeue)
-{
-  XDASSERTN(expirequeue != NULL);
-
-  list_destroy(expirequeue);
-}
-
-/**
  * Set the socket timeout (or expiration time).
  *
  * @param socket Pointer to the socket to modify.
@@ -73,13 +49,13 @@ void	socket_expirequeue_destroy(t_list *expirequeue)
  *
  * @return 0 on success, or -1 if an error occured.
  */
-int	socket_settimeout(t_socket *socket, u32 timeout)
+int	rinoo_socket_timeout_set(t_rinoosocket *socket, u32 timeout)
 {
   XDASSERT(socket != NULL, -1);
   XDASSERT(socket->sched != NULL, -1);
 
   if (socket->timeout.node != NULL &&
-      unlikely(list_removenode(socket->sched->expirequeue,
+      unlikely(list_removenode(socket->sched->timeoutq,
 			       socket->timeout.node, FALSE) == FALSE))
     {
       return (-1);
@@ -88,7 +64,7 @@ int	socket_settimeout(t_socket *socket, u32 timeout)
   if (timeout != 0)
     {
       timeraddms(&socket->sched->curtime, timeout, &socket->timeout.expire);
-      socket->timeout.node = list_add(socket->sched->expirequeue,
+      socket->timeout.node = list_add(socket->sched->timeoutq,
 				      socket,
 				      NULL);
       if (unlikely(socket->timeout.node == NULL))
@@ -101,16 +77,16 @@ int	socket_settimeout(t_socket *socket, u32 timeout)
 
 /**
  * Reset the socket timeout (or expiration time).
- * This function uses the previously declared timeout (with socket_settimeout)
+ * This function uses the previously declared timeout (with rinoo_socket_settimeout)
  * and re-compute the next expiration time.
  *
  * @param socket Pointer to the socket to modify.
  *
  * @return 0 on success, or -1 if an error occurs.
  */
-int	socket_resettimeout(t_socket *socket)
+int	rinoo_socket_timeout_reset(t_rinoosocket *socket)
 {
-  return (socket_settimeout(socket, socket->timeout.ms));
+  return (rinoo_socket_timeout_set(socket, socket->timeout.ms));
 }
 
 /**
@@ -118,14 +94,15 @@ int	socket_resettimeout(t_socket *socket)
  *
  * @param socket Pointer to the socket to remove from expire queue.
  */
-void	socket_removetimeout(t_socket *socket)
+void	rinoo_socket_timeout_remove(t_rinoosocket *socket)
 {
   XDASSERTN(socket != NULL);
 
   if (socket->timeout.node != NULL)
     {
-      list_removenode(socket->sched->expirequeue, socket->timeout.node, TRUE);
+      list_removenode(socket->sched->timeoutq, socket->timeout.node, TRUE);
     }
+  socket->timeout.node = NULL;
 }
 
 /**
@@ -135,14 +112,14 @@ void	socket_removetimeout(t_socket *socket)
  *
  * @return The number of milliseconds before a socket expires.
  */
-u32		socket_gettimeout(t_sched *sched)
+u32		rinoo_socket_timeout_getmin(t_rinoosched *sched)
 {
-  t_socket	*socket;
+  t_rinoosocket	*socket;
 
   XDASSERT(sched != NULL, DEFAULT_TIMEOUT);
-  XDASSERT(sched->expirequeue != NULL, DEFAULT_TIMEOUT);
+  XDASSERT(sched->timeoutq != NULL, DEFAULT_TIMEOUT);
 
-  socket = list_gethead(sched->expirequeue);
+  socket = list_gethead(sched->timeoutq);
   if (socket == NULL)
     return (DEFAULT_TIMEOUT);
   if (sched->curtime.tv_sec > socket->timeout.expire.tv_sec)
@@ -158,18 +135,18 @@ u32		socket_gettimeout(t_sched *sched)
  *
  * @return A pointer to an expired socket, or NULL all sockets are not expired yet.
  */
-t_socket	*socket_getexpired(t_sched *sched)
+t_rinoosocket	*rinoo_socket_getexpired(t_rinoosched *sched)
 {
-  t_socket	*socket;
+  t_rinoosocket	*socket;
 
   XDASSERT(sched != NULL, NULL);
-  XDASSERT(sched->expirequeue != NULL, NULL);
+  XDASSERT(sched->timeoutq != NULL, NULL);
 
-  socket = list_gethead(sched->expirequeue);
+  socket = list_gethead(sched->timeoutq);
   if (socket != NULL &&
       timercmp(&sched->curtime, &socket->timeout.expire, >=) != 0)
     {
-      socket = list_pophead(sched->expirequeue);
+      socket = list_pophead(sched->timeoutq);
       if (socket == NULL)
 	{
 	  return NULL;
@@ -178,16 +155,4 @@ t_socket	*socket_getexpired(t_sched *sched)
       return socket;
     }
   return NULL;
-}
-
-/**
- * Calls the socket event_fsm to force writing current buffer.
- *
- * @param socket Pointer to the socket to use.
- */
-void		socket_flush(t_socket *socket)
-{
-  XDASSERTN(socket != NULL);
-
-  socket->event_fsm(socket, EVENT_SCHED_OUT);
 }

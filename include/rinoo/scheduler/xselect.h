@@ -13,20 +13,23 @@
 
 # include	<sys/select.h>
 
-typedef struct	s_selectdata
+typedef struct	s_rinooselect
 {
+  int		nfds;
   fd_set	readfds;
   fd_set	writefds;
-  int		nfds;
   sigset_t	sigmask;
-}		t_selectdata;
+}		t_rinooselect;
 
-int		xselect_init(t_sched *sched);
-void		xselect_destroy(t_sched *sched);
-int		xselect_insert(t_socket *socket, t_schedevent mode);
-int		xselect_addmode(t_socket *socket, t_schedevent mode);
-int		xselect_delmode(t_socket *socket, t_schedevent mode);
-int		xselect_remove(t_socket *socket);
-int		xselect_poll(t_sched *sched, u32 timeout);
+int		xselect_init(t_rinoosched *sched);
+void		xselect_destroy(t_rinoosched *sched);
+int		xselect_insert(t_rinoosocket *socket,
+			       t_rinoosched_event mode);
+int		xselect_addmode(t_rinoosocket *socket,
+				t_rinoosched_event mode);
+int		xselect_delmode(t_rinoosocket *socket,
+				t_rinoosched_event mode);
+int		xselect_remove(t_rinoosocket *socket);
+int		xselect_poll(t_rinoosched *sched, u32 timeout);
 
 #endif		/* !RINOO_XSELECT_H_ */

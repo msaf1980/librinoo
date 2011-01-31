@@ -31,7 +31,7 @@ typedef enum	e_tcpevent
 
 typedef struct	s_tcpsocket
 {
-  t_socket	socket;
+  t_rinoosocket	socket;
   t_ip		ip;
   u32		port;
   t_tcpmode	mode;
@@ -41,7 +41,7 @@ typedef struct	s_tcpsocket
   u32		child_timeout;
 }		t_tcpsocket;
 
-t_tcpsocket	*tcp_create(t_sched *sched,
+t_tcpsocket	*tcp_create(t_rinoosched *sched,
 			    t_ip ip,
 			    u32 port,
 			    t_tcpmode mode,

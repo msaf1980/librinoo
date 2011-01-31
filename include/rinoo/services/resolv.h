@@ -51,7 +51,7 @@ typedef struct	s_dnscontext
   void (*result_cb)(t_dnsevent event, t_ip ip);
 }		t_dnscontext;
 
-int		rinoo_resolv(t_sched *sched,
+int		rinoo_resolv(t_rinoosched *sched,
 			     const char *host,
 			     t_dnstype type,
 			     u32 timeout,

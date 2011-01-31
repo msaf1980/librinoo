@@ -10,7 +10,7 @@
 
 #include	"rinoo/rinoo.h"
 
-t_sched		*sched;
+t_rinoosched		*sched;
 
 typedef struct	s_httreq
 {
@@ -156,6 +156,6 @@ int		main(int argc, char **argv)
       return (-1);
     }
   sched_loop(sched);
-  sched_destroy(sched);
+  rinoo_sched_destroy(sched);
   return (0);
 }

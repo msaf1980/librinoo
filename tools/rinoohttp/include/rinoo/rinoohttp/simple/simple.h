@@ -13,7 +13,7 @@
 
 typedef struct	s_rinoohttp
 {
-  t_sched	*sched;
+  t_rinoosched	*sched;
   t_httpsocket	*httpsock;
 }		t_rinoohttp;
 

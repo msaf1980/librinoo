@@ -11,7 +11,7 @@
 #ifndef		RINOOHTTP_CLIENT_HTTPCLIENT_H_
 # define	RINOOHTTP_CLIENT_HTTPCLIENT_H_
 
-t_httpsocket	*httpclient_create(t_sched *sched,
+t_httpsocket	*httpclient_create(t_rinoosched *sched,
 				   t_ip ip,
 				   u32 port,
 				   u32 timeout,

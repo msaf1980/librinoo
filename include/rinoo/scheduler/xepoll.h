@@ -15,19 +15,22 @@
 
 # include	<sys/epoll.h>
 
-typedef struct		s_epolldata
+typedef struct		s_rinooepoll
 {
   int			fd;
-  struct epoll_event	events[MAX_EVENTS];
   sigset_t		sigmask;
-}			t_epolldata;
+  struct epoll_event	events[MAX_EVENTS];
+}			t_rinooepoll;
 
-int		xepoll_init(t_sched *sched);
-void		xepoll_destroy(t_sched *sched);
-int		xepoll_insert(t_socket *socket, t_schedevent mode);
-int		xepoll_addmode(t_socket *socket, t_schedevent mode);
-int		xepoll_delmode(t_socket *socket, t_schedevent mode);
-int		xepoll_remove(t_socket *socket);
-int		xepoll_poll(t_sched *sched, u32 timeout);
+int		xepoll_init(t_rinoosched *sched);
+void		xepoll_destroy(t_rinoosched *sched);
+int		xepoll_insert(t_rinoosocket *socket,
+			      t_rinoosched_event mode);
+int		xepoll_addmode(t_rinoosocket *socket,
+			       t_rinoosched_event mode);
+int		xepoll_delmode(t_rinoosocket *socket,
+			       t_rinoosched_event mode);
+int		xepoll_remove(t_rinoosocket *socket);
+int		xepoll_poll(t_rinoosched *sched, u32 timeout);
 
 #endif		/* !RINOO_XEPOLL_H_ */

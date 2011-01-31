@@ -27,7 +27,7 @@ static int	rinoo_dns_parse_a(t_udpsocket *udpsock,
  *
  * @return 0 on success, or -1 if an error occurs.
  */
-int		rinoo_resolv(t_sched *sched,
+int		rinoo_resolv(t_rinoosched *sched,
 			     const char *host,
 			     t_dnstype type,
 			     u32 timeout,
@@ -98,7 +98,7 @@ static void	rinoo_resolv_fsm(t_udpsocket *udpsock, t_udpevent event)
 	{
 	  rinoo_dns_query_a(udpsock, ctx->host);
 	  ctx->state = STATE_DNS_SENT;
-	  sched_addmode(&udpsock->socket, EVENT_SCHED_IN);
+	  rinoo_sched_addmode(&udpsock->socket, EVENT_SCHED_IN);
 	}
       break;
     case EVENT_UDP_TIMEOUT:
@@ -133,7 +133,11 @@ static int	rinoo_dns_query_a(t_udpsocket *udpsock, const char *host)
       tmp = ptr - host;
       udp_printdata(udpsock, &tmp, 1);
       udp_printdata(udpsock, host, (size_t) tmp);
-      host += tmp + 1;
+      host += tmp;
+      if (*host == '.')
+	{
+	  host++;
+	}
     }
   udp_printdata(udpsock, dns_qfooter, 5);
   return 0;
@@ -205,7 +209,11 @@ static int	rinoo_dns_parse_a(t_udpsocket *udpsock,
 	  return -1;
 	}
       response += tmp;
-      host += tmp + 1;
+      host += tmp;
+      if (*host == '.')
+	{
+	  host++;
+	}
     }
   if (*response != 0)
     {

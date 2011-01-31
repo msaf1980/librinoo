@@ -11,7 +11,7 @@
 #ifndef		RINOOSMTP_CLIENT_SMTPCLIENT_H_
 # define	RINOOSMTP_CLIENT_SMTPCLIENT_H_
 
-t_smtpsocket	*smtpclient_create(t_sched *sched,
+t_smtpsocket	*smtpclient_create(t_rinoosched *sched,
 				   t_ip ip,
 				   u32 port,
 				   u32 timeout,

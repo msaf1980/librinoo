@@ -36,10 +36,10 @@ void		event_fsm(t_tcpsocket *unused(tcpsock), t_tcpevent event)
  */
 int		main()
 {
-  t_sched	*sched;
+  t_rinoosched	*sched;
   t_tcpsocket	*tcpsock;
 
-  sched = sched_create();
+  sched = rinoo_sched();
   XTEST(sched != NULL);
   tcpsock = tcp_create(sched, 0, 4242, MODE_TCP_CLIENT, 0, event_fsm);
   XTEST(tcpsock != NULL);
@@ -56,6 +56,6 @@ int		main()
   XTEST(tcpsock->event_fsm == event_fsm);
   XTEST(tcpsock->errorstep == 0);
   tcp_destroy(tcpsock);
-  sched_destroy(sched);
+  rinoo_sched_destroy(sched);
   XPASS();
 }

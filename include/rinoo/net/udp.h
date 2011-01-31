@@ -28,7 +28,7 @@ typedef enum	e_udpevent
 
 typedef struct	s_udpsocket
 {
-  t_socket	socket;
+  t_rinoosocket	socket;
   t_ip		ip;
   u32		port;
   t_udpmode	mode;
@@ -37,7 +37,7 @@ typedef struct	s_udpsocket
   t_udpevent	errorstep;
 }		t_udpsocket;
 
-t_udpsocket	*udp_create(t_sched *sched,
+t_udpsocket	*udp_create(t_rinoosched *sched,
 			    t_ip ip,
 			    u32 port,
 			    t_udpmode mode,

@@ -35,7 +35,7 @@ void		rinoo_simplehttp_destroy(t_rinoohttp *rsh)
     }
   if (rsh->sched != NULL)
     {
-      sched_destroy(rsh->sched);
+      rinoo_sched_destroy(rsh->sched);
     }
   xfree(rsh);
 }

@@ -39,7 +39,7 @@ void		client_event_fsm(t_udpsocket *udpsock, t_udpevent event)
     case EVENT_UDP_ERROR:
     case EVENT_UDP_TIMEOUT:
       passed = 0;
-      sched_stop(udpsock->socket.sched);
+      rinoo_sched_stop(udpsock->socket.sched);
       break;
     }
 }
@@ -59,7 +59,7 @@ void		server_event_fsm(t_udpsocket *udpsock, t_udpevent event)
 		  "abc",
 		  buffer_len(udpsock->socket.rdbuf)) == 0)
 	{
-	  sched_stop(udpsock->socket.sched);
+	  rinoo_sched_stop(udpsock->socket.sched);
 	}
       break;
     case EVENT_UDP_CLOSE:
@@ -69,7 +69,7 @@ void		server_event_fsm(t_udpsocket *udpsock, t_udpevent event)
     case EVENT_UDP_ERROR:
     case EVENT_UDP_TIMEOUT:
       passed = 0;
-      sched_stop(udpsock->socket.sched);
+      rinoo_sched_stop(udpsock->socket.sched);
       break;
     }
 }
@@ -82,11 +82,11 @@ void		server_event_fsm(t_udpsocket *udpsock, t_udpevent event)
  */
 int		main()
 {
-  t_sched	*sched;
+  t_rinoosched	*sched;
   t_udpsocket	*sudpsock;
   t_udpsocket	*cudpsock;
 
-  sched = sched_create();
+  sched = rinoo_sched();
   XTEST(sched != NULL);
   sudpsock = udp_create(sched, 0, 4242, MODE_UDP_SERVER, 0, server_event_fsm);
   XTEST(sudpsock != NULL);
@@ -116,8 +116,8 @@ int		main()
   XTEST(cudpsock->mode == MODE_UDP_CLIENT);
   XTEST(cudpsock->event_fsm == client_event_fsm);
   XTEST(cudpsock->errorstep == 0);
-  sched_loop(sched);
-  sched_destroy(sched);
+  rinoo_sched_loop(sched);
+  rinoo_sched_destroy(sched);
   if (passed != 1)
     XFAIL();
   XPASS();

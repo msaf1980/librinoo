@@ -1,15 +1,15 @@
 /**
- * @file   sched_create.c
+ * @file   rinoo_sched.c
  * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
  * @date   Sun Jan  3 15:34:47 2010
  *
- * @brief  Test file for sched_create function.
+ * @brief  Test file for rinoo_sched function.
  *
  *
  */
 #include	"rinoo/rinoo.h"
 
-extern t_pollerapi	pollers[NB_POLLERS];
+extern t_rinoopoller	pollers[NB_POLLERS];
 
 /**
  * This test will check if a scheduler is well initialized.
@@ -19,16 +19,16 @@ extern t_pollerapi	pollers[NB_POLLERS];
 int		main()
 {
   int		i;
-  t_sched	*sched;
+  t_rinoosched	*sched;
 
-  sched = sched_create();
+  sched = rinoo_sched();
   XTEST(sched != NULL);
   XTEST(sched->poller == &pollers[DEFAULT_POLLER]);
   XTEST(sched->poller_data != NULL);
   XTEST(sched->stop == 0);
   XTEST(sched->sock_pool != NULL);
-  for (i = SCHED_MAXFDS - 1; i >= 0; i--)
+  for (i = RINOO_SCHED_MAXFDS - 1; i >= 0; i--)
     XTEST(sched->sock_pool[i] == NULL);
-  sched_destroy(sched);
+  rinoo_sched_destroy(sched);
   XPASS();
 }
