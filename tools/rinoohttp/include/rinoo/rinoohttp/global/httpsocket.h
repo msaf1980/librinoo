@@ -28,7 +28,7 @@ typedef enum	e_httpevent
 
 typedef struct		s_httpsocket
 {
-  t_tcpsocket		*tcpsock;
+  t_rinootcp		*tcpsock;
   t_httprequest		request;
   t_httpresponse	response;
   t_httpevent		last_event;
@@ -37,7 +37,7 @@ typedef struct		s_httpsocket
   void			*data;
 }			t_httpsocket;
 
-t_httpsocket	*httpsocket_create(t_tcpsocket *tcpsock,
+t_httpsocket	*httpsocket_create(t_rinootcp *tcpsock,
 				   void (*event_fsm)(t_httpsocket *httpsock,
 						     t_httpevent event));
 void		httpsocket_free(t_httpsocket *httpsock);

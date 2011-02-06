@@ -10,7 +10,7 @@
 
 #include	"rinoo/rinoosmtp.h"
 
-static void	smtpclient_fsm(t_tcpsocket *tcpsock, t_tcpevent event);
+static void	smtpclient_fsm(t_rinootcp *tcpsock, t_rinootcp_event event);
 
 t_smtpsocket	*smtpclient_create(t_rinoosched *sched,
 				   t_ip ip,
@@ -19,7 +19,7 @@ t_smtpsocket	*smtpclient_create(t_rinoosched *sched,
 				   void (*event_fsm)(t_smtpsocket *smtpsock,
 						     t_smtpevent event))
 {
-  t_tcpsocket	*tcpsock;
+  t_rinootcp	*tcpsock;
   t_smtpsocket	*smtpsock;
 
   XDASSERT(sched != NULL, NULL);
@@ -27,7 +27,7 @@ t_smtpsocket	*smtpclient_create(t_rinoosched *sched,
   tcpsock = tcp_create(sched,
 		       ip,
 		       port,
-		       MODE_TCP_CLIENT,
+		       RINOO_TCP_CLIENT,
 		       timeout,
 		       smtpclient_fsm);
   XASSERT(tcpsock != NULL, NULL);
@@ -128,7 +128,7 @@ static void	smtpclient_fsmout(t_smtpsocket *smtpsock)
     }
 }
 
-static void	smtpclient_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
+static void	smtpclient_fsm(t_rinootcp *tcpsock, t_rinootcp_event event)
 {
   t_smtpsocket	*smtpsock;
 

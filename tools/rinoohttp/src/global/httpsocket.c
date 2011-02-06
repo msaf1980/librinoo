@@ -18,7 +18,7 @@
  *
  * @return A pointer to the new httpsocket, or NULL if an error occurs.
  */
-t_httpsocket	*httpsocket_create(t_tcpsocket *tcpsock,
+t_httpsocket	*httpsocket_create(t_rinootcp *tcpsock,
 				   void (*event_fsm)(t_httpsocket *httpsock,
 						     t_httpevent event))
 {

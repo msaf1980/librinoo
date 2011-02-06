@@ -16,6 +16,14 @@
 struct s_rinoopoller; /* defined in poller.h */
 struct s_rinoosocket; /* defined in socket.h */
 
+typedef enum	e_rinooshed_action
+  {
+    RINOO_SCHED_INSERT = 0,
+    RINOO_SCHED_MODADD,
+    RINOO_SCHED_MODDEL,
+    RINOO_SCHED_REMOVE
+  }		t_rinoosched_action;
+
 typedef enum	e_rinoosched_event
   {
     EVENT_SCHED_IN = 1,
@@ -35,26 +43,22 @@ typedef struct		s_rinootimeout
 typedef struct		s_rinoosched
 {
   int			stop;
+  t_list		*jobq;
+  t_list		*timeoutq;
+  struct timeval	curtime;
   struct s_rinoopoller	*poller;
   void			*poller_data;
   struct s_rinoosocket	*sock_pool[RINOO_SCHED_MAXFDS];
-  struct timeval	curtime;
-  t_list		*jobq;
-  t_list		*timeoutq;
 }			t_rinoosched;
 
 t_rinoosched		*rinoo_sched();
 void			rinoo_sched_destroy(t_rinoosched *sched);
-struct s_rinoosocket	*rinoo_sched_getsocket(t_rinoosched *sched, int fd);
+int			rinoo_sched_socket(t_rinoosched_action action,
+					   struct s_rinoosocket *socket,
+					   t_rinoosched_event event);
+struct s_rinoosocket	*rinoo_sched_get(t_rinoosched *sched, int fd);
 void			rinoo_sched_stop(t_rinoosched *sched);
-int			rinoo_sched_insert(struct s_rinoosocket *socket,
-					  t_rinoosched_event event,
-					  u32 timeout);
-int			rinoo_sched_addmode(struct s_rinoosocket *socket,
-					   t_rinoosched_event event);
-int			rinoo_sched_delmode(struct s_rinoosocket *socket,
-					   t_rinoosched_event event);
-int			rinoo_sched_remove(struct s_rinoosocket *socket);
+int			rinoo_sched_clock(t_rinoosched *sched);
 int			rinoo_sched_loop(t_rinoosched *sched);
 
 #endif	        /* !RINOO_SCHEDULER_H */

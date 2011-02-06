@@ -9,7 +9,7 @@
  */
 #include	"rinoo/rinoo.h"
 
-void		event_fsm(t_tcpsocket *unused(tcpsock), t_tcpevent event)
+void		event_fsm(t_rinootcp *unused(tcpsock), t_rinootcp_event event)
 {
   switch (event)
     {
@@ -37,11 +37,11 @@ void		event_fsm(t_tcpsocket *unused(tcpsock), t_tcpevent event)
 int		main()
 {
   t_rinoosched	*sched;
-  t_tcpsocket	*tcpsock;
+  t_rinootcp	*tcpsock;
 
   sched = rinoo_sched();
   XTEST(sched != NULL);
-  tcpsock = tcp_create(sched, 0, 4242, MODE_TCP_CLIENT, 0, event_fsm);
+  tcpsock = rinoo_tcp_client(sched, 0, 4242, 0, event_fsm);
   XTEST(tcpsock != NULL);
   XTEST(tcpsock->socket.fd != 0);
   XTEST(tcpsock->socket.sched == sched);
@@ -52,10 +52,25 @@ int		main()
   XTEST(tcpsock->socket.wrbuf != NULL);
   XTEST(tcpsock->ip == 0);
   XTEST(tcpsock->port == 4242);
-  XTEST(tcpsock->mode == MODE_TCP_CLIENT);
+  XTEST(tcpsock->mode == RINOO_TCP_CLIENT);
   XTEST(tcpsock->event_fsm == event_fsm);
   XTEST(tcpsock->errorstep == 0);
-  tcp_destroy(tcpsock);
+  rinoo_tcp_destroy(tcpsock);
+  tcpsock = rinoo_tcp_server(sched, 0, 4242, 0, event_fsm);
+  XTEST(tcpsock != NULL);
+  XTEST(tcpsock->socket.fd != 0);
+  XTEST(tcpsock->socket.sched == sched);
+  XTEST(tcpsock->socket.poll_mode != 0);
+  XTEST(tcpsock->socket.event_fsm != NULL);
+  XTEST(tcpsock->socket.parent == NULL);
+  XTEST(tcpsock->socket.rdbuf != NULL);
+  XTEST(tcpsock->socket.wrbuf != NULL);
+  XTEST(tcpsock->ip == 0);
+  XTEST(tcpsock->port == 4242);
+  XTEST(tcpsock->mode == RINOO_TCP_SERVER);
+  XTEST(tcpsock->event_fsm == event_fsm);
+  XTEST(tcpsock->errorstep == 0);
+  rinoo_tcp_destroy(tcpsock);
   rinoo_sched_destroy(sched);
   XPASS();
 }

@@ -11,7 +11,7 @@
 
 #include	"rinoo/rinoohttp.h"
 
-static void	httpclient_fsm(t_tcpsocket *tcpsock, t_tcpevent event);
+static void	httpclient_fsm(t_rinootcp *tcpsock, t_rinootcp_event event);
 
 t_httpsocket	*httpclient_create(t_rinoosched *sched,
 				   t_ip ip,
@@ -20,7 +20,7 @@ t_httpsocket	*httpclient_create(t_rinoosched *sched,
 				   void (*event_fsm)(t_httpsocket *httpsock,
 						     t_httpevent event))
 {
-  t_tcpsocket	*clientsock;
+  t_rinootcp	*clientsock;
   t_httpsocket	*httpsock;
 
   XDASSERT(sched != NULL, NULL);
@@ -28,7 +28,7 @@ t_httpsocket	*httpclient_create(t_rinoosched *sched,
   clientsock = tcp_create(sched,
 			  ip,
 			  port,
-			  MODE_TCP_CLIENT,
+			  RINOO_TCP_CLIENT,
 			  timeout,
 			  httpclient_fsm);
   XASSERT(clientsock != NULL, NULL);
@@ -93,7 +93,7 @@ void		httpclient_generate_request(t_httpsocket *httpsock)
   tcp_print(httpsock->tcpsock, "\r\n");
 }
 
-static void	httpclient_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
+static void	httpclient_fsm(t_rinootcp *tcpsock, t_rinootcp_event event)
 {
   t_httpsocket	*httpsock;
 
@@ -104,7 +104,7 @@ static void	httpclient_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
       XASSERTN(httpsock != NULL);
       httpsock->event_fsm(httpsock, EVENT_HTTP_CONNECT);
       httpsock->last_event = EVENT_HTTP_CONNECT;
-      sched_delmode(&tcpsock->socket, EVENT_SCHED_IN);
+      rinoo_sched_delmode(&tcpsock->socket, EVENT_SCHED_IN);
       rinoo_sched_addmode(&tcpsock->socket, EVENT_SCHED_OUT);
       break;
     case EVENT_TCP_IN:
@@ -146,7 +146,7 @@ static void	httpclient_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
 	    case 1:
 	      httpsock->event_fsm(httpsock, EVENT_HTTP_RESPBODY);
 	      httpsock->last_event = EVENT_HTTP_RESPBODY;
-	      sched_delmode(&tcpsock->socket, EVENT_SCHED_IN);
+	      rinoo_sched_delmode(&tcpsock->socket, EVENT_SCHED_IN);
 	      rinoo_sched_addmode(&tcpsock->socket, EVENT_SCHED_OUT);
 	      httpsock->last_event = EVENT_HTTP_CONNECT;
 	      break;

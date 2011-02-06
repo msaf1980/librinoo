@@ -210,22 +210,22 @@ int		xepoll_poll(t_rinoosched *sched, u32 timeout)
     }
   for (i = 0; i < nbevents; i++)
     {
-      cursocket = rinoo_sched_getsocket(sched, data->events[i].data.fd);
+      cursocket = rinoo_sched_get(sched, data->events[i].data.fd);
       if ((data->events[i].events & EPOLLIN) == EPOLLIN)
 	{
 	  cursocket->event_fsm(cursocket, EVENT_SCHED_IN);
 	}
-      cursocket = rinoo_sched_getsocket(sched, data->events[i].data.fd);
+      cursocket = rinoo_sched_get(sched, data->events[i].data.fd);
       /**
        * If cursocket has been removed in the EPOLLIN step,
-       * rinoo_sched_getsocket will return NULL.
+       * rinoo_sched_get will return NULL.
        */
       if (cursocket != NULL &&
 	  (data->events[i].events & EPOLLOUT) == EPOLLOUT)
 	{
 	  cursocket->event_fsm(cursocket, EVENT_SCHED_OUT);
 	}
-      cursocket = rinoo_sched_getsocket(sched, data->events[i].data.fd);
+      cursocket = rinoo_sched_get(sched, data->events[i].data.fd);
       if (cursocket != NULL &&
 	  ((data->events[i].events & EPOLLERR) == EPOLLERR ||
 	   (data->events[i].events & EPOLLERR) == EPOLLRDHUP ||
@@ -233,7 +233,7 @@ int		xepoll_poll(t_rinoosched *sched, u32 timeout)
 	{
 	  cursocket->event_fsm(cursocket, EVENT_SCHED_ERROR);
 	}
-      cursocket = rinoo_sched_getsocket(sched, data->events[i].data.fd);
+      cursocket = rinoo_sched_get(sched, data->events[i].data.fd);
       if (cursocket != NULL)
 	{
 	  rinoo_socket_timeout_reset(cursocket);

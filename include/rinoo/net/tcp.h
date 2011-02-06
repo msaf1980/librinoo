@@ -11,15 +11,15 @@
 #ifndef		RINOO_TCP_H_
 # define	RINOO_TCP_H_
 
-# define	TCP_LISTEN_SIZE		128
+# define	RINOO_TCP_LISTENSIZE		128
 
-typedef enum	e_tcpmode
+typedef enum	e_rinootcp_mode
   {
-    MODE_TCP_CLIENT = 0,
-    MODE_TCP_SERVER
-  }		t_tcpmode;
+    RINOO_TCP_CLIENT = 0,
+    RINOO_TCP_SERVER
+  }		t_rinootcp_mode;
 
-typedef enum	e_tcpevent
+typedef enum	e_rinootcp_event
   {
     EVENT_TCP_CONNECT = 0,
     EVENT_TCP_IN,
@@ -27,32 +27,39 @@ typedef enum	e_tcpevent
     EVENT_TCP_ERROR,
     EVENT_TCP_CLOSE,
     EVENT_TCP_TIMEOUT
-  }		t_tcpevent;
+  }		t_rinootcp_event;
 
-typedef struct	s_tcpsocket
+typedef struct		s_rinootcp
 {
-  t_rinoosocket	socket;
-  t_ip		ip;
-  u32		port;
-  t_tcpmode	mode;
-  void		(*event_fsm)(struct s_tcpsocket *tcpsock, t_tcpevent event);
-  void		*data;
-  t_tcpevent	errorstep;
-  u32		child_timeout;
-}		t_tcpsocket;
+  t_rinoosocket		socket;
+  t_ip			ip;
+  u16			port;
+  t_rinootcp_mode	mode;
+  t_rinootcp_event	errorstep;
+  void			(*event_fsm)(struct s_rinootcp *tcpsock,
+				     t_rinootcp_event event);
+  void			*data;
+}			t_rinootcp;
 
-t_tcpsocket	*tcp_create(t_rinoosched *sched,
-			    t_ip ip,
-			    u32 port,
-			    t_tcpmode mode,
-			    u32 timeout,
-			    void (*event_fsm)(t_tcpsocket *tcpsock,
-					      t_tcpevent event));
-inline void	tcp_destroy(t_tcpsocket *tcpsock);
-int		tcp_print(t_tcpsocket *socket, const char *format, ...);
-int		tcp_printdata(t_tcpsocket *socket, const char *data, size_t size);
-int		tcp_isserver(t_tcpsocket *tcpsock);
-t_tcpsocket	*tcp_getparent(t_tcpsocket *tcpsock);
+t_rinootcp	*rinoo_tcp_client(t_rinoosched *sched,
+				  t_ip ip,
+				  u16 port,
+				  u32 timeout,
+				  void (*event_fsm)(t_rinootcp *tcpsock,
+						    t_rinootcp_event event));
+t_rinootcp	*rinoo_tcp_server(t_rinoosched *sched,
+				  t_ip ip,
+				  u16 port,
+				  u32 timeout,
+				  void (*event_fsm)(t_rinootcp *tcpsock,
+						    t_rinootcp_event event));
+void		rinoo_tcp_destroy(t_rinootcp *tcpsock);
+int		rinoo_tcp_print(t_rinootcp *socket, const char *format, ...);
+int		rinoo_tcp_printdata(t_rinootcp *socket,
+				    const char *data,
+				    size_t size);
+int		rinoo_tcp_isserver(t_rinootcp *tcpsock);
+t_rinootcp	*rinoo_tcp_getparent(t_rinootcp *tcpsock);
 
 #endif		/* !RINOO_TCP_H_ */
 

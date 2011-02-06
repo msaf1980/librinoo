@@ -14,10 +14,10 @@ static int	passed = 1;
 t_rinoojob_state	client_cb(t_rinoojob *job)
 {
   static int	counter = 0;
-  t_tcpsocket	*tcpsock;
+  t_rinootcp	*tcpsock;
 
   tcpsock = job->args;
-  tcp_print(tcpsock, "ping");
+  rinoo_tcp_print(tcpsock, "ping");
   counter++;
   if (counter < 5)
     {
@@ -27,7 +27,7 @@ t_rinoojob_state	client_cb(t_rinoojob *job)
   return JOB_DONE;
 }
 
-void		client_event_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
+void		client_event_fsm(t_rinootcp *tcpsock, t_rinootcp_event event)
 {
   switch (event)
     {
@@ -54,7 +54,7 @@ void		client_event_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
     }
 }
 
-void		server_event_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
+void		server_event_fsm(t_rinootcp *tcpsock, t_rinootcp_event event)
 {
   switch (event)
     {
@@ -62,7 +62,7 @@ void		server_event_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
       rinoo_log("Server: new client connected!");
       break;
     case EVENT_TCP_CLOSE:
-      if (tcpsock->mode == MODE_TCP_CLIENT)
+      if (tcpsock->mode == RINOO_TCP_CLIENT)
 	{
 	  rinoo_log("Server: client connection closed.");
 	  rinoo_sched_stop(tcpsock->socket.sched);
@@ -75,7 +75,7 @@ void		server_event_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
 		buffer_len(tcpsock->socket.rdbuf),
 		tcpsock->socket.rdbuf->buf);
       buffer_erase(tcpsock->socket.rdbuf, buffer_len(tcpsock->socket.rdbuf));
-      tcp_print(tcpsock, "pong");
+      rinoo_tcp_print(tcpsock, "pong");
       break;
     case EVENT_TCP_OUT:
       break;
@@ -97,14 +97,14 @@ void		server_event_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
 int		main()
 {
   t_rinoosched	*sched;
-  t_tcpsocket	*stcpsock;
-  t_tcpsocket	*ctcpsock;
+  t_rinootcp	*stcpsock;
+  t_rinootcp	*ctcpsock;
   struct timeval	tv1;
   struct timeval	tv2;
 
   sched = rinoo_sched();
   XTEST(sched != NULL);
-  stcpsock = tcp_create(sched, 0, 4242, MODE_TCP_SERVER, 0, server_event_fsm);
+  stcpsock = rinoo_tcp_server(sched, 0, 4242, 0, server_event_fsm);
   XTEST(stcpsock != NULL);
   XTEST(stcpsock->socket.fd != 0);
   XTEST(stcpsock->socket.sched == sched);
@@ -115,10 +115,10 @@ int		main()
   XTEST(stcpsock->socket.wrbuf != NULL);
   XTEST(stcpsock->ip == 0);
   XTEST(stcpsock->port == 4242);
-  XTEST(stcpsock->mode == MODE_TCP_SERVER);
+  XTEST(stcpsock->mode == RINOO_TCP_SERVER);
   XTEST(stcpsock->event_fsm == server_event_fsm);
   XTEST(stcpsock->errorstep == 0);
-  ctcpsock = tcp_create(sched, 0, 4242, MODE_TCP_CLIENT, 500, client_event_fsm);
+  ctcpsock = rinoo_tcp_client(sched, 0, 4242, 500, client_event_fsm);
   XTEST(ctcpsock != NULL);
   XTEST(ctcpsock->socket.fd != 0);
   XTEST(ctcpsock->socket.sched == sched);
@@ -129,7 +129,7 @@ int		main()
   XTEST(ctcpsock->socket.wrbuf != NULL);
   XTEST(ctcpsock->ip == 0);
   XTEST(ctcpsock->port == 4242);
-  XTEST(ctcpsock->mode == MODE_TCP_CLIENT);
+  XTEST(ctcpsock->mode == RINOO_TCP_CLIENT);
   XTEST(ctcpsock->event_fsm == client_event_fsm);
   XTEST(ctcpsock->errorstep == 0);
   XTEST(gettimeofday(&tv1, NULL) == 0);

@@ -9,7 +9,7 @@
  */
 #include	"rinoo/rinoo.h"
 
-#define		DIFF_TOLERANCE	20
+#define		DIFF_TOLERANCE	25
 
 static int		passed = 1;
 
@@ -97,7 +97,7 @@ t_rinoojob_state	job_callback(t_rinoojob *job)
   return JOB_REDO;
 }
 
-void		server_event_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
+void		server_event_fsm(t_rinootcp *tcpsock, t_rinootcp_event event)
 {
   switch (event)
     {
@@ -123,13 +123,13 @@ void		server_event_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
  */
 int		main()
 {
-  t_tcpsocket	*stcpsock;
+  t_rinootcp	*stcpsock;
   struct timeval	tv1;
   struct timeval	tv2;
 
   sched = rinoo_sched();
   XTEST(sched != NULL);
-  stcpsock = tcp_create(sched, 0, 4242, MODE_TCP_SERVER, 0, server_event_fsm);
+  stcpsock = rinoo_tcp_server(sched, 0, 4242, 0, server_event_fsm);
   XTEST(stcpsock != NULL);
   set_timeout(100);
   XTEST(jobqueue_addms(sched,

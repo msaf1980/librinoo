@@ -101,8 +101,8 @@ void	rinoo_socket_timeout_remove(t_rinoosocket *socket)
   if (socket->timeout.node != NULL)
     {
       list_removenode(socket->sched->timeoutq, socket->timeout.node, TRUE);
+      socket->timeout.node = NULL;
     }
-  socket->timeout.node = NULL;
 }
 
 /**

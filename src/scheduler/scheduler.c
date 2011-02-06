@@ -12,8 +12,6 @@
 
 extern t_rinoopoller	pollers[NB_POLLERS];
 
-static int	rinoo_sched_clock(t_rinoosched *sched);
-
 /**
  * Creates a new scheduler.
  *
@@ -45,7 +43,7 @@ t_rinoosched	*rinoo_sched()
       XASSERTSTR(0, NULL, "Poller init failed");
     }
   rinoo_sched_clock(sched);
-  return (sched);
+  return sched;
 }
 
 /**
@@ -59,9 +57,7 @@ void		rinoo_sched_destroy(t_rinoosched *sched)
 
   XASSERTN(sched != NULL);
 
-  /**
-   * Destroying all pending sockets.
-   */
+  /* Destroying all pending sockets. */
   for (i = 0; i < RINOO_SCHED_MAXFDS; i++)
     {
       if (sched->sock_pool[i] != NULL)
@@ -77,6 +73,55 @@ void		rinoo_sched_destroy(t_rinoosched *sched)
 }
 
 /**
+ * Controls socket event registration in the scheduler.
+ *
+ * @param action Action to perform: insert/remove socket, enable/disable socket event.
+ * @param socket Pointer to the socket to change in the scheduler.
+ * @param mode Socket event to enable.
+ *
+ * @return 0 on success, or -1 if an error occurs.
+ */
+int		rinoo_sched_socket(t_rinoosched_action action,
+				   t_rinoosocket *socket,
+				   t_rinoosched_event mode)
+{
+  XDASSERT(socket != NULL, -1);
+  XASSERT(socket->fd < RINOO_SCHED_MAXFDS, -1);
+
+  switch (action)
+    {
+    case RINOO_SCHED_INSERT:
+      if (unlikely(socket->sched->poller->insert(socket, mode) != 0))
+	{
+	  return -1;
+	}
+      socket->sched->sock_pool[socket->fd] = socket;
+      break;
+    case RINOO_SCHED_MODADD:
+      if (unlikely(socket->sched->poller->addmode(socket, mode) != 0))
+	{
+	  return -1;
+	}
+      break;
+    case RINOO_SCHED_MODDEL:
+      if (unlikely(socket->sched->poller->delmode(socket, mode) != 0))
+	{
+	  return -1;
+	}
+      break;
+    case RINOO_SCHED_REMOVE:
+      if (socket->sched->poller->remove(socket) != 0)
+	{
+	  return -1;
+	}
+      socket->sched->sock_pool[socket->fd] = NULL;
+      rinoo_socket_timeout_remove(socket);
+      break;
+    }
+  return 0;
+}
+
+/**
  * Returns the socket corresponding to a file descriptor.
  *
  * @param sched Pointer to the scheduler to use.
@@ -84,11 +129,24 @@ void		rinoo_sched_destroy(t_rinoosched *sched)
  *
  * @return A pointer to the corresponding socket if found, else NULL.
  */
-t_rinoosocket	*rinoo_sched_getsocket(t_rinoosched *sched, int fd)
+t_rinoosocket	*rinoo_sched_get(t_rinoosched *sched, int fd)
 {
-  XDASSERT(fd < RINOO_SCHED_MAXFDS, NULL);
+  XDASSERT(sched != NULL, NULL);
+  XDASSERT(fd >= 0 && fd < RINOO_SCHED_MAXFDS, NULL);
 
-  return (sched->sock_pool[fd]);
+  return sched->sock_pool[fd];
+}
+
+/**
+ * Set the scheduler clock with gettimeofday.
+ *
+ * @param sched Pointer to the scheduler to use.
+ *
+ * @return 0 on success, or -1 if an error occurs.
+ */
+int		rinoo_sched_clock(t_rinoosched *sched)
+{
+  return gettimeofday(&sched->curtime, NULL);
 }
 
 /**
@@ -102,88 +160,6 @@ void		rinoo_sched_stop(t_rinoosched *sched)
   XDASSERTN(sched != NULL);
 
   sched->stop = 1;
-}
-
-/**
- * Insert a socket into the scheduler.
- *
- * @param socket Pointer to the socket to use.
- * @param timeout Maximum number of milliseconds before raising a timeout.
- * @param mode Polling mode to add in the scheduler for this socket.
- *
- * @return 0 if succeeds, else -1.
- */
-int		rinoo_sched_insert(t_rinoosocket *socket,
-				   t_rinoosched_event mode,
-				   u32 timeout)
-{
-  XDASSERT(socket != NULL, -1);
-  XASSERT(socket->fd < RINOO_SCHED_MAXFDS, -1);
-
-  if (rinoo_socket_timeout_set(socket, timeout) != 0)
-    {
-      return (-1);
-    }
-  if (socket->sched->poller->insert(socket, mode) != 0)
-    return (-1);
-  socket->sched->sock_pool[socket->fd] = socket;
-  return (0);
-}
-
-/**
- * Add a polling mode for a socket in the scheduler.
- *
- * @param socket Pointer to the socket to use.
- * @param mode Polling mode to add in the scheduler for this socket.
- *
- * @return 0 if succeeds, else -1.
- */
-int		rinoo_sched_addmode(t_rinoosocket *socket,
-				    t_rinoosched_event mode)
-{
-  return (socket->sched->poller->addmode(socket, mode));
-}
-
-/**
- * Delete a polling mode for a socket in the scheduler.
- *
- * @param socket Pointer to the socket to remove from the scheduler.
- * @param mode Polling mode to remove from the scheduler for this socket.
- *
- * @return 0 if succeeds, else -1.
- */
-int		rinoo_sched_delmode(t_rinoosocket *socket,
-				    t_rinoosched_event mode)
-{
-  return (socket->sched->poller->delmode(socket, mode));
-}
-
-/**
- * Remove a socket from the scheduler.
- *
- * @param socket Pointer to the socket to remove from the scheduler.
- *
- * @return 0 if succeeds, else -1.
- */
-int		rinoo_sched_remove(t_rinoosocket *socket)
-{
-  if (socket->sched->poller->remove(socket) != 0)
-    return (-1);
-  socket->sched->sock_pool[socket->fd] = NULL;
-  rinoo_socket_timeout_remove(socket);
-  return (0);
-}
-
-/**
- * Set the scheduler clock with gettimeofday.
- *
- * @param sched Pointer to the scheduler to use.
- *
- * @return 0 on success, or -1 if an error occurs.
- */
-static int	rinoo_sched_clock(t_rinoosched *sched)
-{
-  return gettimeofday(&sched->curtime, NULL);
 }
 
 /**
@@ -214,5 +190,5 @@ int		rinoo_sched_loop(t_rinoosched *sched)
       t1 = rinoo_socket_timeout_getmin(sched);
       t2 = jobqueue_gettimeout(sched);
     }
-  return (0);
+  return 0;
 }

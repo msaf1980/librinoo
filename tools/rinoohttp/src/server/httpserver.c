@@ -10,7 +10,7 @@
 
 #include	"rinoo/rinoohttp.h"
 
-static void	httpserver_fsm(t_tcpsocket *tcpsock, t_tcpevent event);
+static void	httpserver_fsm(t_rinootcp *tcpsock, t_rinootcp_event event);
 
 t_httpsocket	*httpserver_create(t_rinoosched *sched,
 				   t_ip ip,
@@ -19,7 +19,7 @@ t_httpsocket	*httpserver_create(t_rinoosched *sched,
 				   void (*event_fsm)(t_httpsocket *httpsock,
 						     t_httpevent event))
 {
-  t_tcpsocket	*servsock;
+  t_rinootcp	*servsock;
   t_httpsocket	*httpsock;
 
   XDASSERT(sched != NULL, NULL);
@@ -27,7 +27,7 @@ t_httpsocket	*httpserver_create(t_rinoosched *sched,
   servsock = tcp_create(sched,
 			ip,
 			port,
-			MODE_TCP_SERVER,
+			RINOO_TCP_SERVER,
 			timeout,
 			httpserver_fsm);
   XASSERT(servsock != NULL, NULL);
@@ -82,9 +82,9 @@ void		httpserver_generate_response(t_httpsocket *httpsock)
   tcp_print(httpsock->tcpsock, "\r\n");
 }
 
-static void	httpserver_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
+static void	httpserver_fsm(t_rinootcp *tcpsock, t_rinootcp_event event)
 {
-  t_tcpsocket	*parent;
+  t_rinootcp	*parent;
   t_httpsocket	*httpsock;
 
   httpsock = (t_httpsocket *) tcpsock->data;
@@ -133,7 +133,7 @@ static void	httpserver_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
 	    case 1:
 	      httpsock->event_fsm(httpsock, EVENT_HTTP_REQBODY);
 	      httpsock->last_event = EVENT_HTTP_REQBODY;
-	      sched_delmode(&tcpsock->socket, EVENT_SCHED_IN);
+	      rinoo_sched_delmode(&tcpsock->socket, EVENT_SCHED_IN);
 	      rinoo_sched_addmode(&tcpsock->socket, EVENT_SCHED_OUT);
 	      break;
 	    }
@@ -150,7 +150,7 @@ static void	httpserver_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
 	    case 1:
 	      if (httpsock->request.contentlength == 0)
 		{
-		  sched_delmode(&tcpsock->socket, EVENT_SCHED_IN);
+		  rinoo_sched_delmode(&tcpsock->socket, EVENT_SCHED_IN);
 		  rinoo_sched_addmode(&tcpsock->socket, EVENT_SCHED_OUT);
 		}
 	      httpsock->event_fsm(httpsock, EVENT_HTTP_REQUEST);
@@ -171,7 +171,7 @@ static void	httpserver_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
 		    case 1:
 		      httpsock->event_fsm(httpsock, EVENT_HTTP_REQBODY);
 		      httpsock->last_event = EVENT_HTTP_REQBODY;
-		      sched_delmode(&tcpsock->socket, EVENT_SCHED_IN);
+		      rinoo_sched_delmode(&tcpsock->socket, EVENT_SCHED_IN);
 		      rinoo_sched_addmode(&tcpsock->socket, EVENT_SCHED_OUT);
 		      break;
 		    }
@@ -191,12 +191,12 @@ static void	httpserver_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
 	  httpsock->last_event = EVENT_HTTP_RESPONSE;
 	  /* no break */
 	case EVENT_HTTP_RESPONSE:
-	  httpserver_generate_response(httpsock);
-	  if (httpsock->response.contentlength == 0)
-	    {
-	      httpsock->last_event = EVENT_HTTP_RESPBODY;
-	      break;
-	    }
+	  /* httpserver_generate_response(httpsock); */
+	  /* if (httpsock->response.contentlength == 0) */
+	  /*   { */
+	  /*     httpsock->last_event = EVENT_HTTP_RESPBODY; */
+	  /*     break; */
+	  /*   } */
 	  /* no break */
 	case EVENT_HTTP_RESPBODY:
 	  if (httpsock->response.contentlength > 0)
@@ -204,11 +204,11 @@ static void	httpserver_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
 	      httpsock->event_fsm(httpsock, EVENT_HTTP_RESPBODY);
 	    }
 	  httpsock->last_event = EVENT_HTTP_RESPBODY;
-	  if (buffer_len(tcpsock->socket.wrbuf) == 0)
-	    {
-	      httpsocket_reset(httpsock);
-	      rinoo_sched_addmode(&tcpsock->socket, EVENT_SCHED_IN);
-	    }
+	  /* if (buffer_len(tcpsock->socket.wrbuf) == 0) */
+	  /*   { */
+	  /*     httpsocket_reset(httpsock); */
+	  /*     rinoo_sched_addmode(&tcpsock->socket, EVENT_SCHED_IN); */
+	  /*   } */
 	  break;
 	default:
 	  break;

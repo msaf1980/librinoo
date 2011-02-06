@@ -29,14 +29,14 @@ typedef enum	e_smtpevent
 
 typedef struct	s_smtpsocket
 {
-  t_tcpsocket	*tcpsock;
+  t_rinootcp	*tcpsock;
   t_smtpevent	event;
   void		(*event_fsm)(struct s_smtpsocket *smtpsocket,
 			     t_smtpevent event);
   void		*data;
 }		t_smtpsocket;
 
-t_smtpsocket	*smtpsocket_create(t_tcpsocket *tcpsock,
+t_smtpsocket	*smtpsocket_create(t_rinootcp *tcpsock,
 				   void (*event_fsm)(t_smtpsocket *smtpsock,
 						     t_smtpevent event));
 void		smtpsocket_free(t_smtpsocket *smtpsock);

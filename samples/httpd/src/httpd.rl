@@ -20,10 +20,10 @@ typedef struct	s_httreq
 
 void		sig_handler(int unused(signal))
 {
-  sched_stop(sched);
+  rinoo_sched_stop(sched);
 }
 
-static void	httpserver_badrequest(t_tcpsocket *socket)
+static void	httpserver_badrequest(t_rinootcp *socket)
 {
   char		*msg =
     "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\n"
@@ -44,7 +44,7 @@ static void	httpserver_badrequest(t_tcpsocket *socket)
   tcp_print(socket, msg);
 }
 
-static void	httpserver_ok(t_tcpsocket *socket, t_buffer *unused(uri))
+static void	httpserver_ok(t_rinootcp *socket, t_buffer *unused(uri))
 {
   char		*msg =
     "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">\n"
@@ -99,7 +99,7 @@ static int	httpserver_read(t_buffer *buffer, t_buffer *uri)
   return (0);
 }
 
-void		event_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
+void		event_fsm(t_rinootcp *tcpsock, t_rinootcp_event event)
 {
   t_buffer	uri;
 
@@ -141,21 +141,21 @@ void		event_fsm(t_tcpsocket *tcpsock, t_tcpevent event)
  */
 int		main(int argc, char **argv)
 {
-  t_tcpsocket	*tcpsock;
+  t_rinootcp	*tcpsock;
 
   if (argc != 2)
     {
       printf("Usage %s <port>\n", argv[0]);
       return (-1);
     }
-  sched = sched_create();
+  sched = rinoo_sched();
   signal(SIGINT, sig_handler);
-  tcpsock = tcp_create(sched, 0, atoi(argv[1]), MODE_TCP_SERVER, 5000, event_fsm);
+  tcpsock = tcp_create(sched, 0, atoi(argv[1]), RINOO_TCP_SERVER, 5000, event_fsm);
   if (tcpsock == NULL)
     {
       return (-1);
     }
-  sched_loop(sched);
+  rinoo_sched_loop(sched);
   rinoo_sched_destroy(sched);
   return (0);
 }

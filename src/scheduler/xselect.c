@@ -220,15 +220,15 @@ int		xselect_poll(t_rinoosched *sched, u32 timeout)
     {
       if (FD_ISSET(i, &readfds))
 	{
-	  cursocket = rinoo_sched_getsocket(sched, i);
+	  cursocket = rinoo_sched_get(sched, i);
 	  cursocket->event_fsm(cursocket, EVENT_SCHED_IN);
 	}
       if (FD_ISSET(i, &writefds))
 	{
-	  cursocket = rinoo_sched_getsocket(sched, i);
+	  cursocket = rinoo_sched_get(sched, i);
 	  /**
 	   * If cursocket has been removed in the readfds step,
-	   * rinoo_sched_getsocket will return NULL.
+	   * rinoo_sched_get will return NULL.
 	   */
 	  if (cursocket != NULL)
 	    cursocket->event_fsm(cursocket, EVENT_SCHED_OUT);

@@ -10,7 +10,7 @@ include(CMakeForceCompiler)
 cmake_force_c_compiler(clang 0)
 
 list(APPEND common_flags "-W")
-list(APPEND common_flags "-Werror")
+#list(APPEND common_flags "-Werror")
 list(APPEND common_flags "-Wall")
 list(APPEND common_flags "-g3")
 list(APPEND common_flags "-DRINOO_DEBUG")

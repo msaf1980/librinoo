@@ -11,7 +11,7 @@
 
 static int	passed = 1;
 
-void		client_event_fsm(t_udpsocket *udpsock, t_udpevent event)
+void		client_event_fsm(t_rinooudp *udpsock, t_rinooudp_event event)
 {
   static int	step = 0;
 
@@ -22,13 +22,13 @@ void		client_event_fsm(t_udpsocket *udpsock, t_udpevent event)
       switch (step)
 	{
 	case 1:
-	  udp_print(udpsock, "a");
+	  rinoo_udp_print(udpsock, "a");
 	  break;
 	case 2:
-	  udp_print(udpsock, "b");
+	  rinoo_udp_print(udpsock, "b");
 	  break;
 	case 3:
-	  udp_print(udpsock, "c");
+	  rinoo_udp_print(udpsock, "c");
 	  break;
 	}
       break;
@@ -44,7 +44,7 @@ void		client_event_fsm(t_udpsocket *udpsock, t_udpevent event)
     }
 }
 
-void		server_event_fsm(t_udpsocket *udpsock, t_udpevent event)
+void		server_event_fsm(t_rinooudp *udpsock, t_rinooudp_event event)
 {
 
 
@@ -83,12 +83,12 @@ void		server_event_fsm(t_udpsocket *udpsock, t_udpevent event)
 int		main()
 {
   t_rinoosched	*sched;
-  t_udpsocket	*sudpsock;
-  t_udpsocket	*cudpsock;
+  t_rinooudp	*sudpsock;
+  t_rinooudp	*cudpsock;
 
   sched = rinoo_sched();
   XTEST(sched != NULL);
-  sudpsock = udp_create(sched, 0, 4242, MODE_UDP_SERVER, 0, server_event_fsm);
+  sudpsock = rinoo_udp_server(sched, 0, 4242, 0, server_event_fsm);
   XTEST(sudpsock != NULL);
   XTEST(sudpsock->socket.fd != 0);
   XTEST(sudpsock->socket.sched == sched);
@@ -99,10 +99,10 @@ int		main()
   XTEST(sudpsock->socket.wrbuf != NULL);
   XTEST(sudpsock->ip == 0);
   XTEST(sudpsock->port == 4242);
-  XTEST(sudpsock->mode == MODE_UDP_SERVER);
+  XTEST(sudpsock->mode == RINOO_UDP_SERVER);
   XTEST(sudpsock->event_fsm == server_event_fsm);
   XTEST(sudpsock->errorstep == 0);
-  cudpsock = udp_create(sched, 0, 4242, MODE_UDP_CLIENT, 0, client_event_fsm);
+  cudpsock = rinoo_udp_client(sched, 0, 4242, 0, client_event_fsm);
   XTEST(cudpsock != NULL);
   XTEST(cudpsock->socket.fd != 0);
   XTEST(cudpsock->socket.sched == sched);
@@ -113,7 +113,7 @@ int		main()
   XTEST(cudpsock->socket.wrbuf != NULL);
   XTEST(cudpsock->ip == 0);
   XTEST(cudpsock->port == 4242);
-  XTEST(cudpsock->mode == MODE_UDP_CLIENT);
+  XTEST(cudpsock->mode == RINOO_UDP_CLIENT);
   XTEST(cudpsock->event_fsm == client_event_fsm);
   XTEST(cudpsock->errorstep == 0);
   rinoo_sched_loop(sched);

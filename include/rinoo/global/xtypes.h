@@ -11,6 +11,7 @@
 #ifndef		RINOO_XTYPES_H_
 # define	RINOO_XTYPES_H_
 
+typedef unsigned short		u16;
 typedef unsigned int            u32;
 typedef unsigned long long      u64;
 

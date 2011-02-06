@@ -16,7 +16,7 @@ t_rinoohttp	*rinoo_simplehttp_init()
 
   rsh = xcalloc(1, sizeof(*rsh));
   XASSERT(rsh != NULL, NULL);
-  rsh->sched = sched_create();
+  rsh->sched = rinoo_sched();
   if (rsh->sched == NULL)
     {
       xfree(rsh);
@@ -61,7 +61,7 @@ static void	rinoo_simplehttp_fsm(t_httpsocket *httpsock, t_httpevent event)
 		httpsock->response.contentlength);
       if (httpsock->response.contentlength == 0)
 	{
-	  sched_stop(((t_rinoohttp *) httpsock->data)->sched);
+	  rinoo_sched_stop(((t_rinoohttp *) httpsock->data)->sched);
 	}
       break;
     case EVENT_HTTP_RESPBODY:
@@ -71,20 +71,20 @@ static void	rinoo_simplehttp_fsm(t_httpsocket *httpsock, t_httpevent event)
 	  rinoo_log("httpc - responsebody: %.*s",
 		    buffer_len(httpsock->tcpsock->socket.rdbuf),
 		    buffer_ptr(httpsock->tcpsock->socket.rdbuf));
-	  sched_stop(((t_rinoohttp *) httpsock->data)->sched);
+	  rinoo_sched_stop(((t_rinoohttp *) httpsock->data)->sched);
 	}
       break;
     case EVENT_HTTP_ERROR:
       rinoo_log("httpc - error");
-      sched_stop(((t_rinoohttp *) httpsock->data)->sched);
+      rinoo_sched_stop(((t_rinoohttp *) httpsock->data)->sched);
       break;
     case EVENT_HTTP_CLOSE:
       rinoo_log("httpc - close");
-      sched_stop(((t_rinoohttp *) httpsock->data)->sched);
+      rinoo_sched_stop(((t_rinoohttp *) httpsock->data)->sched);
       break;
     case EVENT_HTTP_TIMEOUT:
       rinoo_log("httpc - timeout");
-      sched_stop(((t_rinoohttp *) httpsock->data)->sched);
+      rinoo_sched_stop(((t_rinoohttp *) httpsock->data)->sched);
       break;
     }
 }
@@ -153,7 +153,7 @@ int		rinoo_simplehttp_get(t_rinoohttp *rsh, const char *url)
 		     "Host",
 		     host.buf,
 		     host.len);
-  sched_loop(rsh->sched);
+  rinoo_sched_loop(rsh->sched);
   /* httpsock should have been destroyed already */
   rsh->httpsock = NULL;
   return 0;

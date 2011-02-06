@@ -18,7 +18,7 @@
  *
  * @return A pointer to the new smtpsocket, or NULL if an error occurs.
  */
-t_smtpsocket	*smtpsocket_create(t_tcpsocket *tcpsock,
+t_smtpsocket	*smtpsocket_create(t_rinootcp *tcpsock,
 				   void (*event_fsm)(t_smtpsocket *smtpsock,
 						     t_smtpevent event))
 {

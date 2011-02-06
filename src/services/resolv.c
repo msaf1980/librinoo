@@ -10,9 +10,9 @@
 
 #include	"rinoo/rinoo.h"
 
-static void	rinoo_resolv_fsm(t_udpsocket *udpsock, t_udpevent event);
-static int	rinoo_dns_query_a(t_udpsocket *udpsock, const char *host);
-static int	rinoo_dns_parse_a(t_udpsocket *udpsock,
+static void	rinoo_resolv_fsm(t_rinooudp *udpsock, t_rinooudp_event event);
+static int	rinoo_dns_query_a(t_rinooudp *udpsock, const char *host);
+static int	rinoo_dns_parse_a(t_rinooudp *udpsock,
 				  const char *host,
 				  t_ip *ip);
 
@@ -34,7 +34,7 @@ int		rinoo_resolv(t_rinoosched *sched,
 			     void (*result_cb)(t_dnsevent event, t_ip ip))
 {
   t_dnscontext	*ctx;
-  t_udpsocket	*udpsock;
+  t_rinooudp	*udpsock;
 
   XASSERT(sched != NULL, -1);
   XASSERT(host != NULL, -1);
@@ -52,12 +52,11 @@ int		rinoo_resolv(t_rinoosched *sched,
     {
       timeout = _res.retrans * 1000;
     }
-  udpsock = udp_create(sched,
-		       _res.nsaddr_list[0].sin_addr.s_addr,
-		       ntohs(_res.nsaddr_list[0].sin_port),
-		       MODE_UDP_CLIENT,
-		       timeout,
-		       rinoo_resolv_fsm);
+  udpsock = rinoo_udp_client(sched,
+			     _res.nsaddr_list[0].sin_addr.s_addr,
+			     ntohs(_res.nsaddr_list[0].sin_port),
+			     timeout,
+			     rinoo_resolv_fsm);
   if (udpsock == NULL)
     {
       xfree(ctx);
@@ -72,7 +71,7 @@ static void	rinoo_resolv_destroy(t_dnscontext *ctx)
   xfree(ctx);
 }
 
-static void	rinoo_resolv_fsm(t_udpsocket *udpsock, t_udpevent event)
+static void	rinoo_resolv_fsm(t_rinooudp *udpsock, t_rinooudp_event event)
 {
   t_ip		ip;
   t_dnscontext	*ctx;
@@ -90,7 +89,7 @@ static void	rinoo_resolv_fsm(t_udpsocket *udpsock, t_udpevent event)
 	{
 	  ctx->result_cb(EVENT_DNS_ERROR, 0);
 	}
-      udp_destroy(udpsock);
+      rinoo_udp_destroy(udpsock);
       rinoo_resolv_destroy(ctx);
       break;
     case EVENT_UDP_OUT:
@@ -98,7 +97,9 @@ static void	rinoo_resolv_fsm(t_udpsocket *udpsock, t_udpevent event)
 	{
 	  rinoo_dns_query_a(udpsock, ctx->host);
 	  ctx->state = STATE_DNS_SENT;
-	  rinoo_sched_addmode(&udpsock->socket, EVENT_SCHED_IN);
+	  rinoo_sched_socket(RINOO_SCHED_MODADD,
+			     &udpsock->socket,
+			     EVENT_SCHED_IN);
 	}
       break;
     case EVENT_UDP_TIMEOUT:
@@ -110,7 +111,7 @@ static void	rinoo_resolv_fsm(t_udpsocket *udpsock, t_udpevent event)
     }
 }
 
-static int	rinoo_dns_query_a(t_udpsocket *udpsock, const char *host)
+static int	rinoo_dns_query_a(t_rinooudp *udpsock, const char *host)
 {
   char			tmp;
   char			*ptr;
@@ -125,25 +126,25 @@ static int	rinoo_dns_query_a(t_udpsocket *udpsock, const char *host)
     };
 
   qid = (unsigned short) ((u64) udpsock % USHRT_MAX);
-  udp_printdata(udpsock, (const char *) &qid, 2);
-  udp_printdata(udpsock, dns_header, 10);
+  rinoo_udp_printdata(udpsock, (const char *) &qid, 2);
+  rinoo_udp_printdata(udpsock, dns_header, 10);
   while (*host != 0)
     {
       ptr = strchrnul(host, '.');
       tmp = ptr - host;
-      udp_printdata(udpsock, &tmp, 1);
-      udp_printdata(udpsock, host, (size_t) tmp);
+      rinoo_udp_printdata(udpsock, &tmp, 1);
+      rinoo_udp_printdata(udpsock, host, (size_t) tmp);
       host += tmp;
       if (*host == '.')
 	{
 	  host++;
 	}
     }
-  udp_printdata(udpsock, dns_qfooter, 5);
+  rinoo_udp_printdata(udpsock, dns_qfooter, 5);
   return 0;
 }
 
-static int	rinoo_dns_parse_a(t_udpsocket *udpsock,
+static int	rinoo_dns_parse_a(t_rinooudp *udpsock,
 				  const char *host,
 				  t_ip *ip)
 {
