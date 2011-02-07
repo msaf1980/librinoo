@@ -25,8 +25,10 @@ int		main()
 {
   t_list	*list;
   t_list	*list2;
+  t_list	*list3;
 
-  list = list_create(cmp_func);
+  /* LIST_SORTED_HEAD test */
+  list = list_create(LIST_SORTED_HEAD, cmp_func);
   XTEST(list != NULL);
   XTEST(list_add(list, INT_TO_PTR(42), NULL) != NULL);
   XTEST(list->head != NULL);
@@ -55,8 +57,42 @@ int		main()
   XTEST(list->size == 4);
   XTEST(list->head->node == INT_TO_PTR(42));
   XTEST(list->tail->node == INT_TO_PTR(45));
-  list2 = list_create(cmp_func);
-  XTEST(list_add(list2, list, list_destroy) != NULL);
-  list_destroy(list2);
+
+  /* LIST_SORTED_TAIL test */
+  list2 = list_create(LIST_SORTED_TAIL, cmp_func);
+  XTEST(list2 != NULL);
+  XTEST(list_add(list2, INT_TO_PTR(42), NULL) != NULL);
+  XTEST(list2->head != NULL);
+  XTEST(list2->tail != NULL);
+  XTEST(list2->head == list2->tail);
+  XTEST(list2->size == 1);
+  XTEST(list2->head->node == INT_TO_PTR(42));
+  XTEST(list_add(list2, INT_TO_PTR(43), NULL) != NULL);
+  XTEST(list2->head != NULL);
+  XTEST(list2->tail != NULL);
+  XTEST(list2->head != list2->tail);
+  XTEST(list2->size == 2);
+  XTEST(list2->head->node == INT_TO_PTR(42));
+  XTEST(list2->tail->node == INT_TO_PTR(43));
+  XTEST(list_add(list2, INT_TO_PTR(44), NULL) != NULL);
+  XTEST(list2->head != NULL);
+  XTEST(list2->tail != NULL);
+  XTEST(list2->head != list2->tail);
+  XTEST(list2->size == 3);
+  XTEST(list2->head->node == INT_TO_PTR(42));
+  XTEST(list2->tail->node == INT_TO_PTR(44));
+  XTEST(list_add(list2, INT_TO_PTR(45), NULL) != NULL);
+  XTEST(list2->head != NULL);
+  XTEST(list2->tail != NULL);
+  XTEST(list2->head != list2->tail);
+  XTEST(list2->size == 4);
+  XTEST(list2->head->node == INT_TO_PTR(42));
+  XTEST(list2->tail->node == INT_TO_PTR(45));
+
+  /* Destroys lists */
+  list3 = list_create(LIST_SORTED_HEAD, cmp_func);
+  XTEST(list_add(list3, list, list_destroy) != NULL);
+  XTEST(list_add(list3, list2, list_destroy) != NULL);
+  list_destroy(list3);
   XPASS();
 }

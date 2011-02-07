@@ -25,7 +25,7 @@ t_rinoosched	*rinoo_sched()
   sched = xcalloc(1, sizeof(*sched));
   XASSERTSTR(sched != NULL, NULL, "Cannot create a new scheduler");
   sched->poller = &pollers[DEFAULT_POLLER];
-  sched->timeoutq = list_create(rinoo_socket_timeout_cmp);
+  sched->timeoutq = list_create(LIST_SORTED_TAIL, rinoo_socket_timeout_cmp);
   if (sched->timeoutq == NULL)
     {
       xfree(sched);

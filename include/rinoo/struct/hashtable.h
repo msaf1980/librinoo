@@ -13,10 +13,11 @@
 
 typedef struct	s_hashtable
 {
-  t_list	**table;
-  u32		hashsize;
-  u32		(*hash_func)(void *node);
   u32		size;
+  u32		hashsize;
+  t_listtype	listtype;
+  t_list	**table;
+  u32		(*hash_func)(void *node);
 }		t_hashtable;
 
 typedef struct	s_hashiterator
@@ -25,7 +26,8 @@ typedef struct	s_hashiterator
   t_listiterator	list_iterator;
 }		t_hashiterator;
 
-t_hashtable	*hashtable_create(u32 hashsize,
+t_hashtable	*hashtable_create(t_listtype listtype,
+				  u32 hashsize,
 				  u32 (*hash_func)(void *node),
 				  int (*cmp_func)(void *node1, void *node2));
 void		hashtable_destroy(void *ptr);

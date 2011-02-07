@@ -18,12 +18,14 @@ static int	hashtable_cmpfunc(void *unused(node1), void *unused(node2))
 /**
  * Creates a new hash table.
  *
+ * @param listtype Type of list to use.
  * @param hashsize Array size of the hash table.
  * @param hash_func Pointer to a hash function.
  *
  * @return Pointer to the new hash table.
  */
-t_hashtable	*hashtable_create(u32 hashsize,
+t_hashtable	*hashtable_create(t_listtype listtype,
+				  u32 hashsize,
 				  u32 (*hash_func)(void *node),
 				  int (*cmp_func)(void *node1, void *node2))
 {
@@ -35,6 +37,7 @@ t_hashtable	*hashtable_create(u32 hashsize,
 
   new = xcalloc(1, sizeof(*new));
   XASSERT(new != NULL, NULL);
+  new->listtype = listtype;
   new->hashsize = hashsize;
   new->hash_func = hash_func;
   new->table = xcalloc(hashsize, sizeof(*new->table));
@@ -46,7 +49,7 @@ t_hashtable	*hashtable_create(u32 hashsize,
   if (cmp_func == NULL)
     cmp_func = hashtable_cmpfunc;
   for (i = 0; i < hashsize; i++)
-    new->table[i] = list_create(cmp_func);
+    new->table[i] = list_create(listtype, cmp_func);
   return (new);
 }
 

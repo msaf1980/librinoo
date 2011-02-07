@@ -25,7 +25,7 @@ int		main()
 {
   t_list	*list;
 
-  list = list_create(cmp_func);
+  list = list_create(LIST_SORTED_HEAD, cmp_func);
   XTEST(list != NULL);
   XTEST(list->head == NULL);
   XTEST(list->tail == NULL);

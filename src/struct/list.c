@@ -13,10 +13,13 @@
 /**
  * Creates a new list.
  *
+ * @param type Type of the list to create.
+ * @param cmp_func Pointer to a compare function.
  *
- * @return Pointer to the new list, or NULL if an error occurs.
+ * @return A pointer to the new list, or NULL if an error occurs.
  */
-t_list		*list_create(int (*cmp_func)(void *node1, void *node2))
+t_list		*list_create(t_listtype type,
+			     int (*cmp_func)(void *node1, void *node2))
 {
   t_list	*list;
 
@@ -25,8 +28,9 @@ t_list		*list_create(int (*cmp_func)(void *node1, void *node2))
   list = xcalloc(1, sizeof(*list));
   XASSERT(list != NULL, NULL);
 
+  list->type = type;
   list->cmp_func = cmp_func;
-  return (list);
+  return list;
 }
 
 /**
@@ -57,6 +61,42 @@ void		list_destroy(void *ptr)
 }
 
 /**
+ * Inserts a list node between two others.
+ *
+ * @param list Pointer to the list.
+ * @param new Pointer to the new element to insert.
+ * @param prev Pointer to the previous element (NULL if head).
+ * @param next Pointer to the next element (NULL if tail).
+ */
+void		list_insertnode(t_list *list,
+				t_listnode *new,
+				t_listnode *prev,
+				t_listnode *next)
+{
+  XASSERTN(list != NULL);
+  XASSERTN(new != NULL);
+  new->prev = prev;
+  new->next = next;
+  if (prev == NULL)
+    {
+      list->head = new;
+    }
+  else
+    {
+      prev->next = new;
+    }
+ if (next == NULL)
+    {
+      list->tail = new;
+    }
+  else
+    {
+      next->prev = new;
+    }
+ list->size++;
+}
+
+/**
  * Adds an element to a list.
  *
  * @param list Pointer to the list where to add the element.
@@ -77,32 +117,31 @@ t_listnode	*list_add(t_list *list,
   XASSERT(new != NULL, NULL);
   new->node = node;
   new->free_func = free_func;
-  new->next = list->head;
-  new->prev = NULL;
-  while (new->next != NULL &&
-	 list->cmp_func(new->next->node, node) > 0)
+  switch (list->type)
     {
-      new->prev = new->next;
-      new->next = new->next->next;
+    case LIST_SORTED_HEAD:
+      new->next = list->head;
+      new->prev = NULL;
+      while (new->next != NULL &&
+	     list->cmp_func(new->next->node, node) > 0)
+	{
+	  new->prev = new->next;
+	  new->next = new->next->next;
+	}
+      break;
+    case LIST_SORTED_TAIL:
+      new->next = NULL;
+      new->prev = list->tail;
+      while (new->prev != NULL &&
+	     list->cmp_func(new->prev->node, node) < 0)
+	{
+	  new->next = new->prev;
+	  new->prev = new->prev->prev;
+	}
+      break;
     }
-  if (new->next == NULL)
-    {
-      list->tail = new;
-    }
-  else
-    {
-      new->next->prev = new;
-    }
-  if (new->prev == NULL)
-    {
-      list->head = new;
-    }
-  else
-    {
-      new->prev->next = new;
-    }
-  list->size++;
-  return (new);
+  list_insertnode(list, new, new->prev, new->next);
+  return new;
 }
 
 /**

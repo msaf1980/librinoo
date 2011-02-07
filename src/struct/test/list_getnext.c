@@ -28,7 +28,7 @@ int		main()
   t_list		*list;
   t_listiterator	iterator = NULL;
 
-  list = list_create(cmp_func);
+  list = list_create(LIST_SORTED_HEAD, cmp_func);
   XTEST(list != NULL);
   XTEST(list_add(list, INT_TO_PTR(42), NULL) != NULL);
   XTEST(list_add(list, INT_TO_PTR(43), NULL) != NULL);

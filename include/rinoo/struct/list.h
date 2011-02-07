@@ -11,6 +11,12 @@
 #ifndef		RINOO_LIST_H_
 # define	RINOO_LIST_H_
 
+typedef enum	s_listtype
+  {
+    LIST_SORTED_HEAD = 0,
+    LIST_SORTED_TAIL
+  }		t_listtype;
+
 typedef struct		s_listnode
 {
   void			*node;
@@ -21,16 +27,22 @@ typedef struct		s_listnode
 
 typedef struct	s_list
 {
+  u32		size;
+  t_listtype	type;
   t_listnode	*head;
   t_listnode	*tail;
-  u32		size;
   int		(*cmp_func)(void *node1, void *node2);
 }		t_list;
 
 typedef t_listnode	*t_listiterator;
 
-t_list		*list_create(int (*cmp_func)(void *node1, void *node2));
+t_list		*list_create(t_listtype type,
+			     int (*cmp_func)(void *node1, void *node2));
 void		list_destroy(void *ptr);
+void		list_insertnode(t_list *list,
+				t_listnode *new,
+				t_listnode *prev,
+				t_listnode *next);
 t_listnode	*list_add(t_list *list,
 			  void *node,
 			  void (*free_func)(void *node));

@@ -27,7 +27,7 @@ int		main()
 {
   t_hashtable	*hashtable;
 
-  hashtable = hashtable_create(HASH_SIZE, hash_func, NULL);
+  hashtable = hashtable_create(LIST_SORTED_HEAD, HASH_SIZE, hash_func, NULL);
   XTEST(hashtable != NULL);
   XTEST(hashtable->hashsize == HASH_SIZE);
   XTEST(hashtable->hash_func == hash_func);

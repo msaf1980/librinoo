@@ -49,7 +49,7 @@ static int	jobqueue_cmp(void *node1, void *node2)
  */
 t_list		*jobqueue_create()
 {
-  return (list_create(jobqueue_cmp));
+  return (list_create(LIST_SORTED_HEAD, jobqueue_cmp));
 }
 
 /**
