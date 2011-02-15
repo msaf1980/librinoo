@@ -233,11 +233,6 @@ int		xepoll_poll(t_rinoosched *sched, u32 timeout)
 	{
 	  cursocket->event_fsm(cursocket, EVENT_SCHED_ERROR);
 	}
-      cursocket = rinoo_sched_get(sched, data->events[i].data.fd);
-      if (cursocket != NULL)
-	{
-	  rinoo_socket_timeout_reset(cursocket);
-	}
     }
   return (0);
 }

@@ -297,7 +297,7 @@ static void		rinoo_tcp_accept(t_rinoosocket *socket, t_rinoosched_event event)
 	  rinoo_tcp_destroy(newsock);
 	  XASSERTN(0);
 	}
-      if (unlikely(rinoo_socket_timeout_set(&tcpsock->socket,
+      if (unlikely(rinoo_socket_timeout_set(&newsock->socket,
 					    socket->timeout.ms) != 0))
 	{
 	  rinoo_tcp_destroy(tcpsock);

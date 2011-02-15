@@ -66,7 +66,8 @@ static int	httpheader_cmp(void *node1, void *node2)
  */
 t_hashtable	*httpheader_createtable()
 {
-  return hashtable_create(HTTPHEADER_HASHSIZE,
+  return hashtable_create(LIST_SORTED_HEAD,
+			  HTTPHEADER_HASHSIZE,
 			  httpheader_hash,
 			  httpheader_cmp);
 }

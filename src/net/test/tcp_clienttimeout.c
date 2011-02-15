@@ -10,6 +10,7 @@
 #include	"rinoo/rinoo.h"
 
 static int	passed = 1;
+t_rinoojob	*mainjob = NULL;
 
 t_rinoojob_state	client_cb(t_rinoojob *job)
 {
@@ -24,6 +25,7 @@ t_rinoojob_state	client_cb(t_rinoojob *job)
       return JOB_REDO;
     }
   rinoo_log("Engaging client timeout...");
+  mainjob = NULL;
   return JOB_DONE;
 }
 
@@ -33,23 +35,32 @@ void		client_event_fsm(t_rinootcp *tcpsock, t_rinootcp_event event)
     {
     case EVENT_TCP_CONNECT:
       rinoo_log("Client: connected!");
-      jobqueue_addms(tcpsock->socket.sched, client_cb, tcpsock, 100);
+      mainjob = jobqueue_addms(tcpsock->socket.sched, client_cb, tcpsock, 100);
       break;
     case EVENT_TCP_IN:
       rinoo_log("Client: received \"%.*s\"",
 		buffer_len(tcpsock->socket.rdbuf),
 		tcpsock->socket.rdbuf->buf);
       buffer_erase(tcpsock->socket.rdbuf, buffer_len(tcpsock->socket.rdbuf));
+      rinoo_socket_timeout_reset(&tcpsock->socket);
       break;
     case EVENT_TCP_OUT:
       break;
     case EVENT_TCP_ERROR:
     case EVENT_TCP_CLOSE:
       passed = 0;
+      if (mainjob != NULL)
+	{
+	  jobqueue_removejob(mainjob);
+	}
       rinoo_sched_stop(tcpsock->socket.sched);
       break;
     case EVENT_TCP_TIMEOUT:
       rinoo_log("Client timeout!");
+      if (mainjob != NULL)
+	{
+	  jobqueue_removejob(mainjob);
+	}
       break;
     }
 }

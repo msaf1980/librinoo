@@ -24,12 +24,11 @@ t_smtpsocket	*smtpclient_create(t_rinoosched *sched,
 
   XDASSERT(sched != NULL, NULL);
 
-  tcpsock = tcp_create(sched,
-		       ip,
-		       port,
-		       RINOO_TCP_CLIENT,
-		       timeout,
-		       smtpclient_fsm);
+  tcpsock = rinoo_tcp_client(sched,
+			     ip,
+			     port,
+			     timeout,
+			     smtpclient_fsm);
   XASSERT(tcpsock != NULL, NULL);
   smtpsock = smtpsocket_create(tcpsock, event_fsm);
   XASSERT(smtpsock != NULL, NULL);
@@ -96,6 +95,7 @@ static void	smtpclient_fsmin(t_smtpsocket *smtpsock)
 	  XASSERTN(0);
 	  break;
 	}
+      rinoo_socket_timeout_reset(&smtpsock->tcpsock->socket);
       break;
     case -1:
       smtpsock->event_fsm(smtpsock, EVENT_SMTP_ERROR);

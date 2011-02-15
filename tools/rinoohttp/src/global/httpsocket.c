@@ -87,7 +87,7 @@ void		httpsocket_destroy(t_httpsocket *httpsock)
   if (httpsock->tcpsock != NULL)
     {
       httpsock->tcpsock->data = NULL;
-      tcp_destroy(httpsock->tcpsock);
+      rinoo_tcp_destroy(httpsock->tcpsock);
       httpsock->tcpsock = NULL;
     }
   httpsocket_free(httpsock);

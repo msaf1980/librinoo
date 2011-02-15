@@ -54,7 +54,7 @@ void		smtpsocket_destroy(t_smtpsocket *smtpsock)
   if (smtpsock->tcpsock != NULL)
     {
       smtpsock->tcpsock->data = NULL;
-      tcp_destroy(smtpsock->tcpsock);
+      rinoo_tcp_destroy(smtpsock->tcpsock);
       smtpsock->tcpsock = NULL;
     }
   smtpsocket_free(smtpsock);
