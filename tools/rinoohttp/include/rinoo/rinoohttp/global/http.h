@@ -11,18 +11,18 @@
 #ifndef		RINOOHTTP_GLOBAL_HTTP_H_
 # define	RINOOHTTP_GLOBAL_HTTP_H_
 
-typedef enum	e_httpmethod
+typedef enum	e_rinoohttp_method
   {
     HTTP_METHOD_NONE = 0,
     HTTP_METHOD_GET,
     HTTP_METHOD_POST
-  }		t_httpmethod;
+  }		t_rinoohttp_method;
 
-typedef enum	e_httpversion
+typedef enum	e_rinoohttp_version
   {
     HTTP_VERSION_NONE = 0,
     HTTP_VERSION_10,
     HTTP_VERSION_11
-  }		t_httpversion;
+  }		t_rinoohttp_version;
 
 #endif		/* !RINOOHTTP_GLOBAL_HTTP_H_ */

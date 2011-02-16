@@ -62,7 +62,7 @@
   }%%
 
 
-int		httpresponse_read(t_httpsocket *httpsock)
+int		rinoo_http_response_read(t_rinoohttp *httpsock)
 {
   int		cs = 0;
   char		*p = buffer_ptr(httpsock->tcpsock->socket.rdbuf);
@@ -87,7 +87,7 @@ int		httpresponse_read(t_httpsocket *httpsock)
   return (0);
 }
 
-int		httpresponse_readbody(t_httpsocket *httpsock)
+int		rinoo_http_response_readbody(t_rinoohttp *httpsock)
 {
   if (httpsock->response.contentlength > 0 &&
       httpsock->response.received < httpsock->response.contentlength)

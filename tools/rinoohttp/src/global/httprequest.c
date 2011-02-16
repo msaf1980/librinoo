@@ -16,7 +16,7 @@
  *
  * @param httpsock Pointer to the HTTP socket to use.
  */
-void		httprequest_reset(struct s_httpsocket *httpsock)
+void		rinoo_http_request_reset(struct s_rinoohttp *httpsock)
 {
   httpsock->request.length = 0;
   httpsock->request.received = 0;
@@ -24,19 +24,19 @@ void		httprequest_reset(struct s_httpsocket *httpsock)
   buffer_erase(httpsock->request.uri, buffer_len(httpsock->request.uri));
 }
 
-void		httprequest_setdefaultheaders(struct s_httpsocket *httpsock)
+void		rinoo_http_request_setdefaultheaders(struct s_rinoohttp *httpsock)
 {
   char		tmp[24];
 
-  if (httpheader_get(httpsock->request.headers, "Content-Length") == NULL)
+  if (rinoo_http_header_get(httpsock->request.headers, "Content-Length") == NULL)
     {
       if (snprintf(tmp, 42, "%llu", httpsock->request.contentlength) > 0)
 	{
-	  httpheader_add(httpsock->request.headers, "Content-Length", tmp);
+	  rinoo_http_header_add(httpsock->request.headers, "Content-Length", tmp);
 	}
     }
-  if (httpheader_get(httpsock->request.headers, "Host") == NULL)
+  if (rinoo_http_header_get(httpsock->request.headers, "Host") == NULL)
     {
-      httpheader_add(httpsock->request.headers, "Host", "localhost");
+      rinoo_http_header_add(httpsock->request.headers, "Host", "localhost");
     }
 }

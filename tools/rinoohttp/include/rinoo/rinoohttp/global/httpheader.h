@@ -11,25 +11,28 @@
 #ifndef		RINOOHTTP_GLOBAL_HTTPHEADER_H_
 # define	RINOOHTTP_GLOBAL_HTTPHEADER_H_
 
-typedef struct	s_httpheader
+typedef struct	s_rinoohttp_header
 {
   t_buffer	key;
   t_buffer	value;
-}		t_httpheader;
+}		t_rinoohttp_header;
 
-# define	HTTPHEADER_HASHSIZE		128
+# define	RINOOHTTP_HEADER_HASHSIZE		128
 
-# define	HTTPHEADER_DEFAULT_SERVER	"RiNOO/" VERSION
+# define	RINOOHTTP_HEADER_DEFAULT_SERVER	"RiNOO/" VERSION
 
 
-t_hashtable	*httpheader_createtable();
-void		httpheader_destroytable(t_hashtable *headertab);
-int		httpheader_adddata(t_hashtable *headertab,
-				   const char *key,
-				   const char *value,
-				   u32 size);
-int		httpheader_add(t_hashtable *headertab, const char *key, const char *value);
-int		httpheader_remove(t_hashtable *headertab, const char *key);
-t_httpheader	*httpheader_get(t_hashtable *headertab, const char *key);
+t_hashtable	*rinoo_http_header_createtable();
+void		rinoo_http_header_destroytable(t_hashtable *headertab);
+int		rinoo_http_header_adddata(t_hashtable *headertab,
+					  const char *key,
+					  const char *value,
+					  u32 size);
+int		rinoo_http_header_add(t_hashtable *headertab,
+				      const char *key,
+				      const char *value);
+int		rinoo_http_header_remove(t_hashtable *headertab, const char *key);
+t_rinoohttp_header	*rinoo_http_header_get(t_hashtable *headertab,
+					       const char *key);
 
-#endif		/* !RINOOHTTP_GLOBAL_HTTPHEADER_H_ */
+#endif		/* !RINOOHTTP_GLOBAL_RINOO_HTTP_HEADER_H_ */

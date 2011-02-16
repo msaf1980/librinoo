@@ -17,9 +17,9 @@
  *
  * @return Resulting hash
  */
-static u32	httpheader_hash(void *node)
+static u32	rinoo_http_header_hash(void *node)
 {
-  t_httpheader	*header = (t_httpheader *) node;
+  t_rinoohttp_header	*header = (t_rinoohttp_header *) node;
 
   XDASSERT(header != NULL, 0);
   XDASSERT(buffer_ptr(&header->key) != NULL, 0);
@@ -37,10 +37,10 @@ static u32	httpheader_hash(void *node)
  *
  * @return -1 if they are different (no need to sort them), 0 if they are equal
  */
-static int	httpheader_cmp(void *node1, void *node2)
+static int	rinoo_http_header_cmp(void *node1, void *node2)
 {
-  t_httpheader	*header1 = (t_httpheader *) node1;
-  t_httpheader	*header2 = (t_httpheader *) node2;
+  t_rinoohttp_header	*header1 = (t_rinoohttp_header *) node1;
+  t_rinoohttp_header	*header2 = (t_rinoohttp_header *) node2;
 
   XDASSERT(header1 != NULL, -1);
   XDASSERT(header2 != NULL, -1);
@@ -64,12 +64,12 @@ static int	httpheader_cmp(void *node1, void *node2)
  *
  * @return A pointer to the created table or NULL if an error occurs.
  */
-t_hashtable	*httpheader_createtable()
+t_hashtable	*rinoo_http_header_createtable()
 {
   return hashtable_create(LIST_SORTED_HEAD,
-			  HTTPHEADER_HASHSIZE,
-			  httpheader_hash,
-			  httpheader_cmp);
+			  RINOOHTTP_HEADER_HASHSIZE,
+			  rinoo_http_header_hash,
+			  rinoo_http_header_cmp);
 }
 
 /**
@@ -77,7 +77,7 @@ t_hashtable	*httpheader_createtable()
  *
  * @param headertab Pointer to the hashtable to destroy.
  */
-void		httpheader_destroytable(t_hashtable *headertab)
+void		rinoo_http_header_destroytable(t_hashtable *headertab)
 {
   hashtable_destroy(headertab);
 }
@@ -87,9 +87,9 @@ void		httpheader_destroytable(t_hashtable *headertab)
  *
  * @param node Pointer to the HTTP header.
  */
-void		httpheader_free(void *node)
+void		rinoo_http_header_free(void *node)
 {
-  t_httpheader	*header = (t_httpheader *) node;
+  t_rinoohttp_header	*header = (t_rinoohttp_header *) node;
 
   XDASSERTN(header != NULL);
 
@@ -109,13 +109,13 @@ void		httpheader_free(void *node)
  *
  * @return 0 on success, or -1 if an error occurs.
  */
-int		httpheader_adddata(t_hashtable *headertab,
-				   const char *key,
-				   const char *value,
-				   u32 size)
+int		rinoo_http_header_adddata(t_hashtable *headertab,
+					  const char *key,
+					  const char *value,
+					  u32 size)
 {
-  t_httpheader	dummy;
-  t_httpheader	*new;
+  t_rinoohttp_header	dummy;
+  t_rinoohttp_header	*new;
 
   XASSERT(headertab != NULL, -1);
   XASSERT(key != NULL, -1);
@@ -124,7 +124,7 @@ int		httpheader_adddata(t_hashtable *headertab,
 
   strtobuffer(dummy.key, key);
   value = strndup(value, size);
-  new = (t_httpheader *) hashtable_find(headertab, &dummy);
+  new = (t_rinoohttp_header *) hashtable_find(headertab, &dummy);
   if (new != NULL)
     {
       xfree(new->value.buf);
@@ -136,9 +136,9 @@ int		httpheader_adddata(t_hashtable *headertab,
   key = strdup(key);
   strtobuffer(new->key, key);
   strtobuffer(new->value, value);
-  if (hashtable_add(headertab, new, httpheader_free) == 0)
+  if (hashtable_add(headertab, new, rinoo_http_header_free) == 0)
     {
-      httpheader_free(new);
+      rinoo_http_header_free(new);
       return -1;
     }
   return 0;
@@ -153,9 +153,11 @@ int		httpheader_adddata(t_hashtable *headertab,
  *
  * @return 0 on success, or -1 if an error occurs.
  */
-int		httpheader_add(t_hashtable *headertab, const char *key, const char *value)
+int		rinoo_http_header_add(t_hashtable *headertab,
+				      const char *key,
+				      const char *value)
 {
-  return httpheader_adddata(headertab, key, value, strlen(value));
+  return rinoo_http_header_adddata(headertab, key, value, strlen(value));
 }
 
 /**
@@ -166,9 +168,9 @@ int		httpheader_add(t_hashtable *headertab, const char *key, const char *value)
  *
  * @return 0 on sucess, or -1 if an error occurs.
  */
-int		httpheader_remove(t_hashtable *headertab, const char *key)
+int		rinoo_http_header_remove(t_hashtable *headertab, const char *key)
 {
-  t_httpheader	dummy;
+  t_rinoohttp_header	dummy;
 
   XDASSERT(headertab != NULL, -1);
   XDASSERT(key != NULL, -1);
@@ -189,13 +191,14 @@ int		httpheader_remove(t_hashtable *headertab, const char *key)
  *
  * @return A pointer to a HTTP header structure, or NULL if not found.
  */
-t_httpheader	*httpheader_get(t_hashtable *headertab, const char *key)
+t_rinoohttp_header	*rinoo_http_header_get(t_hashtable *headertab,
+					       const char *key)
 {
-  t_httpheader	dummy;
+  t_rinoohttp_header	dummy;
 
   XDASSERT(headertab != NULL, NULL);
   XDASSERT(key != NULL, NULL);
 
   strtobuffer(dummy.key, key);
-  return (t_httpheader *) hashtable_find(headertab, &dummy);
+  return (t_rinoohttp_header *) hashtable_find(headertab, &dummy);
 }

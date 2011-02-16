@@ -12,6 +12,8 @@
 # define	RINOOHTTP_H_
 
 # include	<rinoo/rinoo.h>
+# include	<sys/stat.h>
+# include	<sys/mman.h>
 
 # include	"rinoo/rinoohttp/global/module.h"
 # include	"rinoo/rinoohttp/server/module.h"

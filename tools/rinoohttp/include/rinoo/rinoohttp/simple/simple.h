@@ -11,15 +11,15 @@
 #ifndef		RINOOHTTP_SIMPLE_SIMPLE_H
 # define	RINOOHTTP_SIMPLE_SIMPLE_H
 
-typedef struct	s_rinoohttp
+typedef struct	s_rinoohttp_s
 {
   t_rinoosched	*sched;
-  t_httpsocket	*httpsock;
-}		t_rinoohttp;
+  t_rinoohttp	*httpsock;
+}		t_rinoohttp_s;
 
-t_rinoohttp	*rinoo_simplehttp_init();
-void		rinoo_simplehttp_destroy(t_rinoohttp *rsh);
+t_rinoohttp_s	*rinoo_simplehttp_init();
+void		rinoo_simplehttp_destroy(t_rinoohttp_s *rsh);
 
-int		rinoo_simplehttp_get(t_rinoohttp *rsh, const char *url);
+int		rinoo_simplehttp_get(t_rinoohttp_s *rsh, const char *url);
 
 #endif		/* !RINOOHTTP_SIMPLE_SIMPLE_H */

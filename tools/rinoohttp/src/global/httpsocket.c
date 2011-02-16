@@ -18,11 +18,11 @@
  *
  * @return A pointer to the new httpsocket, or NULL if an error occurs.
  */
-t_httpsocket	*httpsocket_create(t_rinootcp *tcpsock,
-				   void (*event_fsm)(t_httpsocket *httpsock,
-						     t_httpevent event))
+t_rinoohttp	*rinoo_http_socket(t_rinootcp *tcpsock,
+				   void (*event_fsm)(t_rinoohttp *httpsock,
+						     t_rinoohttp_event event))
 {
-  t_httpsocket	*httpsock;
+  t_rinoohttp	*httpsock;
 
   XASSERT(tcpsock != NULL, NULL);
 
@@ -31,19 +31,19 @@ t_httpsocket	*httpsocket_create(t_rinootcp *tcpsock,
   httpsock->request.uri = buffer_create(URI_INITSIZE, URI_MAXSIZE);
   if (httpsock->request.uri == NULL)
     {
-      httpsocket_free(httpsock);
+      rinoo_http_socket_free(httpsock);
       XASSERT(0, NULL);
     }
-  httpsock->request.headers = httpheader_createtable();
+  httpsock->request.headers = rinoo_http_header_createtable();
   if (httpsock->request.headers == NULL)
     {
-      httpsocket_free(httpsock);
+      rinoo_http_socket_free(httpsock);
       XASSERT(0, NULL);
     }
-  httpsock->response.headers = httpheader_createtable();
+  httpsock->response.headers = rinoo_http_header_createtable();
   if (httpsock->response.headers == NULL)
     {
-      httpsocket_free(httpsock);
+      rinoo_http_socket_free(httpsock);
       XASSERT(0, NULL);
     }
   httpsock->tcpsock = tcpsock;
@@ -57,7 +57,7 @@ t_httpsocket	*httpsocket_create(t_rinootcp *tcpsock,
  *
  * @param httpsock Pointer to the httpsocket to free.
  */
-void		httpsocket_free(t_httpsocket *httpsock)
+void		rinoo_http_socket_free(t_rinoohttp *httpsock)
 {
   if (httpsock->request.uri != NULL)
     {
@@ -66,12 +66,12 @@ void		httpsocket_free(t_httpsocket *httpsock)
     }
   if (httpsock->request.headers != NULL)
     {
-      httpheader_destroytable(httpsock->request.headers);
+      rinoo_http_header_destroytable(httpsock->request.headers);
       httpsock->request.headers = NULL;
     }
   if (httpsock->response.headers != NULL)
     {
-      httpheader_destroytable(httpsock->response.headers);
+      rinoo_http_header_destroytable(httpsock->response.headers);
       httpsock->response.headers = NULL;
     }
   xfree(httpsock);
@@ -82,7 +82,7 @@ void		httpsocket_free(t_httpsocket *httpsock)
  *
  * @param httpsock Pointer to the httpsocket to destroy.
  */
-void		httpsocket_destroy(t_httpsocket *httpsock)
+void		rinoo_http_socket_destroy(t_rinoohttp *httpsock)
 {
   if (httpsock->tcpsock != NULL)
     {
@@ -90,7 +90,7 @@ void		httpsocket_destroy(t_httpsocket *httpsock)
       rinoo_tcp_destroy(httpsock->tcpsock);
       httpsock->tcpsock = NULL;
     }
-  httpsocket_free(httpsock);
+  rinoo_http_socket_free(httpsock);
 }
 
 /**
@@ -99,9 +99,9 @@ void		httpsocket_destroy(t_httpsocket *httpsock)
  *
  * @param httpsock Pointer to the HTTP socket to reset.
  */
-void		httpsocket_reset(t_httpsocket *httpsock)
+void		rinoo_http_socket_reset(t_rinoohttp *httpsock)
 {
-  httprequest_reset(httpsock);
-  httpresponse_reset(httpsock);
+  rinoo_http_request_reset(httpsock);
+  rinoo_http_response_reset(httpsock);
   httpsock->last_event = EVENT_HTTP_CONNECT;
 }

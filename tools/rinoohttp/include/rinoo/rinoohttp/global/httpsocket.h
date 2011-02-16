@@ -14,7 +14,7 @@
 # define	URI_INITSIZE	1024
 # define	URI_MAXSIZE	1024 * 8
 
-typedef enum	e_httpevent
+typedef enum	e_rinoohttp_event
   {
     EVENT_HTTP_CONNECT = 0,
     EVENT_HTTP_REQUEST,
@@ -24,24 +24,24 @@ typedef enum	e_httpevent
     EVENT_HTTP_ERROR,
     EVENT_HTTP_CLOSE,
     EVENT_HTTP_TIMEOUT
-  }		t_httpevent;
+  }		t_rinoohttp_event;
 
-typedef struct		s_httpsocket
+typedef struct		s_rinoohttp
 {
   t_rinootcp		*tcpsock;
-  t_httprequest		request;
-  t_httpresponse	response;
-  t_httpevent		last_event;
-  void			(*event_fsm)(struct s_httpsocket *httpsock,
-				     t_httpevent event);
+  t_rinoohttp_request	request;
+  t_rinoohttp_response	response;
+  t_rinoohttp_event	last_event;
+  void			(*event_fsm)(struct s_rinoohttp *httpsock,
+				     t_rinoohttp_event event);
   void			*data;
-}			t_httpsocket;
+}			t_rinoohttp;
 
-t_httpsocket	*httpsocket_create(t_rinootcp *tcpsock,
-				   void (*event_fsm)(t_httpsocket *httpsock,
-						     t_httpevent event));
-void		httpsocket_free(t_httpsocket *httpsock);
-void		httpsocket_destroy(t_httpsocket *httpsock);
-void		httpsocket_reset(t_httpsocket *httpsock);
+t_rinoohttp	*rinoo_http_socket(t_rinootcp *tcpsock,
+				   void (*event_fsm)(t_rinoohttp *httpsock,
+						     t_rinoohttp_event event));
+void		rinoo_http_socket_free(t_rinoohttp *httpsock);
+void		rinoo_http_socket_destroy(t_rinoohttp *httpsock);
+void		rinoo_http_socket_reset(t_rinoohttp *httpsock);
 
 #endif		/* !RINOOHTTP_GLOBAL_HTTPSOCKET_H_ */

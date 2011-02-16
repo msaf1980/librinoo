@@ -10,17 +10,17 @@
 
 #include	"rinoo/rinoohttp.h"
 
-static void	httpserver_fsm(t_rinootcp *tcpsock, t_rinootcp_event event);
+static void	rinoo_http_server_fsm(t_rinootcp *tcpsock, t_rinootcp_event event);
 
-t_httpsocket	*httpserver_create(t_rinoosched *sched,
+t_rinoohttp	*rinoo_http_server(t_rinoosched *sched,
 				   t_ip ip,
 				   u32 port,
 				   u32 timeout,
-				   void (*event_fsm)(t_httpsocket *httpsock,
-						     t_httpevent event))
+				   void (*event_fsm)(t_rinoohttp *httpsock,
+						     t_rinoohttp_event event))
 {
   t_rinootcp	*servsock;
-  t_httpsocket	*httpsock;
+  t_rinoohttp	*httpsock;
 
   XDASSERT(sched != NULL, NULL);
 
@@ -28,17 +28,17 @@ t_httpsocket	*httpserver_create(t_rinoosched *sched,
 			      ip,
 			      port,
 			      timeout,
-			      httpserver_fsm);
+			      rinoo_http_server_fsm);
   XASSERT(servsock != NULL, NULL);
-  httpsock = httpsocket_create(servsock, event_fsm);
+  httpsock = rinoo_http_socket(servsock, event_fsm);
   XASSERT(httpsock != NULL, NULL);
   return httpsock;
 }
 
-void		httpserver_generate_response(t_httpsocket *httpsock)
+void		rinoo_http_server_genresponse(t_rinoohttp *httpsock)
 {
   char			*version;
-  t_httpheader		*header;
+  t_rinoohttp_header	*header;
   t_hashiterator	iterator = { 0, 0 };
 
   switch (httpsock->request.version)
@@ -56,10 +56,10 @@ void		httpserver_generate_response(t_httpsocket *httpsock)
       httpsock->response.msg.buf == NULL ||
       httpsock->response.msg.len == 0)
     {
-      httpresponse_setdefaultmsg(httpsock);
+      rinoo_http_response_setdefaultmsg(httpsock);
     }
 
-  httpresponse_setdefaultheaders(httpsock);
+  rinoo_http_response_setdefaultheaders(httpsock);
 
   rinoo_tcp_print(httpsock->tcpsock,
 		  "%s %d %.*s\r\n",
@@ -68,8 +68,8 @@ void		httpserver_generate_response(t_httpsocket *httpsock)
 		  buffer_len(&httpsock->response.msg),
 		  buffer_ptr(&httpsock->response.msg));
 
-  while ((header = (t_httpheader *) hashtable_getnext(httpsock->response.headers,
-						      &iterator)) != NULL)
+  while ((header = (t_rinoohttp_header *) hashtable_getnext(httpsock->response.headers,
+							    &iterator)) != NULL)
     {
       rinoo_tcp_print(httpsock->tcpsock,
 		      "%.*s: %.*s\r\n",
@@ -81,12 +81,12 @@ void		httpserver_generate_response(t_httpsocket *httpsock)
   rinoo_tcp_print(httpsock->tcpsock, "\r\n");
 }
 
-static void	httpserver_fsm(t_rinootcp *tcpsock, t_rinootcp_event event)
+static void	rinoo_http_server_fsm(t_rinootcp *tcpsock, t_rinootcp_event event)
 {
   t_rinootcp	*parent;
-  t_httpsocket	*httpsock;
+  t_rinoohttp	*httpsock;
 
-  httpsock = (t_httpsocket *) tcpsock->data;
+  httpsock = (t_rinoohttp *) tcpsock->data;
   if (event != EVENT_TCP_CONNECT && httpsock == NULL)
     {
       /* Ignoring events from server socket */
@@ -104,8 +104,8 @@ static void	httpserver_fsm(t_rinootcp *tcpsock, t_rinootcp_event event)
 	  XASSERTN(0);
 	}
       XDASSERTN(parent->data != NULL);
-      httpsock = httpsocket_create(tcpsock,
-				   ((t_httpsocket *) parent->data)->event_fsm);
+      httpsock = rinoo_http_socket(tcpsock,
+				   ((t_rinoohttp *) parent->data)->event_fsm);
       if (httpsock == NULL)
 	{
 	  rinoo_tcp_destroy(tcpsock);
@@ -119,7 +119,7 @@ static void	httpserver_fsm(t_rinootcp *tcpsock, t_rinootcp_event event)
 	{
 	case EVENT_HTTP_REQUEST:
 	case EVENT_HTTP_REQBODY:
-	  switch (httprequest_readbody(httpsock))
+	  switch (rinoo_http_request_readbody(httpsock))
 	    {
 	    case 0:
 	      httpsock->event_fsm(httpsock, EVENT_HTTP_REQBODY);
@@ -127,7 +127,7 @@ static void	httpserver_fsm(t_rinootcp *tcpsock, t_rinootcp_event event)
 	      break;
 	    case -1:
 	      /* bad request */
-	      httpsocket_destroy(httpsock);
+	      rinoo_http_socket_destroy(httpsock);
 	      return;
 	    case 1:
 	      rinoo_socket_timeout_reset(&tcpsock->socket);
@@ -139,13 +139,13 @@ static void	httpserver_fsm(t_rinootcp *tcpsock, t_rinootcp_event event)
 	    }
 	  break;
 	default:
-	  switch (httprequest_read(httpsock))
+	  switch (rinoo_http_request_read(httpsock))
 	    {
 	    case 0:
 	      return;
 	    case -1:
 	      /* bad request */
-	      httpsocket_destroy(httpsock);
+	      rinoo_http_socket_destroy(httpsock);
 	      return;
 	    case 1:
 	      rinoo_socket_timeout_reset(&tcpsock->socket);
@@ -159,7 +159,7 @@ static void	httpserver_fsm(t_rinootcp *tcpsock, t_rinootcp_event event)
 	      buffer_erase(tcpsock->socket.rdbuf, httpsock->request.length);
 	      if (buffer_len(tcpsock->socket.rdbuf) > 0)
 		{
-		  switch (httprequest_readbody(httpsock))
+		  switch (rinoo_http_request_readbody(httpsock))
 		    {
 		    case 0:
 		      httpsock->event_fsm(httpsock, EVENT_HTTP_REQBODY);
@@ -167,7 +167,7 @@ static void	httpserver_fsm(t_rinootcp *tcpsock, t_rinootcp_event event)
 		      break;
 		    case -1:
 		      /* bad request */
-		      httpsocket_destroy(httpsock);
+		      rinoo_http_socket_destroy(httpsock);
 		      return;
 		    case 1:
 		      httpsock->event_fsm(httpsock, EVENT_HTTP_REQBODY);
@@ -192,7 +192,7 @@ static void	httpserver_fsm(t_rinootcp *tcpsock, t_rinootcp_event event)
 	  httpsock->last_event = EVENT_HTTP_RESPONSE;
 	  /* no break */
 	case EVENT_HTTP_RESPONSE:
-	  httpserver_generate_response(httpsock);
+	  rinoo_http_server_genresponse(httpsock);
 	  if (httpsock->response.contentlength == 0)
 	    {
 	      httpsock->last_event = EVENT_HTTP_RESPBODY;
@@ -207,7 +207,7 @@ static void	httpserver_fsm(t_rinootcp *tcpsock, t_rinootcp_event event)
 	  httpsock->last_event = EVENT_HTTP_RESPBODY;
 	  if (buffer_len(tcpsock->socket.wrbuf) == 0)
 	    {
-	      httpsocket_reset(httpsock);
+	      rinoo_http_socket_reset(httpsock);
 	      rinoo_sched_socket(RINOO_SCHED_MODADD, &tcpsock->socket, EVENT_SCHED_IN);
 	    }
 	  break;
@@ -217,15 +217,15 @@ static void	httpserver_fsm(t_rinootcp *tcpsock, t_rinootcp_event event)
       break;
     case EVENT_TCP_ERROR:
       httpsock->event_fsm(httpsock, EVENT_HTTP_ERROR);
-      httpsocket_free(httpsock);
+      rinoo_http_socket_free(httpsock);
       break;
     case EVENT_TCP_CLOSE:
       httpsock->event_fsm(httpsock, EVENT_HTTP_CLOSE);
-      httpsocket_free(httpsock);
+      rinoo_http_socket_free(httpsock);
       break;
     case EVENT_TCP_TIMEOUT:
       httpsock->event_fsm(httpsock, EVENT_HTTP_TIMEOUT);
-      httpsocket_free(httpsock);
+      rinoo_http_socket_free(httpsock);
       break;
     }
 }

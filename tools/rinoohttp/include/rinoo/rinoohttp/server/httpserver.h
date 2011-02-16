@@ -11,11 +11,11 @@
 #ifndef		RINOOHTTP_SERVER_HTTPSERVER_H_
 # define	RINOOHTTP_SERVER_HTTPSERVER_H_
 
-t_httpsocket	*httpserver_create(t_rinoosched *sched,
+t_rinoohttp	*rinoo_http_server(t_rinoosched *sched,
 				   t_ip ip,
 				   u32 port,
 				   u32 timeout,
-				   void (*event_fsm)(t_httpsocket *httpsock,
-						     t_httpevent event));
+				   void (*event_fsm)(t_rinoohttp *httpsock,
+						     t_rinoohttp_event event));
 
 #endif		/* !RINOOHTTP_SERVER_HTTPSERVER_H_ */

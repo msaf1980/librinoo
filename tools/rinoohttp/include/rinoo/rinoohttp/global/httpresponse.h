@@ -11,24 +11,25 @@
 #ifndef		RINOOHTTP_GLOBAL_HTTPRESPONSE_H_
 # define	RINOOHTTP_GLOBAL_HTTPRESPONSE_H_
 
-typedef struct	s_httpresponse
+typedef struct		s_rinoohttp_response
 {
-  t_httpversion	version;
-  u32		code;
-  t_buffer	msg;
-  t_hashtable	*headers;
-  u64		length;
-  u64		received;
-  u64		contentlength;
-}		t_httpresponse;
+  t_rinoohttp_version	version;
+  u32			code;
+  t_buffer		msg;
+  t_hashtable		*headers;
+  u64			length;
+  u64			received;
+  u64			contentlength;
+}			t_rinoohttp_response;
 
-struct s_httpsocket;
+struct s_rinoohttp;
 
-int		httpresponse_read(struct s_httpsocket *httpsock);
-int		httpresponse_readbody(struct s_httpsocket *httpsock);
-void		httpresponse_reset(struct s_httpsocket *httpsock);
-void		httpresponse_setmsg(struct s_httpsocket *httpsock, const char *msg);
-void		httpresponse_setdefaultmsg(struct s_httpsocket *httpsock);
-void		httpresponse_setdefaultheaders(struct s_httpsocket *httpsock);
+int		rinoo_http_response_read(struct s_rinoohttp *httpsock);
+int		rinoo_http_response_readbody(struct s_rinoohttp *httpsock);
+void		rinoo_http_response_reset(struct s_rinoohttp *httpsock);
+void		rinoo_http_response_setmsg(struct s_rinoohttp *httpsock,
+					   const char *msg);
+void		rinoo_http_response_setdefaultmsg(struct s_rinoohttp *httpsock);
+void		rinoo_http_response_setdefaultheaders(struct s_rinoohttp *httpsock);
 
-#endif		/* !RINOOHTTP_GLOBAL_HTTPRESPONSE_H_ */
+#endif		/* !RINOOHTTP_GLOBAL_RINOO_HTTP_RESPONSE_H_ */
