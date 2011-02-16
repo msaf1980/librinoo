@@ -97,6 +97,46 @@ void		list_insertnode(t_list *list,
 }
 
 /**
+ * Adds an already existing listnode to a list.
+ *
+ * @param list Pointer to the list.
+ * @param new Pointer to the new listnode to add.
+ *
+ * @return 0 on success, -1 if an error occurs.
+ */
+int		list_addnode(t_list *list, t_listnode *new)
+{
+  XDASSERT(list != NULL, -1);
+  XDASSERT(new != NULL, -1);
+
+  switch (list->type)
+    {
+    case LIST_SORTED_HEAD:
+      new->next = list->head;
+      new->prev = NULL;
+      while (new->next != NULL &&
+	     list->cmp_func(new->next->node, new->node) > 0)
+	{
+	  new->prev = new->next;
+	  new->next = new->next->next;
+	}
+      break;
+    case LIST_SORTED_TAIL:
+      new->next = NULL;
+      new->prev = list->tail;
+      while (new->prev != NULL &&
+	     list->cmp_func(new->prev->node, new->node) < 0)
+	{
+	  new->next = new->prev;
+	  new->prev = new->prev->prev;
+	}
+      break;
+    }
+  list_insertnode(list, new, new->prev, new->next);
+  return 0;
+}
+
+/**
  * Adds an element to a list.
  *
  * @param list Pointer to the list where to add the element.
@@ -117,30 +157,11 @@ t_listnode	*list_add(t_list *list,
   XASSERT(new != NULL, NULL);
   new->node = node;
   new->free_func = free_func;
-  switch (list->type)
+  if (list_addnode(list, new) != 0)
     {
-    case LIST_SORTED_HEAD:
-      new->next = list->head;
-      new->prev = NULL;
-      while (new->next != NULL &&
-	     list->cmp_func(new->next->node, node) > 0)
-	{
-	  new->prev = new->next;
-	  new->next = new->next->next;
-	}
-      break;
-    case LIST_SORTED_TAIL:
-      new->next = NULL;
-      new->prev = list->tail;
-      while (new->prev != NULL &&
-	     list->cmp_func(new->prev->node, node) < 0)
-	{
-	  new->next = new->prev;
-	  new->prev = new->prev->prev;
-	}
-      break;
+      xfree(new);
+      return NULL;
     }
-  list_insertnode(list, new, new->prev, new->next);
   return new;
 }
 
@@ -265,6 +286,40 @@ void		*list_pophead(t_list *list)
   xfree(head);
   list->size--;
   return (node);
+}
+
+/**
+ * Gets a list node from a list to temporarily remove it.
+ *
+ * @param list Pointer to the list to use.
+ * @param node Pointer to the list node to pop.
+ *
+ * @return 0 on success, or -1 if an error occurs.
+ */
+int		list_poplistnode(t_list *list, t_listnode *node)
+{
+  XDASSERT(list != NULL, -1);
+  XDASSERT(node != NULL, -1);
+
+  if (node->prev == NULL)
+    {
+      list->head = node->next;
+    }
+  else
+    {
+      node->prev->next = node->next;
+    }
+  if (node->next == NULL)
+    {
+      list->tail = node->prev;
+    }
+  else
+    {
+      node->next->prev = node->prev;
+    }
+  node->prev = NULL;
+  node->next = NULL;
+  return 0;
 }
 
 /**

@@ -55,24 +55,33 @@ int	rinoo_socket_timeout_set(t_rinoosocket *socket, u32 timeout)
   XDASSERT(socket->sched != NULL, -1);
 
   if (socket->timeout.node != NULL &&
-      unlikely(list_removenode(socket->sched->timeoutq,
-			       socket->timeout.node, FALSE) == FALSE))
+      unlikely(list_poplistnode(socket->sched->timeoutq,
+				socket->timeout.node) != 0))
     {
-      return (-1);
+      return -1;
     }
   socket->timeout.ms = timeout;
   if (timeout != 0)
     {
       timeraddms(&socket->sched->curtime, timeout, &socket->timeout.expire);
-      socket->timeout.node = list_add(socket->sched->timeoutq,
-				      socket,
-				      NULL);
-      if (unlikely(socket->timeout.node == NULL))
+      if (socket->timeout.node == NULL)
 	{
-	  return (-1);
+	  socket->timeout.node = list_add(socket->sched->timeoutq, socket, NULL);
+	  if (unlikely(socket->timeout.node == NULL))
+	    {
+	      return -1;
+	    }
+	}
+      else
+	{
+	  if (unlikely(list_addnode(socket->sched->timeoutq,
+				    socket->timeout.node) != 0))
+	    {
+	      XASSERT(0, -1);
+	    }
 	}
     }
-  return (0);
+  return 0;
 }
 
 /**

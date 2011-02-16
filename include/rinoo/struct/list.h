@@ -43,6 +43,7 @@ void		list_insertnode(t_list *list,
 				t_listnode *new,
 				t_listnode *prev,
 				t_listnode *next);
+int		list_addnode(t_list *list, t_listnode *new);
 t_listnode	*list_add(t_list *list,
 			  void *node,
 			  void (*free_func)(void *node));
@@ -50,6 +51,7 @@ int		list_removenode(t_list *list, t_listnode *node, u32 needfree);
 int		list_remove(t_list *list, void *node, u32 needfree);
 void		*list_find(t_list *list, void *node);
 void		*list_pophead(t_list *list);
+int		list_poplistnode(t_list *list, t_listnode *node);
 void		*list_gethead(t_list *list);
 void		*list_getnext(t_list *list, t_listiterator *iterator);
 
