@@ -24,6 +24,11 @@ t_rinoosched	*rinoo_sched()
 
   sched = xcalloc(1, sizeof(*sched));
   XASSERTSTR(sched != NULL, NULL, "Cannot create a new scheduler");
+  if (rinoo_sched_clock(sched) != 0)
+    {
+      xfree(sched);
+      XASSERTSTR(0, NULL, "Scheduler clock init failed");
+    }
   sched->poller = &pollers[DEFAULT_POLLER];
   sched->timeoutq = list_create(LIST_SORTED_TAIL, rinoo_socket_timeout_cmp);
   if (sched->timeoutq == NULL)
@@ -31,7 +36,7 @@ t_rinoosched	*rinoo_sched()
       xfree(sched);
       XASSERTSTR(0, NULL, "Timeout queue init failed");
     }
-  sched->jobq = jobqueue_create();
+  sched->jobq = jobqueue_create(sched);
   if (sched->jobq == NULL)
     {
       xfree(sched);
@@ -42,7 +47,6 @@ t_rinoosched	*rinoo_sched()
       xfree(sched);
       XASSERTSTR(0, NULL, "Poller init failed");
     }
-  rinoo_sched_clock(sched);
   return sched;
 }
 

@@ -18,13 +18,15 @@
  */
 int		main()
 {
-  t_list	*jobqueue;
+  t_rinoosched		*sched;
+  t_rinoojob_queue	*jobqueue;
 
-  jobqueue = jobqueue_create();
+  sched = rinoo_sched();
+  jobqueue = sched->jobq;
   XTEST(jobqueue != NULL);
-  XTEST(jobqueue->head == NULL);
-  XTEST(jobqueue->tail == NULL);
-  XTEST(jobqueue->size == 0);
-  jobqueue_destroy(jobqueue);
+  XTEST(timercmp(&jobqueue->nexttime, &sched->curtime, ==) == 1);
+  XTEST(jobqueue->jobtab != NULL);
+  XTEST(jobqueue->jobtab->size == 0);
+  rinoo_sched_destroy(sched);
   XPASS();
 }

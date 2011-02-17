@@ -33,12 +33,12 @@ int		main()
   XTEST(hashtable->hash_func == hash_func);
   XTEST(hashtable->table != NULL);
   XTEST(hashtable->size == 0);
-  XTEST(hashtable_add(hashtable, INT_TO_PTR(42), NULL) == TRUE);
-  XTEST(hashtable_add(hashtable, INT_TO_PTR(43), NULL) == TRUE);
-  XTEST(hashtable_add(hashtable, INT_TO_PTR(52), NULL) == TRUE);
-  XTEST(hashtable_add(hashtable, INT_TO_PTR(53), NULL) == TRUE);
-  XTEST(hashtable_add(hashtable, INT_TO_PTR(62), NULL) == TRUE);
-  XTEST(hashtable_add(hashtable, INT_TO_PTR(63), NULL) == TRUE);
+  XTEST(hashtable_add(hashtable, INT_TO_PTR(42), NULL) != NULL);
+  XTEST(hashtable_add(hashtable, INT_TO_PTR(43), NULL) != NULL);
+  XTEST(hashtable_add(hashtable, INT_TO_PTR(52), NULL) != NULL);
+  XTEST(hashtable_add(hashtable, INT_TO_PTR(53), NULL) != NULL);
+  XTEST(hashtable_add(hashtable, INT_TO_PTR(62), NULL) != NULL);
+  XTEST(hashtable_add(hashtable, INT_TO_PTR(63), NULL) != NULL);
   XTEST(hashtable->size == 6);
   XTEST(hashtable->table[4] != NULL);
   XTEST(hashtable->table[4]->head != NULL);

@@ -55,8 +55,8 @@ int	rinoo_socket_timeout_set(t_rinoosocket *socket, u32 timeout)
   XDASSERT(socket->sched != NULL, -1);
 
   if (socket->timeout.node != NULL &&
-      unlikely(list_poplistnode(socket->sched->timeoutq,
-				socket->timeout.node) != 0))
+      unlikely(list_popnode(socket->sched->timeoutq,
+			    socket->timeout.node) != 0))
     {
       return -1;
     }
@@ -77,7 +77,7 @@ int	rinoo_socket_timeout_set(t_rinoosocket *socket, u32 timeout)
 	  if (unlikely(list_addnode(socket->sched->timeoutq,
 				    socket->timeout.node) != 0))
 	    {
-	      XASSERT(0, -1);
+	      return -1;
 	    }
 	}
     }
@@ -125,12 +125,12 @@ u32		rinoo_socket_timeout_getmin(t_rinoosched *sched)
 {
   t_rinoosocket	*socket;
 
-  XDASSERT(sched != NULL, DEFAULT_TIMEOUT);
-  XDASSERT(sched->timeoutq != NULL, DEFAULT_TIMEOUT);
+  XDASSERT(sched != NULL, RINOO_JOBQUEUE_TIMEOUT);
+  XDASSERT(sched->timeoutq != NULL, RINOO_JOBQUEUE_TIMEOUT);
 
   socket = list_gethead(sched->timeoutq);
   if (socket == NULL)
-    return (DEFAULT_TIMEOUT);
+    return (RINOO_JOBQUEUE_TIMEOUT);
   if (sched->curtime.tv_sec > socket->timeout.expire.tv_sec)
     return (0);
   return ((socket->timeout.expire.tv_sec - sched->curtime.tv_sec) * 1000 +

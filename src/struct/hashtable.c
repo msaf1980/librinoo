@@ -73,28 +73,50 @@ void		hashtable_destroy(void *ptr)
 }
 
 /**
+ * Adds an already existing list node to a hashtable.
+ *
+ * @param htab Pointer to the hashtable to use.
+ * @param node Pointer to the new list node to add.
+ *
+ * @return 0 on success, -1 if an error occurs.
+ */
+int		hashtable_addnode(t_hashtable *htab, t_listnode *node)
+{
+  XDASSERT(htab != NULL, FALSE);
+
+  if (list_addnode(htab->table[htab->hash_func(node->node) % htab->hashsize], node) != 0)
+    {
+      return -1;
+    }
+  htab->size++;
+  return 0;
+}
+
+/**
  * Adds an element to a hash table.
  *
  * @param htab Pointer to the hash table where to add the element.
  * @param node Pointer to the element to add.
  * @param free_func Pointer to a function which can free the element.
  *
- * @return 1 on success, 0 if an error occurs.
+ * @return A pointer to the new list node.
  */
-int		hashtable_add(t_hashtable *htab,
-			      void *node,
-			      void (*free_func)(void *node))
+t_listnode	*hashtable_add(t_hashtable *htab,
+			       void *node,
+			       void (*free_func)(void *node))
 {
+  t_listnode	*listnode;
   XDASSERT(htab != NULL, FALSE);
 
-  if (list_add(htab->table[htab->hash_func(node) % htab->hashsize],
-	       node,
-	       free_func) == NULL)
+  listnode = list_add(htab->table[htab->hash_func(node) % htab->hashsize],
+		      node,
+		      free_func);
+  if (listnode == NULL)
     {
-      return (FALSE);
+      return NULL;
     }
   htab->size++;
-  return (TRUE);
+  return listnode;
 }
 
 /**
@@ -116,8 +138,36 @@ int		hashtable_remove(t_hashtable *htab, void *node, u32 needfree)
 		    node,
 		    needfree);
   if (res == TRUE)
-    htab->size--;
+    {
+      htab->size--;
+    }
   return (res);
+}
+
+/**
+ * Deletes a list node from the hashtable.
+ *
+ * @param htab Pointer to the hashtable to use.
+ * @param node Pointer to the list node to remove.
+ * @param needfree Boolean which indicates if the free_func has to be called.
+ *
+ * @return 1 on success, 0 if an error occurs.
+ */
+int		hashtable_removenode(t_hashtable *htab, t_listnode *node, u32 needfree)
+{
+  int		res;
+
+  XDASSERT(htab != NULL, FALSE);
+  XDASSERT(node != NULL, FALSE);
+
+  res = list_removenode(htab->table[htab->hash_func(node->node) % htab->hashsize],
+			node,
+			needfree);
+  if (res == TRUE)
+    {
+      htab->size--;
+    }
+  return res;
 }
 
 /**
@@ -132,8 +182,7 @@ void		*hashtable_find(t_hashtable *htab, void *node)
 {
   XDASSERT(htab != NULL, NULL);
 
-  return (list_find(htab->table[htab->hash_func(node) % htab->hashsize],
-		    node));
+  return (list_find(htab->table[htab->hash_func(node) % htab->hashsize], node));
 }
 
 /**
@@ -166,4 +215,20 @@ void		*hashtable_getnext(t_hashtable *htab, t_hashiterator *iterator)
   iterator->hash = 0;
   iterator->list_iterator = NULL;
   return NULL;
+}
+
+/**
+ * Gets a list node out of a hashtable.
+ *
+ * @param htab Pointer to the hashtable to use.
+ * @param node Pointer to the list node to pop.
+ *
+ * @return 0 on success, or -1 if an error occurs.
+ */
+int		hashtable_popnode(t_hashtable *htab, t_listnode *node)
+{
+  XDASSERT(htab != NULL, -1);
+  XDASSERT(node != NULL, -1);
+
+  return list_popnode(htab->table[htab->hash_func(node->node) % htab->hashsize], node);
 }

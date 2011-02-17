@@ -15,6 +15,7 @@
 
 struct s_rinoopoller; /* defined in poller.h */
 struct s_rinoosocket; /* defined in socket.h */
+struct s_rinoojob_queue; /* defined in jobqueue.h */
 
 typedef enum	e_rinooshed_action
   {
@@ -40,16 +41,16 @@ typedef struct		s_rinootimeout
   t_listnode		*node;
 }			t_rinootimeout;
 
-typedef struct		s_rinoosched
+typedef struct			s_rinoosched
 {
-  int			stop;
-  t_list		*jobq;
-  t_list		*timeoutq;
-  struct timeval	curtime;
-  struct s_rinoopoller	*poller;
-  void			*poller_data;
-  struct s_rinoosocket	*sock_pool[RINOO_SCHED_MAXFDS];
-}			t_rinoosched;
+  int				stop;
+  t_list			*timeoutq;
+  struct s_rinoojob_queue	*jobq;
+  struct timeval		curtime;
+  struct s_rinoopoller		*poller;
+  void				*poller_data;
+  struct s_rinoosocket		*sock_pool[RINOO_SCHED_MAXFDS];
+}				t_rinoosched;
 
 t_rinoosched		*rinoo_sched();
 void			rinoo_sched_destroy(t_rinoosched *sched);

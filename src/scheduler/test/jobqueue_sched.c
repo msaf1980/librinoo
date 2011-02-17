@@ -38,8 +38,9 @@ static int		check_timeout()
       rinoo_sched_stop(sched);
       return (-1);
     }
-  printf("Recorded timeout: %ldms\n", ((tv.tv_sec - lasttv.tv_sec) * 1000 +
-				      (tv.tv_usec - lasttv.tv_usec) / 1000));
+  printf("Expected timeout: %ums - Recorded timeout: %ldms\n",
+	 last_timeout,
+	 ((tv.tv_sec - lasttv.tv_sec) * 1000 + (tv.tv_usec - lasttv.tv_usec) / 1000));
   if (((tv.tv_sec - lasttv.tv_sec) * 1000 +
        (tv.tv_usec - lasttv.tv_usec) / 1000) < 0 ||
       ((tv.tv_sec - lasttv.tv_sec) * 1000 +
@@ -89,7 +90,7 @@ t_rinoojob_state	job_callback(t_rinoojob *job)
       break;
     }
   set_timeout(curtimeout);
-  if (jobqueue_resettimems(sched, job, curtimeout) == -1)
+  if (jobqueue_schedule_ms(sched, job, curtimeout) == -1)
     {
       passed = 0;
       rinoo_sched_stop(sched);

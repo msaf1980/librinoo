@@ -289,14 +289,14 @@ void		*list_pophead(t_list *list)
 }
 
 /**
- * Gets a list node from a list to temporarily remove it.
+ * Gets a list node out of a list.
  *
  * @param list Pointer to the list to use.
  * @param node Pointer to the list node to pop.
  *
  * @return 0 on success, or -1 if an error occurs.
  */
-int		list_poplistnode(t_list *list, t_listnode *node)
+int		list_popnode(t_list *list, t_listnode *node)
 {
   XDASSERT(list != NULL, -1);
   XDASSERT(node != NULL, -1);

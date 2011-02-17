@@ -11,7 +11,11 @@
 #ifndef		RINOO_JOBQUEUE_H_
 # define	RINOO_JOBQUEUE_H_
 
-# define	DEFAULT_TIMEOUT		1000
+# define	RINOO_JOBQUEUE_TIMEOUT		1000
+# define	RINOO_JOBQUEUE_HASHSIZE		60 * 100
+
+# define	RINOO_JOBQUEUE_TIME(tv)		((tv.tv_sec * 100) + (tv.tv_usec / 10000))
+# define	RINOO_JOBQUEUE_TIMETOINDEX(tv)	(RINOO_JOBQUEUE_TIME(tv) % RINOO_JOBQUEUE_HASHSIZE)
 
 typedef enum	e_rinoojob_state
   {
@@ -19,6 +23,12 @@ typedef enum	e_rinoojob_state
     JOB_LOOP,
     JOB_REDO
   }		t_rinoojob_state;
+
+typedef struct		s_rinoojob_queue
+{
+  t_hashtable		*jobtab;
+  struct timeval	nexttime;
+}			t_rinoojob_queue;
 
 typedef struct		s_rinoojob
 {
@@ -30,7 +40,7 @@ typedef struct		s_rinoojob
   struct timeval	exectime;
 }			t_rinoojob;
 
-t_list		*jobqueue_create();
+t_rinoojob_queue	*jobqueue_create();
 void		jobqueue_destroy(void *ptr);
 void		jobqueue_removejob(t_rinoojob *job);
 t_rinoojob	*jobqueue_add(t_rinoosched *sched,
@@ -41,13 +51,12 @@ t_rinoojob	*jobqueue_addms(t_rinoosched *sched,
 				t_rinoojob_state (*func)(t_rinoojob *job),
 				void *args,
 				const u32 msec);
-int		jobqueue_reschedule(t_rinoosched *sched, t_rinoojob *job);
-int		jobqueue_resettime(t_rinoosched *sched,
-				   t_rinoojob *job,
-				   const struct timeval *tv);
-int		jobqueue_resettimems(t_rinoosched *sched,
+int		jobqueue_schedule(t_rinoosched *sched,
+				  t_rinoojob *job,
+				  const struct timeval *tv);
+int		jobqueue_schedule_ms(t_rinoosched *sched,
 				     t_rinoojob *job,
-				     const u32 msec);
+				     u32 msec);
 u32		jobqueue_gettimeout(t_rinoosched *sched);
 void		jobqueue_exec(t_rinoosched *sched);
 

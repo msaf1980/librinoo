@@ -10,6 +10,16 @@
 
 #include	"rinoo/rinoo.h"
 
+static u32	jobqueue_hash(void *node)
+{
+  t_rinoojob	*job;
+
+  XDASSERT(node != NULL, 1);
+
+  job = (t_rinoojob *) node;
+  return RINOO_JOBQUEUE_TIMETOINDEX(job->exectime);
+}
+
 /**
  * Compares two jobs depending on their execution time.
  *
@@ -47,9 +57,19 @@ static int	jobqueue_cmp(void *node1, void *node2)
  *
  * @return Pointer to the new job queue.
  */
-t_list		*jobqueue_create()
+t_rinoojob_queue	*jobqueue_create(t_rinoosched *sched)
 {
-  return (list_create(LIST_SORTED_HEAD, jobqueue_cmp));
+  t_rinoojob_queue	*jobq;
+
+  jobq = xcalloc(1, sizeof(*jobq));
+  XASSERT(jobq != NULL, NULL);
+  jobq->jobtab = hashtable_create(LIST_SORTED_TAIL,
+				  RINOO_JOBQUEUE_HASHSIZE,
+				  jobqueue_hash,
+				  jobqueue_cmp);
+  XASSERT(jobq->jobtab != NULL, NULL);
+  jobq->nexttime = sched->curtime;
+  return jobq;
 }
 
 /**
@@ -57,11 +77,15 @@ t_list		*jobqueue_create()
  *
  * @param ptr Pointer to the job queue to destroy.
  */
-void		jobqueue_destroy(void *ptr)
+void			jobqueue_destroy(void *ptr)
 {
+  t_rinoojob_queue	*jobq;
+
   XDASSERTN(ptr != NULL);
 
-  list_destroy(ptr);
+  jobq = (t_rinoojob_queue *) ptr;
+  hashtable_destroy(jobq->jobtab);
+  xfree(jobq);
 }
 
 /**
@@ -81,67 +105,16 @@ static void	jobqueue_destroyjob(void *ptr)
 /**
  * Remove a job from the main jobqueue.
  *
- * @param sched Pointer to the scheduler to use.
  * @param job Pointer to the job to remove.
  */
 void		jobqueue_removejob(t_rinoojob *job)
 {
   XDASSERTN(job != NULL);
   XDASSERTN(job->sched != NULL);
+  XDASSERTN(job->sched->jobq != NULL);
+  XDASSERTN(job->sched->jobq->jobtab != NULL);
 
-  list_removenode(job->sched->jobq, job->listnode, TRUE);
-}
-
-/**
- * Schedule a job to a certain a time.
- *
- * @param sched Pointer to the scheduler to use.
- * @param job Pointer to the job to modify.
- * @param tv New time to set up.
- *
- * @return 0 on success, or -1 if an error occurs.
- */
-int		jobqueue_schedule(t_rinoosched *sched,
-				  t_rinoojob *job,
-				  const struct timeval *tv)
-{
-  XDASSERT(sched != NULL, -1);
-  XDASSERT(sched->jobq != NULL, -1);
-  XDASSERT(job != NULL, -1);
-
-  job->creatime = sched->curtime;
-  job->exectime = *tv;
-  if (job->listnode != NULL &&
-      unlikely(list_removenode(job->sched->jobq, job->listnode, FALSE) == FALSE))
-    {
-      return (-1);
-    }
-  job->listnode = list_add(sched->jobq, job, jobqueue_destroyjob);
-  if (unlikely(job->listnode == NULL))
-    return (-1);
-  job->sched = sched;
-  return (0);
-}
-
-/**
- * Reschedule a job.
- *
- * @param sched Pointer to the scheduler to use.
- * @param job Pointer to the job to modify.
- *
- * @return 0 on success, or -1 if an error occurs.
- */
-int		jobqueue_reschedule(t_rinoosched *sched, t_rinoojob *job)
-{
-  struct timeval	tmp;
-
-  XDASSERT(sched != NULL, -1);
-  XDASSERT(sched->jobq != NULL, -1);
-  XDASSERT(job != NULL, -1);
-
-  timersub(&job->exectime, &job->creatime, &tmp);
-  timeradd(&sched->curtime, &tmp, &job->exectime);
-  return jobqueue_schedule(sched, job, &job->exectime);
+  hashtable_removenode(job->sched->jobq->jobtab, job->listnode, TRUE);
 }
 
 /**
@@ -172,9 +145,9 @@ t_rinoojob	*jobqueue_add(t_rinoosched *sched,
   if (unlikely(jobqueue_schedule(sched, new, tv) != 0))
     {
       xfree(new);
-      return (NULL);
+      return NULL;
     }
-  return (new);
+  return new;
 }
 
 /**
@@ -195,41 +168,69 @@ t_rinoojob	*jobqueue_addms(t_rinoosched *sched,
   struct timeval	tmp;
 
   timeraddms(&sched->curtime, msec, &tmp);
-  return (jobqueue_add(sched, func, args, &tmp));
+  return jobqueue_add(sched, func, args, &tmp);
 }
 
 /**
- * Reset the time at which the job will be done.
+ * Schedule a job to a certain a time.
  *
+ * @param sched Pointer to the scheduler to use.
  * @param job Pointer to the job to modify.
  * @param tv New time to set up.
  *
  * @return 0 on success, or -1 if an error occurs.
  */
-int		jobqueue_resettime(t_rinoosched *sched,
-				   t_rinoojob *job,
-				   const struct timeval *tv)
+int		jobqueue_schedule(t_rinoosched *sched,
+				  t_rinoojob *job,
+				  const struct timeval *tv)
 {
   XDASSERT(sched != NULL, -1);
+  XDASSERT(sched->jobq != NULL, -1);
   XDASSERT(job != NULL, -1);
-  XDASSERT(tv != NULL, -1);
 
+  if (job->listnode != NULL &&
+      unlikely(hashtable_popnode(job->sched->jobq->jobtab, job->listnode) != 0))
+    {
+      return -1;
+    }
   job->creatime = sched->curtime;
   job->exectime = *tv;
-  return (0);
+  if (job->listnode == NULL)
+    {
+      job->listnode = hashtable_add(sched->jobq->jobtab, job, jobqueue_destroyjob);
+      if (unlikely(job->listnode == NULL))
+	{
+	  return -1;
+	}
+    }
+  else
+    {
+      if (unlikely(hashtable_addnode(sched->jobq->jobtab, job->listnode) != 0))
+	{
+	  return -1;
+	}
+    }
+  job->sched = sched;
+  if (sched->jobq->jobtab->size == 1 ||
+      timercmp(&sched->jobq->nexttime, &job->exectime, >))
+    {
+      sched->jobq->nexttime = job->exectime;
+    }
+  return 0;
 }
 
 /**
- * Reset the time at which the job will be done, based on milliseconds.
+ * Schedule a job in msec milliseconds.
  *
+ * @param sched Pointer to the scheduler to use.
  * @param job Pointer to the job to modify.
- * @param msec Number of milliseconds before executing the function
+ * @param msec Number of milliseconds to wait before executing this job.
  *
  * @return 0 on success, or -1 if an error occurs.
  */
-int		jobqueue_resettimems(t_rinoosched *sched,
+int		jobqueue_schedule_ms(t_rinoosched *sched,
 				     t_rinoojob *job,
-				     const u32 msec)
+				     u32 msec)
 {
   struct timeval	tmp;
 
@@ -237,46 +238,48 @@ int		jobqueue_resettimems(t_rinoosched *sched,
   XDASSERT(job != NULL, -1);
 
   timeraddms(&sched->curtime, msec, &tmp);
-  return (jobqueue_resettime(sched, job, &tmp));
+  return jobqueue_schedule(sched, job, &tmp);
 }
 
 /**
- * Gets the head of a job queue and removes it.
- * This function is used internally only.
- *
- * @param sched Pointer to the scheduler to use.
- *
- * @return Pointer to the job or NULL if the queue is empty.
- */
-static t_rinoojob	*jobqueue_pop(t_rinoosched *sched)
-{
-  t_rinoojob		*head;
-
-  XDASSERT(sched != NULL, NULL);
-  XDASSERT(sched->jobq != NULL, NULL);
-
-  head = list_pophead(sched->jobq);
-  if (head == NULL)
-    {
-      return NULL;
-    }
-  head->listnode = NULL;
-  return head;
-}
-
-/**
- * Gets the head of a job queue, does not remove it.
+ * Gets the next job to be executed.
  *
  * @param sched Pointer to the scheduler to use.
  *
  * @return Pointer to the job or NULL if the queue is empty
  */
-static t_rinoojob	*jobqueue_gethead(t_rinoosched *sched)
+static t_rinoojob	*jobqueue_getnext(t_rinoosched *sched)
 {
+  u32			i;
+  u32			end;
+  u32			nextindex;
+  t_rinoojob		*curjob = NULL;
+
   XDASSERT(sched != NULL, NULL);
   XDASSERT(sched->jobq != NULL, NULL);
+  XDASSERT(sched->jobq->jobtab != NULL, NULL);
+  XDASSERT(sched->jobq->jobtab->table != NULL, NULL);
 
-  return (list_gethead(sched->jobq));
+  if (sched->jobq->jobtab->size == 0)
+    {
+      sched->jobq->nexttime = sched->curtime;
+      return NULL;
+    }
+  nextindex = RINOO_JOBQUEUE_TIMETOINDEX(sched->jobq->nexttime);
+  end = nextindex + RINOO_JOBQUEUE_HASHSIZE;
+  for (i = nextindex; i <= end && curjob == NULL; i++)
+    {
+      curjob = list_gethead(sched->jobq->jobtab->table[i % RINOO_JOBQUEUE_HASHSIZE]);
+    }
+  if (curjob == NULL)
+    {
+      sched->jobq->nexttime = sched->curtime;
+    }
+  else
+    {
+      sched->jobq->nexttime = curjob->exectime;
+    }
+  return curjob;
 }
 
 /**
@@ -290,14 +293,18 @@ u32		jobqueue_gettimeout(t_rinoosched *sched)
 {
   t_rinoojob	*job;
 
-  XDASSERT(sched != NULL, DEFAULT_TIMEOUT);
-  XDASSERT(sched->jobq != NULL, DEFAULT_TIMEOUT);
+  XDASSERT(sched != NULL, RINOO_JOBQUEUE_TIMEOUT);
+  XDASSERT(sched->jobq != NULL, RINOO_JOBQUEUE_TIMEOUT);
 
-  job = jobqueue_gethead(sched);
+  job = jobqueue_getnext(sched);
   if (job == NULL)
-    return (DEFAULT_TIMEOUT);
+    {
+      return RINOO_JOBQUEUE_TIMEOUT;
+    }
   if (sched->curtime.tv_sec > job->exectime.tv_sec)
-    return (0);
+    {
+      return 0;
+    }
   return ((job->exectime.tv_sec - sched->curtime.tv_sec) * 1000 +
 	  (job->exectime.tv_usec - sched->curtime.tv_usec) / 1000);
 }
@@ -311,33 +318,35 @@ void		jobqueue_exec(t_rinoosched *sched)
 {
   t_rinoojob	       	*job;
   t_rinoojob_state	jobres;
+  struct timeval	tmp1;
+  struct timeval	tmp2;
 
   XDASSERTN(sched != NULL);
   XDASSERTN(sched->jobq != NULL);
 
-  job = jobqueue_gethead(sched);
-  if (job != NULL &&
-      timercmp(&sched->curtime, &job->exectime, >=) != 0)
+  job = jobqueue_getnext(sched);
+  if (job != NULL && timercmp(&sched->curtime, &job->exectime, >=))
     {
+      tmp1 = job->creatime;
+      tmp2 = job->exectime;
       jobres = job->func(job);
-      /**
-       * job could have been destroyed in the callback.
-       * if job is still available, then extract it from
-       * the queue.
-       */
-      if (jobqueue_gethead(sched) == job)
+      /* Check if the job has been removed or rescheduled */
+      if (jobqueue_getnext(sched) == job &&
+	  timercmp(&job->creatime, &tmp1, ==) &&
+	  timercmp(&job->exectime, &tmp2, ==))
 	{
-	  job = jobqueue_pop(sched);
 	  switch (jobres)
 	    {
 	    case JOB_LOOP:
 	      jobqueue_schedule(sched, job, &sched->curtime);
 	      break;
 	    case JOB_REDO:
-	      jobqueue_reschedule(sched, job);
+	      timersub(&job->exectime, &job->creatime, &tmp1);
+	      timeradd(&sched->curtime, &tmp1, &tmp2);
+	      jobqueue_schedule(sched, job, &tmp2);
 	      break;
 	    case JOB_DONE:
-	      jobqueue_destroyjob(job);
+	      hashtable_removenode(sched->jobq->jobtab, job->listnode, TRUE);
 	      break;
 	    }
 	}
