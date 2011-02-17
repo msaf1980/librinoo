@@ -267,7 +267,7 @@ static t_rinoojob	*jobqueue_getnext(t_rinoosched *sched)
     }
   nextindex = RINOO_JOBQUEUE_TIMETOINDEX(sched->jobq->nexttime);
   end = nextindex + RINOO_JOBQUEUE_HASHSIZE;
-  for (i = nextindex; i <= end && curjob == NULL; i++)
+  for (i = nextindex; i < end && curjob == NULL; i++)
     {
       curjob = list_gethead(sched->jobq->jobtab->table[i % RINOO_JOBQUEUE_HASHSIZE]);
     }

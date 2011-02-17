@@ -230,5 +230,11 @@ int		hashtable_popnode(t_hashtable *htab, t_listnode *node)
   XDASSERT(htab != NULL, -1);
   XDASSERT(node != NULL, -1);
 
-  return list_popnode(htab->table[htab->hash_func(node->node) % htab->hashsize], node);
+  if (unlikely(list_popnode(htab->table[htab->hash_func(node->node) % htab->hashsize],
+			    node) != 0))
+    {
+      return -1;
+    }
+  htab->size--;
+  return 0;
 }

@@ -319,6 +319,7 @@ int		list_popnode(t_list *list, t_listnode *node)
     }
   node->prev = NULL;
   node->next = NULL;
+  list->size--;
   return 0;
 }
 
