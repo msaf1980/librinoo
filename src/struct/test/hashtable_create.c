@@ -25,6 +25,7 @@ u32		hash_func(void *node)
  */
 int		main()
 {
+  u32		i;
   t_hashtable	*hashtable;
 
   hashtable = hashtable_create(LIST_SORTED_HEAD, HASH_SIZE, hash_func, NULL);
@@ -32,6 +33,23 @@ int		main()
   XTEST(hashtable->hashsize == HASH_SIZE);
   XTEST(hashtable->hash_func == hash_func);
   XTEST(hashtable->table != NULL);
+  for (i = 0; i < HASH_SIZE; i++)
+    {
+      XTEST(hashtable->table[i] != NULL);
+      XTEST(hashtable->table[i]->type == LIST_SORTED_HEAD);
+    }
+  XTEST(hashtable->size == 0);
+  hashtable_destroy(hashtable);
+  hashtable = hashtable_create(LIST_SORTED_TAIL, HASH_SIZE, hash_func, NULL);
+  XTEST(hashtable != NULL);
+  XTEST(hashtable->hashsize == HASH_SIZE);
+  XTEST(hashtable->hash_func == hash_func);
+  XTEST(hashtable->table != NULL);
+  for (i = 0; i < HASH_SIZE; i++)
+    {
+      XTEST(hashtable->table[i] != NULL);
+      XTEST(hashtable->table[i]->type == LIST_SORTED_TAIL);
+    }
   XTEST(hashtable->size == 0);
   hashtable_destroy(hashtable);
   XPASS();

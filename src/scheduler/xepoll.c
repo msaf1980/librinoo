@@ -82,7 +82,6 @@ int		xepoll_insert(t_rinoosocket *socket, t_rinoosched_event mode)
     {
       ev.events |= EPOLLOUT;
     }
-  ev.events |= EPOLLRDHUP;
   ev.data.fd = socket->fd;
   XASSERT(epoll_ctl(((t_rinooepoll *) socket->sched->poller_data)->fd,
 		    EPOLL_CTL_ADD, socket->fd, &ev) >= 0, -1);
@@ -117,7 +116,6 @@ int		xepoll_addmode(t_rinoosocket *socket, t_rinoosched_event mode)
     {
       ev.events |= EPOLLOUT;
     }
-  ev.events |= EPOLLRDHUP;
   ev.data.fd = socket->fd;
   XASSERT(epoll_ctl(((t_rinooepoll *) socket->sched->poller_data)->fd,
 		    EPOLL_CTL_MOD, socket->fd, &ev) >= 0, -1);
@@ -152,7 +150,6 @@ int		xepoll_delmode(t_rinoosocket *socket, t_rinoosched_event mode)
     {
       ev.events |= EPOLLOUT;
     }
-  ev.events |= EPOLLRDHUP;
   ev.data.fd = socket->fd;
   XASSERT(epoll_ctl(((t_rinooepoll *) socket->sched->poller_data)->fd,
 		    EPOLL_CTL_MOD,
@@ -220,18 +217,20 @@ int		xepoll_poll(t_rinoosched *sched, u32 timeout)
        * If cursocket has been removed in the EPOLLIN step,
        * rinoo_sched_get will return NULL.
        */
-      if (cursocket != NULL &&
-	  (data->events[i].events & EPOLLOUT) == EPOLLOUT)
+      if (cursocket != NULL)
 	{
-	  cursocket->event_fsm(cursocket, EVENT_SCHED_OUT);
-	}
-      cursocket = rinoo_sched_get(sched, data->events[i].data.fd);
-      if (cursocket != NULL &&
-	  ((data->events[i].events & EPOLLERR) == EPOLLERR ||
-	   (data->events[i].events & EPOLLERR) == EPOLLRDHUP ||
-	   (data->events[i].events & EPOLLHUP) == EPOLLHUP))
-	{
-	  cursocket->event_fsm(cursocket, EVENT_SCHED_ERROR);
+	  if ((data->events[i].events & EPOLLOUT) == EPOLLOUT)
+	    {
+	      cursocket->event_fsm(cursocket, EVENT_SCHED_OUT);
+	    }
+	  cursocket = rinoo_sched_get(sched, data->events[i].data.fd);
+	  /* socket previously removed ? */
+	  if (cursocket != NULL &&
+	      ((data->events[i].events & EPOLLERR) == EPOLLERR ||
+	       (data->events[i].events & EPOLLHUP) == EPOLLHUP))
+	    {
+	      cursocket->event_fsm(cursocket, EVENT_SCHED_ERROR);
+	    }
 	}
     }
   return (0);

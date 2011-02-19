@@ -11,8 +11,6 @@
 
 #define		DIFF_TOLERANCE	25
 
-static int		passed = 1;
-
 static u32		last_timeout;
 static t_rinoosched	*sched;
 static struct timeval	lasttv;
@@ -21,9 +19,7 @@ static void		set_timeout(u32 timeout)
 {
   if (gettimeofday(&lasttv, NULL) != 0)
     {
-      passed = 0;
-      rinoo_sched_stop(sched);
-      return;
+      XFAIL();
     }
   last_timeout = timeout;
 }
@@ -34,9 +30,7 @@ static int		check_timeout()
 
   if (gettimeofday(&tv, NULL) != 0)
     {
-      passed = 0;
-      rinoo_sched_stop(sched);
-      return (-1);
+      XFAIL();
     }
   printf("Expected timeout: %ums - Recorded timeout: %ldms\n",
 	 last_timeout,
@@ -47,11 +41,9 @@ static int		check_timeout()
        (tv.tv_usec - lasttv.tv_usec) / 1000) > last_timeout + DIFF_TOLERANCE)
     {
       printf("Job scheduling was too slow (more than %dms)\n", DIFF_TOLERANCE);
-      passed = 0;
-      rinoo_sched_stop(sched);
-      return (-1);
+      XFAIL();
     }
-  return (0);
+  return 0;
 }
 
 t_rinoojob_state	job_callback(t_rinoojob *job)
@@ -68,9 +60,7 @@ t_rinoojob_state	job_callback(t_rinoojob *job)
     }
   if (counter > 4)
     {
-      passed = 0;
-      rinoo_sched_stop(sched);
-      return JOB_DONE;
+      XFAIL();
     }
   counter++;
   job->args = INT_TO_PTR(counter);
@@ -92,13 +82,12 @@ t_rinoojob_state	job_callback(t_rinoojob *job)
   set_timeout(curtimeout);
   if (jobqueue_schedule_ms(sched, job, curtimeout) == -1)
     {
-      passed = 0;
-      rinoo_sched_stop(sched);
+      XFAIL();
     }
   return JOB_REDO;
 }
 
-void		server_event_fsm(t_rinootcp *tcpsock, t_rinootcp_event event)
+void		server_event_fsm(t_rinootcp *unused(tcpsock), t_rinootcp_event event)
 {
   switch (event)
     {
@@ -110,8 +99,7 @@ void		server_event_fsm(t_rinootcp *tcpsock, t_rinootcp_event event)
     case EVENT_TCP_OUT:
     case EVENT_TCP_ERROR:
     case EVENT_TCP_TIMEOUT:
-      passed = 0;
-      rinoo_sched_stop(tcpsock->socket.sched);
+      XFAIL();
       break;
     }
 }
@@ -142,7 +130,5 @@ int		main()
   XTEST(gettimeofday(&tv2, NULL) == 0);
   XTEST((tv2.tv_sec - tv1.tv_sec) * 1000 + (tv2.tv_usec - tv1.tv_usec) / 1000 < 1500);
   rinoo_sched_destroy(sched);
-  if (passed != 1)
-    XFAIL();
   XPASS();
 }

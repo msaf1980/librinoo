@@ -9,8 +9,6 @@
  */
 #include	"rinoo/rinoo.h"
 
-static int	passed = 1;
-
 void		client_event_fsm(t_rinootcp *tcpsock, t_rinootcp_event event)
 {
   switch (event)
@@ -34,8 +32,7 @@ void		client_event_fsm(t_rinootcp *tcpsock, t_rinootcp_event event)
     case EVENT_TCP_ERROR:
     case EVENT_TCP_CLOSE:
     case EVENT_TCP_TIMEOUT:
-      passed = 0;
-      rinoo_sched_stop(tcpsock->socket.sched);
+      XFAIL();
       break;
     }
 }
@@ -77,8 +74,7 @@ void		server_event_fsm(t_rinootcp *tcpsock, t_rinootcp_event event)
     case EVENT_TCP_IN:
     case EVENT_TCP_ERROR:
     case EVENT_TCP_TIMEOUT:
-      passed = 0;
-      rinoo_sched_stop(tcpsock->socket.sched);
+      XFAIL();
       break;
     }
 }
@@ -127,7 +123,5 @@ int		main()
   XTEST(ctcpsock->errorstep == 0);
   rinoo_sched_loop(sched);
   rinoo_sched_destroy(sched);
-  if (passed != 1)
-    XFAIL();
   XPASS();
 }

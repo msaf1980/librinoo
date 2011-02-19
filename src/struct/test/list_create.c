@@ -12,7 +12,7 @@
 
 int		cmp_func(void *unused(node1), void *unused(node2))
 {
-  return (1);
+  return 1;
 }
 
 /**
@@ -27,6 +27,15 @@ int		main()
 
   list = list_create(LIST_SORTED_HEAD, cmp_func);
   XTEST(list != NULL);
+  XTEST(list->type == LIST_SORTED_HEAD);
+  XTEST(list->head == NULL);
+  XTEST(list->tail == NULL);
+  XTEST(list->cmp_func == cmp_func);
+  XTEST(list->size == 0);
+  list_destroy(list);
+  list = list_create(LIST_SORTED_TAIL, cmp_func);
+  XTEST(list != NULL);
+  XTEST(list->type == LIST_SORTED_TAIL);
   XTEST(list->head == NULL);
   XTEST(list->tail == NULL);
   XTEST(list->cmp_func == cmp_func);

@@ -9,8 +9,6 @@
  */
 #include	"rinoo/rinoo.h"
 
-static int	passed = 1;
-
 void		client_event_fsm(t_rinooudp *udpsock, t_rinooudp_event event)
 {
   static int	step = 0;
@@ -38,8 +36,7 @@ void		client_event_fsm(t_rinooudp *udpsock, t_rinooudp_event event)
     case EVENT_UDP_IN:
     case EVENT_UDP_ERROR:
     case EVENT_UDP_TIMEOUT:
-      passed = 0;
-      rinoo_sched_stop(udpsock->socket.sched);
+      XFAIL();
       break;
     }
 }
@@ -68,8 +65,7 @@ void		server_event_fsm(t_rinooudp *udpsock, t_rinooudp_event event)
     case EVENT_UDP_OUT:
     case EVENT_UDP_ERROR:
     case EVENT_UDP_TIMEOUT:
-      passed = 0;
-      rinoo_sched_stop(udpsock->socket.sched);
+      XFAIL();
       break;
     }
 }
@@ -118,7 +114,5 @@ int		main()
   XTEST(cudpsock->errorstep == 0);
   rinoo_sched_loop(sched);
   rinoo_sched_destroy(sched);
-  if (passed != 1)
-    XFAIL();
   XPASS();
 }

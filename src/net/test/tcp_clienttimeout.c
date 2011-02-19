@@ -9,7 +9,6 @@
  */
 #include	"rinoo/rinoo.h"
 
-static int	passed = 1;
 t_rinoojob	*mainjob = NULL;
 
 t_rinoojob_state	client_cb(t_rinoojob *job)
@@ -48,12 +47,7 @@ void		client_event_fsm(t_rinootcp *tcpsock, t_rinootcp_event event)
       break;
     case EVENT_TCP_ERROR:
     case EVENT_TCP_CLOSE:
-      passed = 0;
-      if (mainjob != NULL)
-	{
-	  jobqueue_removejob(mainjob);
-	}
-      rinoo_sched_stop(tcpsock->socket.sched);
+      XFAIL();
       break;
     case EVENT_TCP_TIMEOUT:
       rinoo_log("Client timeout!");
@@ -93,8 +87,7 @@ void		server_event_fsm(t_rinootcp *tcpsock, t_rinootcp_event event)
     case EVENT_TCP_ERROR:
     case EVENT_TCP_TIMEOUT:
       rinoo_log("Server: error or timeout!");
-      passed = 0;
-      rinoo_sched_stop(tcpsock->socket.sched);
+      XFAIL();
       break;
     }
 }
@@ -149,7 +142,5 @@ int		main()
   XTEST((tv2.tv_sec - tv1.tv_sec) * 1000 + (tv2.tv_usec - tv1.tv_usec) / 1000 >= 1000);
   XTEST((tv2.tv_sec - tv1.tv_sec) * 1000 + (tv2.tv_usec - tv1.tv_usec) / 1000 < 1200);
   rinoo_sched_destroy(sched);
-  if (passed != 1)
-    XFAIL();
   XPASS();
 }

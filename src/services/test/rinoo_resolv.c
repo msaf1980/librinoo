@@ -11,7 +11,6 @@
 #include	"rinoo/rinoo.h"
 
 t_rinoosched	*sched;
-int		passed = 0;
 
 void		result_cb(t_dnsevent event, t_ip ip)
 {
@@ -22,9 +21,9 @@ void		result_cb(t_dnsevent event, t_ip ip)
     case EVENT_DNS_OK:
       inet_ntop(AF_INET, &ip, tab, 16);
       printf("%u %s\n", ip, tab);
-      if (ip == 2642114907)
+      if (ip != 2642114907)
 	{
-	  passed = 1;
+	  XFAIL();
 	}
       break;
     case EVENT_DNS_ERROR:
@@ -46,9 +45,5 @@ int		main()
   XTEST(rinoo_resolv(sched, "puffy.fr", TYPE_DNS_A, 0, result_cb) == 0);
   rinoo_sched_loop(sched);
   rinoo_sched_destroy(sched);
-  if (passed == 0)
-    {
-      XFAIL();
-    }
   XPASS();
 }
