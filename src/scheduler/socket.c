@@ -27,18 +27,14 @@ int		rinoo_socket_timeout_cmp(void *node1, void *node2)
   XDASSERT(node2 != NULL, 1);
 
   if (node1 == node2)
-    return 0;
-  if (sock1->timeout.expire.tv_sec > sock2->timeout.expire.tv_sec)
-    return 1;
-  if (sock1->timeout.expire.tv_sec < sock2->timeout.expire.tv_sec)
-    return -1;
-  if (sock1->timeout.expire.tv_usec > sock2->timeout.expire.tv_usec)
-    return 1;
-  if (sock1->timeout.expire.tv_usec < sock2->timeout.expire.tv_usec)
-    return -1;
-
-  /* Always make a difference between socket timeouts */
-  return 1;
+    {
+      return 0;
+    }
+  if (sock1->timeout.expire.tv_sec == sock2->timeout.expire.tv_sec)
+    {
+      return sock1->timeout.expire.tv_usec - sock2->timeout.expire.tv_usec;
+    }
+  return sock1->timeout.expire.tv_sec - sock2->timeout.expire.tv_sec;
 }
 
 /**

@@ -10,11 +10,6 @@
 
 #include	"rinoo/rinoo.h"
 
-static int	hashtable_cmpfunc(void *unused(node1), void *unused(node2))
-{
-  return (-1);
-}
-
 /**
  * Creates a new hash table.
  *
@@ -32,8 +27,9 @@ t_hashtable	*hashtable_create(t_listtype listtype,
   u32		i;
   t_hashtable	*new;
 
-  XDASSERT(hashsize > 0, NULL);
-  XDASSERT(hash_func != NULL, NULL);
+  XASSERT(hashsize > 0, NULL);
+  XASSERT(hash_func != NULL, NULL);
+  XASSERT(cmp_func != NULL, NULL);
 
   new = xcalloc(1, sizeof(*new));
   XASSERT(new != NULL, NULL);
@@ -46,11 +42,11 @@ t_hashtable	*hashtable_create(t_listtype listtype,
       xfree(new);
       XASSERT(0, NULL);
     }
-  if (cmp_func == NULL)
-    cmp_func = hashtable_cmpfunc;
   for (i = 0; i < hashsize; i++)
-    new->table[i] = list_create(listtype, cmp_func);
-  return (new);
+    {
+      new->table[i] = list_create(listtype, cmp_func);
+    }
+  return new;
 }
 
 /**

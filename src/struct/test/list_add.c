@@ -10,9 +10,9 @@
 
 #include	"rinoo/rinoo.h"
 
-int		cmp_func(void *unused(node1), void *unused(node2))
+int		cmp_func(void *node1, void *node2)
 {
-  return (1);
+  return node1 - node2;
 }
 
 /**

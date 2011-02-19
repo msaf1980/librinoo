@@ -12,15 +12,7 @@
 
 int		cmp_func(void *node1, void *node2)
 {
-  if (node1 == node2)
-    {
-      return 0;
-    }
-  if (node1 > node2)
-    {
-      return -1;
-    }
-  return 1;
+  return node1 - node2;
 }
 
 /**

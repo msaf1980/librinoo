@@ -115,7 +115,7 @@ int		list_addnode(t_list *list, t_listnode *new)
       new->next = list->head;
       new->prev = NULL;
       while (new->next != NULL &&
-	     list->cmp_func(new->next->node, new->node) > 0)
+	     list->cmp_func(new->node, new->next->node) > 0)
 	{
 	  new->prev = new->next;
 	  new->next = new->next->next;
@@ -125,7 +125,7 @@ int		list_addnode(t_list *list, t_listnode *new)
       new->next = NULL;
       new->prev = list->tail;
       while (new->prev != NULL &&
-	     list->cmp_func(new->prev->node, new->node) < 0)
+	     list->cmp_func(new->node, new->prev->node) < 0)
 	{
 	  new->next = new->prev;
 	  new->prev = new->prev->prev;

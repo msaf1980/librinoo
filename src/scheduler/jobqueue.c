@@ -37,18 +37,14 @@ static int	jobqueue_cmp(void *node1, void *node2)
   XDASSERT(node2 != NULL, 1);
 
   if (node1 == node2)
-    return 0;
-  if (job1->exectime.tv_sec > job2->exectime.tv_sec)
-    return 1;
-  if (job1->exectime.tv_sec < job2->exectime.tv_sec)
-    return -1;
-  if (job1->exectime.tv_usec > job2->exectime.tv_usec)
-    return 1;
-  if (job1->exectime.tv_usec < job2->exectime.tv_usec)
-    return -1;
-
-  /* Always make a difference between jobs */
-  return 1;
+    {
+      return 0;
+    }
+  if (job1->exectime.tv_sec == job2->exectime.tv_sec)
+    {
+      return job1->exectime.tv_usec - job2->exectime.tv_usec;
+    }
+  return job1->exectime.tv_sec - job2->exectime.tv_sec;
 }
 
 /**
@@ -253,6 +249,7 @@ static t_rinoojob	*jobqueue_getnext(t_rinoosched *sched)
   u32			i;
   u32			end;
   u32			nextindex;
+  struct timeval	tv_tmp;
   t_rinoojob		*curjob = NULL;
 
   XDASSERT(sched != NULL, NULL);
@@ -266,10 +263,18 @@ static t_rinoojob	*jobqueue_getnext(t_rinoosched *sched)
       return NULL;
     }
   nextindex = RINOO_JOBQUEUE_TIMETOINDEX(sched->jobq->nexttime);
-  end = nextindex + RINOO_JOBQUEUE_HASHSIZE;
+  end = nextindex + RINOO_JOBQUEUE_NBSTEPS;
   for (i = nextindex; i < end && curjob == NULL; i++)
     {
       curjob = list_gethead(sched->jobq->jobtab->table[i % RINOO_JOBQUEUE_HASHSIZE]);
+      if (curjob != NULL)
+	{
+	  timeraddms(&sched->curtime, RINOO_JOBQUEUE_TIMEOUT, &tv_tmp);
+	  if (unlikely(timercmp(&tv_tmp, &curjob->exectime, <)))
+	    {
+	      curjob = NULL;
+	    }
+	}
     }
   if (curjob == NULL)
     {

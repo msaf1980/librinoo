@@ -17,6 +17,11 @@ u32		hash_func(void *node)
   return (PTR_TO_INT(node) / 10);
 }
 
+int		hash_cmp(void *node1, void *node2)
+{
+  return node1 - node2;
+}
+
 /**
  * Main function for this unit test
  *
@@ -28,7 +33,7 @@ int		main()
   t_hashtable	*hashtable;
   t_hashiterator	iterator = { 0, 0 };
 
-  hashtable = hashtable_create(LIST_SORTED_HEAD, HASH_SIZE, hash_func, NULL);
+  hashtable = hashtable_create(LIST_SORTED_HEAD, HASH_SIZE, hash_func, hash_cmp);
   XTEST(hashtable != NULL);
   XTEST(hashtable->hashsize == HASH_SIZE);
   XTEST(hashtable->hash_func == hash_func);
@@ -42,12 +47,12 @@ int		main()
   XTEST(hashtable_add(hashtable, INT_TO_PTR(63), NULL) != NULL);
   XTEST(hashtable->size == 6);
   /* Element are inserted in the beginning, have to check for newest first */
-  XTEST(hashtable_getnext(hashtable, &iterator) == INT_TO_PTR(43));
   XTEST(hashtable_getnext(hashtable, &iterator) == INT_TO_PTR(42));
-  XTEST(hashtable_getnext(hashtable, &iterator) == INT_TO_PTR(53));
+  XTEST(hashtable_getnext(hashtable, &iterator) == INT_TO_PTR(43));
   XTEST(hashtable_getnext(hashtable, &iterator) == INT_TO_PTR(52));
-  XTEST(hashtable_getnext(hashtable, &iterator) == INT_TO_PTR(63));
+  XTEST(hashtable_getnext(hashtable, &iterator) == INT_TO_PTR(53));
   XTEST(hashtable_getnext(hashtable, &iterator) == INT_TO_PTR(62));
+  XTEST(hashtable_getnext(hashtable, &iterator) == INT_TO_PTR(63));
   XTEST(hashtable_getnext(hashtable, &iterator) == NULL);
   hashtable_destroy(hashtable);
   XPASS();
