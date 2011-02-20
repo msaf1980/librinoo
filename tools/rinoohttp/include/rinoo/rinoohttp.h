@@ -14,10 +14,12 @@
 # include	<rinoo/rinoo.h>
 # include	<sys/stat.h>
 # include	<sys/mman.h>
+# include	<stdarg.h>
 
 # include	"rinoo/rinoohttp/global/module.h"
 # include	"rinoo/rinoohttp/server/module.h"
 # include	"rinoo/rinoohttp/client/module.h"
 # include	"rinoo/rinoohttp/simple/module.h"
+# include	"rinoo/rinoohttp/browser/module.h"
 
 #endif		/* !RINOOHTTP_H_ */

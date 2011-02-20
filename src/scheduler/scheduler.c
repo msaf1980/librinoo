@@ -182,6 +182,7 @@ int		rinoo_sched_loop(t_rinoosched *sched)
   XDASSERT(sched != NULL, -1);
   t1 = rinoo_socket_timeout_getmin(sched);
   t2 = jobqueue_gettimeout(sched);
+  sched->stop = 0;
   while (sched->stop == 0 &&
 	 sched->poller->poll(sched, MIN(t1, t2)) == 0)
     {

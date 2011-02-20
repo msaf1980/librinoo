@@ -11,50 +11,55 @@
 #ifndef		RINOO_RESOLV_H_
 # define	RINOO_RESOLV_H_
 
-typedef enum	e_dnstype
+typedef enum	e_rinoodns_type
   {
-    TYPE_DNS_A = 1,
-    TYPE_DNS_NS,
-    TYPE_DNS_MD,
-    TYPE_DNS_MF,
-    TYPE_DNS_CNAME,
-    TYPE_DNS_SOA,
-    TYPE_DNS_MB,
-    TYPE_DNS_MG,
-    TYPE_DNS_MR,
-    TYPE_DNS_NULL,
-    TYPE_DNS_WKS,
-    TYPE_DNS_PTR,
-    TYPE_DNS_HINFO,
-    TYPE_DNS_MINFO,
-    TYPE_DNS_MX,
-    TYPE_DNS_TXT
-  }		t_dnstype;
+    RINOODNS_TYPE_A = 1,
+    RINOODNS_TYPE_NS,
+    RINOODNS_TYPE_MD,
+    RINOODNS_TYPE_MF,
+    RINOODNS_TYPE_CNAME,
+    RINOODNS_TYPE_SOA,
+    RINOODNS_TYPE_MB,
+    RINOODNS_TYPE_MG,
+    RINOODNS_TYPE_MR,
+    RINOODNS_TYPE_NULL,
+    RINOODNS_TYPE_WKS,
+    RINOODNS_TYPE_PTR,
+    RINOODNS_TYPE_HINFO,
+    RINOODNS_TYPE_MINFO,
+    RINOODNS_TYPE_MX,
+    RINOODNS_TYPE_TXT
+  }		t_rinoodns_type;
 
-typedef enum	e_dnsevent
+typedef enum	e_rinoodns_event
   {
-    EVENT_DNS_OK = 0,
-    EVENT_DNS_ERROR
-  }		t_dnsevent;
+    RINOODNS_EVENT_OK = 0,
+    RINOODNS_EVENT_ERROR
+  }		t_rinoodns_event;
 
-typedef enum	e_dnsstate
+typedef enum	e_rinoodns_state
   {
-    STATE_DNS_NONE = 0,
-    STATE_DNS_SENT
-  }		t_dnsstate;
+    RINOODNS_STATE_NONE = 0,
+    RINOODNS_STATE_SENT
+  }		t_rinoodns_state;
 
-typedef struct	s_dnscontext
+typedef struct		s_rinoodns
 {
-  t_dnsstate	state;
-  const char	*host;
-  t_dnstype	query_type;
-  void (*result_cb)(t_dnsevent event, t_ip ip);
-}		t_dnscontext;
+  t_rinoodns_state	state;
+  char			*host;
+  t_rinoodns_type	query_type;
+  void			*data;
+  void			(*result_cb)(struct s_rinoodns *rdns,
+				     t_rinoodns_event event,
+				     t_ip ip);
+}			t_rinoodns;
 
-int		rinoo_resolv(t_rinoosched *sched,
-			     const char *host,
-			     t_dnstype type,
-			     u32 timeout,
-			     void (*result_cb)(t_dnsevent event, t_ip ip));
+t_rinoodns	*rinoo_resolv(t_rinoosched *sched,
+			      const char *host,
+			      t_rinoodns_type type,
+			      u32 timeout,
+			      void (*result_cb)(t_rinoodns *rdns,
+						t_rinoodns_event event,
+						t_ip ip));
 
 #endif		/* !RINOO_RESOLV_H_ */

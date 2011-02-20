@@ -8,8 +8,8 @@
  *
  */
 
-#ifndef		RINOOHTTP_SIMPLE_SIMPLE_H
-# define	RINOOHTTP_SIMPLE_SIMPLE_H
+#ifndef		RINOOHTTP_SIMPLE_SIMPLE_H_
+# define	RINOOHTTP_SIMPLE_SIMPLE_H_
 
 typedef struct	s_rinoohttp_s
 {
@@ -19,7 +19,10 @@ typedef struct	s_rinoohttp_s
 
 t_rinoohttp_s	*rinoo_simplehttp_init();
 void		rinoo_simplehttp_destroy(t_rinoohttp_s *rsh);
-
+int		rinoo_parse_url(const char *url,
+				t_buffer *host,
+				u32 *port,
+				t_buffer *uri);
 int		rinoo_simplehttp_get(t_rinoohttp_s *rsh, const char *url);
 
-#endif		/* !RINOOHTTP_SIMPLE_SIMPLE_H */
+#endif		/* !RINOOHTTP_SIMPLE_SIMPLE_H_ */
