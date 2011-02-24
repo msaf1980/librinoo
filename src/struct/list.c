@@ -53,7 +53,9 @@ void		list_destroy(void *ptr)
     {
       tmp = cur->next;
       if (cur->free_func != NULL)
-	cur->free_func(cur->node);
+	{
+	  cur->free_func(cur->node);
+	}
       xfree(cur);
       cur = tmp;
     }

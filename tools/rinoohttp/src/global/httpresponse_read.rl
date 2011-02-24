@@ -93,6 +93,7 @@ int		rinoo_http_response_readbody(t_rinoohttp *httpsock)
       httpsock->response.received < httpsock->response.contentlength)
     {
       httpsock->response.received = buffer_len(httpsock->tcpsock->socket.rdbuf);
+#warning socket rdbuf could have been erased in a previous step
       if (httpsock->response.received >= httpsock->response.contentlength)
 	{
 	  return 1;

@@ -186,3 +186,40 @@ int		buffer_erase(t_buffer *buf, u32 len)
     }
   return (0);
 }
+
+/**
+ * Duplicates a buffer.
+ *
+ * @param buf Pointer to the buffer to duplicate.
+ *
+ * @return A pointer to the new buffer, or NULL if an error occurs.
+ */
+t_buffer	*buffer_dup(t_buffer *buf)
+{
+  t_buffer	*newbuf;
+
+  XDASSERT(buf != NULL, NULL);
+  XDASSERT(buf->buf != NULL, NULL);
+
+  newbuf = xcalloc(1, sizeof(*newbuf));
+  XASSERT(newbuf != NULL, NULL);
+  newbuf->len = buf->len;
+  newbuf->size = buf->size;
+  newbuf->max_size = buf->max_size;
+  if (unlikely(newbuf->size) == 0)
+    {
+      newbuf->size = BUFFER_INCREMENT;
+    }
+  if (newbuf->max_size == 0)
+    {
+      newbuf->max_size = BUFFER_DEFAULT_MAXSIZE;
+    }
+  newbuf->buf = xcalloc(1, newbuf->size);
+  if (newbuf->buf == NULL)
+    {
+      xfree(newbuf);
+      XASSERT(0, NULL);
+    }
+  memcpy(newbuf->buf, buf->buf, buf->len);
+  return newbuf;
+}

@@ -54,6 +54,12 @@ t_rinoodns	*rinoo_resolv(t_rinoosched *sched,
     {
       timeout = _res.retrans * 1000;
     }
+  if (_res.nscount <= 0)
+    {
+      xfree(rdns->host);
+      xfree(rdns);
+      XASSERT(0, NULL);
+    }
   udpsock = rinoo_udp_client(sched,
 			     _res.nsaddr_list[0].sin_addr.s_addr,
 			     ntohs(_res.nsaddr_list[0].sin_port),

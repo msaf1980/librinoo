@@ -98,6 +98,41 @@ void		rinoo_http_header_free(void *node)
   xfree(header);
 }
 
+/**
+ * Copy a HTTP header hashtable content to another hashtable.
+ *
+ * @param htab_dest Pointer to the hashtable where to copy elements.
+ * @param htab_src Pointer to the source hashtable.
+ *
+ * @return 0 on success, or -1 if an error occurs.
+ */
+int		rinoo_http_header_copytable(t_hashtable *htab_dest,
+					    t_hashtable *htab_src)
+{
+  t_rinoohttp_header	*new;
+  t_rinoohttp_header	*curheader;
+  t_hashiterator	iterator = { 0, 0 };
+
+  XASSERT(htab_dest != NULL, -1);
+  XASSERT(htab_src != NULL, -1);
+
+  while ((curheader = (t_rinoohttp_header *) hashtable_getnext(htab_src,
+							       &iterator)) != NULL)
+    {
+      new = xcalloc(1, sizeof(*new));
+      new->key.buf = xcalloc(1, sizeof(*new->key.buf) * curheader->key.len);
+      new->key.len = curheader->key.len;
+      memcpy(new->key.buf, curheader->key.buf, new->key.len);
+      new->value.buf = xcalloc(1, sizeof(*new->value.buf) * curheader->value.len);
+      new->value.len = curheader->value.len;
+      memcpy(new->value.buf, curheader->value.buf, new->value.len);
+      if (hashtable_add(htab_dest, new, rinoo_http_header_free) == 0)
+	{
+	  return -1;
+	}
+    }
+  return 0;
+}
 
 /**
  *  Adds a new HTTP header to the hashtable.

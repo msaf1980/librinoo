@@ -24,6 +24,8 @@ typedef struct	s_rinoohttp_header
 
 t_hashtable	*rinoo_http_header_createtable();
 void		rinoo_http_header_destroytable(t_hashtable *headertab);
+int		rinoo_http_header_copytable(t_hashtable *htab_dest,
+					    t_hashtable *htab_src);
 int		rinoo_http_header_adddata(t_hashtable *headertab,
 					  const char *key,
 					  const char *value,

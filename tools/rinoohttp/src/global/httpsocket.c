@@ -103,5 +103,15 @@ void		rinoo_http_socket_reset(t_rinoohttp *httpsock)
 {
   rinoo_http_request_reset(httpsock);
   rinoo_http_response_reset(httpsock);
+  if (buffer_len(httpsock->tcpsock->socket.rdbuf) > 0)
+    {
+      buffer_erase(httpsock->tcpsock->socket.rdbuf,
+		   buffer_len(httpsock->tcpsock->socket.rdbuf));
+    }
+  if (buffer_len(httpsock->tcpsock->socket.wrbuf) > 0)
+    {
+      buffer_erase(httpsock->tcpsock->socket.wrbuf,
+		   buffer_len(httpsock->tcpsock->socket.wrbuf));
+    }
   httpsock->last_event = EVENT_HTTP_CONNECT;
 }

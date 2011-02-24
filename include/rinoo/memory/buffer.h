@@ -12,6 +12,7 @@
 # define	RINOO_BUFFER_H_
 
 # define	BUFFER_INCREMENT	2048
+# define	BUFFER_DEFAULT_MAXSIZE	1024 * 1024
 
 typedef struct	s_buffer
 {
@@ -35,5 +36,6 @@ int		buffer_vprint(t_buffer *buf, const char *format, va_list ap);
 int		buffer_add(t_buffer *buf, const char *data, size_t size);
 int		buffer_addstr(t_buffer *buf, const char *str);
 int		buffer_erase(t_buffer *buf, u32 len);
+t_buffer	*buffer_dup(t_buffer *buf);
 
 #endif		/* !RINOO_BUFFER_H_ */
