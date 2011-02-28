@@ -32,15 +32,15 @@ static int		check_timeout()
     {
       XFAIL();
     }
-  printf("Expected timeout: %ums - Recorded timeout: %ldms\n",
-	 last_timeout,
-	 ((tv.tv_sec - lasttv.tv_sec) * 1000 + (tv.tv_usec - lasttv.tv_usec) / 1000));
+  rinoo_log("Expected timeout: %ums - Recorded timeout: %ldms",
+	    last_timeout,
+	    ((tv.tv_sec - lasttv.tv_sec) * 1000 + (tv.tv_usec - lasttv.tv_usec) / 1000));
   if (((tv.tv_sec - lasttv.tv_sec) * 1000 +
        (tv.tv_usec - lasttv.tv_usec) / 1000) < 0 ||
       ((tv.tv_sec - lasttv.tv_sec) * 1000 +
        (tv.tv_usec - lasttv.tv_usec) / 1000) > last_timeout + DIFF_TOLERANCE)
     {
-      printf("Job scheduling was too slow (more than %dms)\n", DIFF_TOLERANCE);
+      rinoo_log("Job scheduling was too slow (more than %dms)", DIFF_TOLERANCE);
       XFAIL();
     }
   return 0;

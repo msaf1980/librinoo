@@ -41,53 +41,73 @@ void		rinoo_log(const char *format, ...)
 {
   u32			i;
   u32			res;
-  char			logline[2048];
-  char			timestamp[23];
+  u32			offset;
+  char			*logline;
+  char			*esclogline;
   va_list		ap;
   struct tm		tmp;
   struct timeval	tv;
 
+  logline = xmalloc(sizeof(*logline) * RINOO_LOG_MAXLENGTH);
+  XASSERTN(logline != NULL);
+  esclogline = xmalloc(sizeof(*esclogline) * RINOO_LOG_MAXLENGTH);
+  XASSERTN(esclogline != NULL);
   XASSERTN(gettimeofday(&tv, NULL) == 0);
   XASSERTN(localtime_r(&tv.tv_sec, &tmp) != NULL);
-  if (strftime(timestamp, sizeof(timestamp), "%Y/%m/%d %T", &tmp) == 0)
+  offset = strftime(logline, RINOO_LOG_MAXLENGTH, "[%Y/%m/%d %T.", &tmp);
+  if (offset == 0)
     {
+      xfree(logline);
+      xfree(esclogline);
       XASSERTN(0);
     }
-  printf("[%s.%03d] ", timestamp, (int) (tv.tv_usec / 1000));
+  offset += snprintf(logline + offset,
+		     RINOO_LOG_MAXLENGTH - offset,
+		     "%03d] ",
+		     (int) (tv.tv_usec / 1000));
   va_start(ap, format);
-  res = vsnprintf(logline, 2048, format, ap);
+  res = vsnprintf(logline + offset, RINOO_LOG_MAXLENGTH - offset, format, ap);
   va_end(ap);
-  res = (res > sizeof(logline) ? sizeof(logline) - 1 : res);
-  for (i = 0; i < res; i++)
+  res = (offset + res > RINOO_LOG_MAXLENGTH ? RINOO_LOG_MAXLENGTH : offset + res);
+  for (i = 0, offset = 0; i < res && offset < RINOO_LOG_MAXLENGTH - 3; i++, offset++)
     {
       switch (logline[i])
 	{
 	case '\a':
-	  printf("\\a");
+	  strcpy(esclogline + offset, "\\a");
+	  offset++;
 	  break;
 	case '\b':
-	  printf("\\b");
+	  strcpy(esclogline + offset, "\\b");
+	  offset++;
 	  break;
 	case '\t':
-	  printf("\\t");
+	  strcpy(esclogline + offset, "\\t");
+	  offset++;
 	  break;
 	case '\n':
-	  printf("\\n");
+	  strcpy(esclogline + offset, "\\n");
+	  offset++;
 	  break;
 	case '\v':
-	  printf("\\v");
+	  strcpy(esclogline + offset, "\\v");
+	  offset++;
 	  break;
 	case '\f':
-	  printf("\\f");
+	  strcpy(esclogline + offset, "\\f");
+	  offset++;
 	  break;
 	case '\r':
-	  printf("\\r");
+	  strcpy(esclogline + offset, "\\r");
+	  offset++;
 	  break;
 	case '"':
-	  printf("\\\"");
+	  strcpy(esclogline + offset, "\\\"");
+	  offset++;
 	  break;
 	case '\\':
-	  printf("\\\\");
+	  strcpy(esclogline + offset, "\\\\");
+	  offset++;
 	  break;
 	default:
 	  if (isprint(logline[i]) == 0)
@@ -96,15 +116,22 @@ void		rinoo_log(const char *format, ...)
 	       * Not printable characters are represented
 	       * by their octal value
 	       */
-	      printf("\\%03o", (unsigned char) logline[i]);
+	      snprintf(esclogline + offset,
+		       RINOO_LOG_MAXLENGTH - offset,
+		       "\\%03o",
+		       (unsigned char) logline[i]);
+	      offset += 2;
 	    }
 	  else
 	    {
-	      printf("%c", logline[i]);
+	      esclogline[offset] = logline[i];
 	    }
 	  break;
 
 	}
     }
-  printf("\n");
+  esclogline[offset++] = '\n';
+  write(1, esclogline, offset);
+  xfree(logline);
+  xfree(esclogline);
 }

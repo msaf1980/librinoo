@@ -180,6 +180,7 @@ int		rinoo_sched_loop(t_rinoosched *sched)
   t_rinoosocket	*cursocket;
 
   XDASSERT(sched != NULL, -1);
+
   t1 = rinoo_socket_timeout_getmin(sched);
   t2 = jobqueue_gettimeout(sched);
   sched->stop = 0;

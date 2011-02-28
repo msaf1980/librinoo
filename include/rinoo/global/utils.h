@@ -11,6 +11,8 @@
 #ifndef		RINOO_UTILS_H_
 # define	RINOO_UTILS_H_
 
+# define	RINOO_LOG_MAXLENGTH	2048
+
 int		timeraddms(struct timeval *in, u32 ms, struct timeval *out);
 void		rinoo_log(const char *format, ...);
 

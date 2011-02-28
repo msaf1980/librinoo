@@ -10,6 +10,27 @@
 
 #include	"rinoo/rinoo.h"
 
+/**
+ * Hash function for timeval structure.
+ * This is used to hash a job and to get the hash of curtime.
+ *
+ * @param tv Pointer to the timeval structure to hash.
+ *
+ * @return The hash as an unsigned integer.
+ */
+static inline u32	jobqueue_hashtime(struct timeval *tv)
+{
+  return ((tv->tv_sec * RINOO_JOBQUEUE_NBSTEPS) +
+	  (tv->tv_usec / (RINOO_JOBQUEUE_STEPMS * 1000)));
+}
+
+/**
+ * Hash function for job.
+ *
+ * @param node Pointer to the job to hash.
+ *
+ * @return The hash as an unsigned integer.
+ */
 static u32	jobqueue_hash(void *node)
 {
   t_rinoojob	*job;
@@ -17,7 +38,7 @@ static u32	jobqueue_hash(void *node)
   XDASSERT(node != NULL, 1);
 
   job = (t_rinoojob *) node;
-  return RINOO_JOBQUEUE_TIMETOINDEX(job->exectime);
+  return jobqueue_hashtime(&job->exectime);
 }
 
 /**
@@ -248,7 +269,7 @@ static t_rinoojob	*jobqueue_getnext(t_rinoosched *sched)
 {
   u32			i;
   u32			end;
-  u32			nextindex;
+  u32			start;
   struct timeval	tv_tmp;
   t_rinoojob		*curjob = NULL;
 
@@ -262,9 +283,9 @@ static t_rinoojob	*jobqueue_getnext(t_rinoosched *sched)
       sched->jobq->nexttime = sched->curtime;
       return NULL;
     }
-  nextindex = RINOO_JOBQUEUE_TIMETOINDEX(sched->jobq->nexttime);
-  end = nextindex + RINOO_JOBQUEUE_NBSTEPS;
-  for (i = nextindex; i < end && curjob == NULL; i++)
+  start = jobqueue_hashtime(&sched->jobq->nexttime);
+  end = jobqueue_hashtime(&sched->curtime) + RINOO_JOBQUEUE_NBSTEPS;
+  for (i = start; i <= end && curjob == NULL; i++)
     {
       curjob = list_gethead(sched->jobq->jobtab->table[i % RINOO_JOBQUEUE_HASHSIZE]);
       if (curjob != NULL)
@@ -306,7 +327,7 @@ u32		jobqueue_gettimeout(t_rinoosched *sched)
     {
       return RINOO_JOBQUEUE_TIMEOUT;
     }
-  if (sched->curtime.tv_sec > job->exectime.tv_sec)
+  if (timercmp(&sched->curtime, &job->exectime, >=))
     {
       return 0;
     }

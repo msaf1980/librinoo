@@ -9,9 +9,11 @@
  */
 #include	"rinoo/rinoo.h"
 
-void		event_fsm(t_rinootcp *unused(tcpsock),
-			  t_rinootcp_event unused(event))
+t_rinoojob_state	stop_callback(t_rinoojob *job)
 {
+  rinoo_sched_stop(job->sched);
+  XTEST(job->sched->stop == 1);
+  return JOB_DONE;
 }
 
 /**
@@ -22,15 +24,12 @@ void		event_fsm(t_rinootcp *unused(tcpsock),
 int		main()
 {
   t_rinoosched	*sched;
-  t_rinootcp	*tcpsock;
+  t_rinoojob	*job;
 
   sched = rinoo_sched();
   XTEST(sched != NULL);
-  tcpsock = rinoo_tcp_server(sched, 0, 42422, 0, event_fsm);
-  XTEST(tcpsock != NULL);
-  rinoo_sched_stop(sched);
-  XTEST(sched->stop == 1);
-  /* rinoo_sched_loop should leave immadiately */
+  job = jobqueue_addms(sched, stop_callback, NULL, 0);
+  XTEST(job != NULL);
   rinoo_sched_loop(sched);
   rinoo_sched_destroy(sched);
   XPASS();
