@@ -1,6 +1,6 @@
 /**
  * @file   rinoo_browser.c
- * @author Reginald LIPS <reginald.l@gmail.com>
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
  * @date   Sun Feb 20 16:07:38 2011
  *
  * @brief  RiNOO HTTP Browser Interface

@@ -101,10 +101,10 @@ static void	rinoo_http_client_fsm(t_rinootcp *tcpsock, t_rinootcp_event event)
     {
     case EVENT_TCP_CONNECT:
       XASSERTN(httpsock != NULL);
-      httpsock->event_fsm(httpsock, EVENT_HTTP_CONNECT);
-      httpsock->last_event = EVENT_HTTP_CONNECT;
       rinoo_sched_socket(RINOO_SCHED_MODDEL, &tcpsock->socket, EVENT_SCHED_IN);
       rinoo_sched_socket(RINOO_SCHED_MODADD, &tcpsock->socket, EVENT_SCHED_OUT);
+      httpsock->last_event = EVENT_HTTP_CONNECT;
+      httpsock->event_fsm(httpsock, EVENT_HTTP_CONNECT);
       break;
     case EVENT_TCP_IN:
       switch (httpsock->last_event)
@@ -137,8 +137,8 @@ static void	rinoo_http_client_fsm(t_rinootcp *tcpsock, t_rinootcp_event event)
 	    {
 	    case 0:
 	      rinoo_socket_timeout_reset(&tcpsock->socket);
-	      httpsock->event_fsm(httpsock, EVENT_HTTP_RESPBODY);
 	      httpsock->last_event = EVENT_HTTP_RESPBODY;
+	      httpsock->event_fsm(httpsock, EVENT_HTTP_RESPBODY);
 	      break;
 	    case -1:
 	      /* bad request */

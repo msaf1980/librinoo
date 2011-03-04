@@ -1,6 +1,6 @@
 /**
  * @file   browser.h
- * @author Reginald LIPS <reginald.l@gmail.com>
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
  * @date   Sun Feb 20 16:12:15 2011
  *
  * @brief  Header file which describes the HTTP browser interface.
