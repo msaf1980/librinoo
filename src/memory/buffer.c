@@ -223,3 +223,30 @@ t_buffer	*buffer_dup(t_buffer *buf)
   memcpy(newbuf->buf, buf->buf, buf->len);
   return newbuf;
 }
+
+/**
+ * Compares a buffer with a string.
+ *
+ * @param buf Pointer to a buffer.
+ * @param str Pointer to a string.
+ *
+ * @return An integer less than, equal to, or greater than zero if buf is found, respectively, to be less than, to match, or be greater than s2
+ */
+int		buffer_strcmp(t_buffer *buf, char *str)
+{
+  u32		size;
+
+  XASSERT(buf != NULL, -1);
+  XASSERT(str != NULL, -1);
+
+  size = strlen(str);
+  if (buffer_len(buf) < size)
+    {
+      return -str[buffer_len(buf)];
+    }
+  if (buffer_len(buf) > size)
+    {
+      return buf->buf[size];
+    }
+  return memcmp(buffer_ptr(buf), str, size);
+}

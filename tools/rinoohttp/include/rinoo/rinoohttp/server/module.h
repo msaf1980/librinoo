@@ -12,6 +12,7 @@
 # define	RINOOHTTP_MODULE_SERVER_H_
 
 # include	"rinoo/rinoohttp/server/httpserver.h"
+# include	"rinoo/rinoohttp/server/httpeasysend.h"
 # include	"rinoo/rinoohttp/server/httpfile.h"
 
 #endif		/* !RINOOHTTP_MODULE_SERVER_H_ */

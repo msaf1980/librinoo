@@ -11,16 +11,14 @@
 #ifndef		RINOOHTTP_SERVER_HTTPFILE_H_
 # define	RINOOHTTP_SERVER_HTTPFILE_H_
 
-typedef struct	s_rinoohttp_file
+typedef struct		s_rinoohttp_file
 {
-  int		fd;
-  u64		offset;
-  t_buffer	data;
-  void		*orig_data;
-  void		(*orig_event_fsm)(t_rinoohttp *httpsock,
-				  t_rinoohttp_event event);
-}		t_rinoohttp_file;
+  int			fd;
+  t_buffer		data;
+}			t_rinoohttp_file;
 
-int		rinoo_http_file_send(t_rinoohttp *httpsock, const char *file);
+t_rinoohttp_file	*rinoo_http_file_open(t_rinoohttp_send_ctx *sctx,
+					      const char *path);
+void			rinoo_http_file_destroy(void *data);
 
 #endif		/* !RINOOHTTP_SERVER_HTTPFILE_H_ */
