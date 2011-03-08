@@ -272,6 +272,7 @@ static int	rinoo_dns_parse_a(t_rinooudp *udpsock,
   int			skip;
   unsigned short	tmp;
   unsigned short	offset;
+  unsigned short	offset2;
   t_buffer		response;
 
   response = *udpsock->socket.rdbuf;
@@ -318,10 +319,17 @@ static int	rinoo_dns_parse_a(t_rinooudp *udpsock,
     }
 
   offset = 12;
+  offset2 = 0;
   while (buffer_len(&response) > 0)
     {
       skip = 0;
-      if (rinoo_dns_checkshort(&response, 0xc000 | offset) == 0)
+      if (rinoo_dns_getshort(&response, &tmp) != 0)
+	{
+	  return -1;
+	}
+      if (tmp != (0xc000 | offset) &&
+	  offset2 != 0 &&
+	  tmp != (0xc000 | offset2))
 	{
 	  skip = 1;
 	}
@@ -379,6 +387,7 @@ static int	rinoo_dns_parse_a(t_rinooudp *udpsock,
 		  (tmp & 0xc000) == 0xc000)
 		{
 		  offset = (tmp & 0x00ff);
+		  offset2 = buffer_ptr(&response) - buffer_ptr(udpsock->socket.rdbuf) - 2;
 		}
 	      else
 		{

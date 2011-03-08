@@ -16,6 +16,7 @@
 # include	<sys/mman.h>
 # include	<stdarg.h>
 # include	<pcre.h>
+# include	<dirent.h>
 
 # include	"rinoo/rinoohttp/global/module.h"
 # include	"rinoo/rinoohttp/server/module.h"

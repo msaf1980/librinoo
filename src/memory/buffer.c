@@ -122,6 +122,27 @@ int		buffer_vprint(t_buffer *buf, const char *format, va_list ap)
 }
 
 /**
+ * It is printf-like function which tries to add data to the buffer
+ * and it will try to extend this buffer if it is to small.
+ * This function uses buffer_vprint.
+ *
+ * @param buf Pointer to the buffer to add data to.
+ * @param format Format string which defines subsequent arguments.
+ *
+ * @return Number of bytes printed if succeeds, else -1.
+ */
+int		buffer_print(t_buffer *buf, const char *format, ...)
+{
+  int		res;
+  va_list	ap;
+
+  va_start(ap, format);
+  res = buffer_vprint(buf, format, ap);
+  va_end(ap);
+  return res;
+}
+
+/**
  * Adds data to a buffer. If the buffer is to small, this function
  * will try to extend it.
  *

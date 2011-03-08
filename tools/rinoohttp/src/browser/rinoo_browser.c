@@ -43,6 +43,10 @@ void		rinoo_browser_destroy(t_rinoobrowser *rb)
       xfree(rb->post_data);
       rb->post_data = NULL;
     }
+  if (rb->http != NULL)
+    {
+      rinoo_http_socket_destroy(rb->http);
+    }
   rinoo_http_header_destroytable(rb->headers);
   xfree(rb);
 }
@@ -72,20 +76,21 @@ static void	rinoo_browser_process_regexps(t_rinoobrowser *rb, t_buffer *result)
   int			i;
   int			rc;
   u32			offset;
-  int			succeed = 0;
-  pcre			*cur_regexp;
+  int			succeed;
   t_buffer		cur_substr;
   t_listiterator	listit = NULL;
+  t_rinoobrowser_search	*cur_search;
   int			ovector[RINOO_BROWSER_MAX_SUBSTRINGS];
 
   XDASSERTN(rb->regexps != NULL);
 
-  while ((cur_regexp = list_getnext(rb->regexps, &listit)) != NULL)
+  while ((cur_search = list_getnext(rb->regexps, &listit)) != NULL)
     {
       offset = 0;
+      succeed = 0;
       while (offset < buffer_len(result))
 	{
-	  rc = pcre_exec(cur_regexp,
+	  rc = pcre_exec(cur_search->regexp,
 			 NULL,
 			 buffer_ptr(result),
 			 buffer_len(result),
@@ -101,7 +106,10 @@ static void	rinoo_browser_process_regexps(t_rinoobrowser *rb, t_buffer *result)
 		  succeed++;
 		  cur_substr.buf = buffer_ptr(result) + ovector[2 * i];
 		  cur_substr.len = ovector[2 * i + 1] - ovector[2 * i];
-		  rb->event_fsm(rb, &cur_substr, EVENT_BROWSER_MATCH);
+		  rb->event_fsm(rb,
+				&cur_substr,
+				EVENT_BROWSER_MATCH,
+				cur_search->arg);
 		}
 	      offset = ovector[1];
 	    }
@@ -110,10 +118,12 @@ static void	rinoo_browser_process_regexps(t_rinoobrowser *rb, t_buffer *result)
 	      break;
 	    }
 	}
+      if (succeed == 0)
+	{
+	  rb->event_fsm(rb, NULL, EVENT_BROWSER_NOMATCH, cur_search->arg);
+	}
     }
-  rb->event_fsm(rb,
-		NULL,
-		(succeed == 0 ? EVENT_BROWSER_NOMATCH : EVENT_BROWSER_MATCH_END));
+  rb->event_fsm(rb, NULL, EVENT_BROWSER_MATCH_END, NULL);
 }
 
 static void	rinoo_browser_fsm(t_rinoohttp *httpsock, t_rinoohttp_event event)
@@ -122,6 +132,10 @@ static void	rinoo_browser_fsm(t_rinoohttp *httpsock, t_rinoohttp_event event)
 
   rb = (t_rinoobrowser *) httpsock->data;
   XDASSERTN(rb != NULL);
+  if (rb->http == NULL)
+    {
+      raise(SIGTRAP);
+    }
   switch (event)
     {
     case EVENT_HTTP_CONNECT:
@@ -145,7 +159,7 @@ static void	rinoo_browser_fsm(t_rinoohttp *httpsock, t_rinoohttp_event event)
     case EVENT_HTTP_RESPONSE:
       if (httpsock->response.contentlength == 0)
 	{
-	  rb->event_fsm(rb, NULL, EVENT_BROWSER_MATCH_END);
+	  rb->event_fsm(rb, NULL, EVENT_BROWSER_MATCH_END, NULL);
 	}
       break;
     case EVENT_HTTP_RESPBODY:
@@ -157,19 +171,22 @@ static void	rinoo_browser_fsm(t_rinoohttp *httpsock, t_rinoohttp_event event)
 	    }
 	  else
 	    {
-	      rb->event_fsm(rb, httpsock->tcpsock->socket.rdbuf, EVENT_BROWSER_MATCH);
+	      rb->event_fsm(rb,
+			    httpsock->tcpsock->socket.rdbuf,
+			    EVENT_BROWSER_MATCH,
+			    NULL);
 	    }
 	}
       break;
     case EVENT_HTTP_ERROR:
-      rb->event_fsm(rb, NULL, EVENT_BROWSER_ERROR);
+      rb->event_fsm(rb, NULL, EVENT_BROWSER_ERROR, NULL);
       rb->http = NULL;
       break;
     case EVENT_HTTP_CLOSE:
       rb->http = NULL;
       break;
     case EVENT_HTTP_TIMEOUT:
-      rb->event_fsm(rb, NULL, EVENT_BROWSER_ERROR);
+      rb->event_fsm(rb, NULL, EVENT_BROWSER_ERROR, NULL);
       rb->http = NULL;
       break;
     }
@@ -204,7 +221,7 @@ static void		rinoo_browser_dnsfsm(t_rinoodns *rdns,
 	{
 	  rinoo_http_socket_destroy(rb->http);
 	  rb->http = NULL;
-	  rb->event_fsm(rb, NULL, EVENT_BROWSER_ERROR);
+	  rb->event_fsm(rb, NULL, EVENT_BROWSER_ERROR, NULL);
 	  break;
 	}
       if (rb->useragent != NULL &&
@@ -215,12 +232,12 @@ static void		rinoo_browser_dnsfsm(t_rinoodns *rdns,
 	{
 	  rinoo_http_socket_destroy(rb->http);
 	  rb->http = NULL;
-	  rb->event_fsm(rb, NULL, EVENT_BROWSER_ERROR);
+	  rb->event_fsm(rb, NULL, EVENT_BROWSER_ERROR, NULL);
 	  break;
 	}
       break;
     case RINOODNS_EVENT_ERROR:
-      rb->event_fsm(rb, NULL, EVENT_BROWSER_ERROR);
+      rb->event_fsm(rb, NULL, EVENT_BROWSER_ERROR, NULL);
       break;
     }
 }
@@ -229,7 +246,8 @@ int		rinoo_browser_get(t_rinoobrowser *rb,
 				  const char *url,
 				  void (*event_fsm)(t_rinoobrowser *rb,
 						    t_buffer *result,
-						    t_rinoobrowser_event event))
+						    t_rinoobrowser_event event,
+						    void *arg))
 {
   char		host[256];
   t_rinoodns	*rdns;
@@ -270,7 +288,8 @@ int		rinoo_browser_post(t_rinoobrowser *rb,
 				   const char *post_data,
 				   void (*event_fsm)(t_rinoobrowser *rb,
 						     t_buffer *result,
-						     t_rinoobrowser_event event))
+						     t_rinoobrowser_event event,
+						     void *arg))
 {
   char		host[256];
   t_rinoodns	*rdns;
@@ -283,6 +302,11 @@ int		rinoo_browser_post(t_rinoobrowser *rb,
 
   rb->url = url;
   rb->event_fsm = event_fsm;
+  if (rb->http != NULL)
+    {
+      rinoo_http_socket_destroy(rb->http);
+      rb->http = NULL;
+    }
   if (rb->post_data != NULL)
     {
       xfree(rb->post_data);
@@ -319,11 +343,22 @@ static int	rinoo_browser_regexp_cmp(void *node1, void *node2)
   return 1;
 }
 
-int		rinoo_browser_search(t_rinoobrowser *rb, const char *regexp)
+static void		rinoo_browser_search_destroy(void *data)
 {
-  pcre		*re;
-  const char	*error;
-  int		erroffset;
+  XASSERTN(data != NULL);
+
+  pcre_free(((t_rinoobrowser_search *) data)->regexp);
+  xfree(data);
+}
+
+int			rinoo_browser_search(t_rinoobrowser *rb,
+					     const char *regexp,
+					     void *arg)
+{
+  pcre			*re;
+  const char		*error;
+  int			erroffset;
+  t_rinoobrowser_search	*newsearch;
 
   re = pcre_compile(regexp, PCRE_DOTALL, &error, &erroffset, NULL);
   XASSERTSTR(re != NULL, -1, error);
@@ -333,13 +368,20 @@ int		rinoo_browser_search(t_rinoobrowser *rb, const char *regexp)
       if (rb->regexps == NULL)
 	{
 	  pcre_free(re);
-	  XASSERT(0, -1);
+	  return -1;
 	}
     }
-  if (list_add(rb->regexps, re, pcre_free) == NULL)
+  newsearch = xcalloc(1, sizeof(*newsearch));
+  if (newsearch == NULL)
     {
       pcre_free(re);
-      XASSERT(0, -1);
+      return -1;
+    }
+  newsearch->regexp = re;
+  newsearch->arg = arg;
+  if (list_add(rb->regexps, newsearch, rinoo_browser_search_destroy) == NULL)
+    {
+      rinoo_browser_search_destroy(newsearch);
     }
   return 0;
 }

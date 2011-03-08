@@ -42,9 +42,16 @@ typedef struct	s_rinoobrowser
   char		*post_data;
   t_hashtable	*headers;
   void		(*event_fsm)(struct s_rinoobrowser *rb,
-			    t_buffer *result,
-			    t_rinoobrowser_event event);
+			     t_buffer *result,
+			     t_rinoobrowser_event event,
+			     void *arg);
 }		t_rinoobrowser;
+
+typedef struct	s_rinoobrowser_search
+{
+  pcre		*regexp;
+  void		*arg;
+}		t_rinoobrowser_search;
 
 t_rinoobrowser		*rinoo_browser(t_rinoosched *sched);
 void			rinoo_browser_destroy(t_rinoobrowser *rb);
@@ -55,13 +62,17 @@ int			rinoo_browser_get(t_rinoobrowser *rb,
 					  const char *url,
 					  void (*event_fsm)(t_rinoobrowser *rb,
 							    t_buffer *result,
-							    t_rinoobrowser_event event));
-int		rinoo_browser_post(t_rinoobrowser *rb,
-				   const char *url,
-				   const char *post_data,
-				   void (*event_fsm)(t_rinoobrowser *rb,
-						     t_buffer *result,
-						     t_rinoobrowser_event event));
-int			rinoo_browser_search(t_rinoobrowser *rb, const char *regexp);
+							    t_rinoobrowser_event event,
+							    void *arg));
+int			rinoo_browser_post(t_rinoobrowser *rb,
+					   const char *url,
+					   const char *post_data,
+					   void (*event_fsm)(t_rinoobrowser *rb,
+							     t_buffer *result,
+							     t_rinoobrowser_event event,
+							     void *arg));
+int			rinoo_browser_search(t_rinoobrowser *rb,
+					     const char *regexp,
+					     void *arg);
 
 #endif		/* !RINOOHTTP_BROWSER_BROWSER_H_ */

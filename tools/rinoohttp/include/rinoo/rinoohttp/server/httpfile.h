@@ -13,8 +13,9 @@
 
 typedef struct		s_rinoohttp_file
 {
+  int			type;
   int			fd;
-  t_buffer		data;
+  t_buffer		*data;
 }			t_rinoohttp_file;
 
 t_rinoohttp_file	*rinoo_http_file_open(t_rinoohttp_send_ctx *sctx,

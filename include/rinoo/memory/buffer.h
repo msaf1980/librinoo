@@ -33,6 +33,7 @@ t_buffer	*buffer_create(u32 init_size, u32 maxsize);
 void		buffer_destroy(t_buffer *ptr);
 int		buffer_extend(t_buffer *buf, size_t size);
 int		buffer_vprint(t_buffer *buf, const char *format, va_list ap);
+int		buffer_print(t_buffer *buf, const char *format, ...);
 int		buffer_add(t_buffer *buf, const char *data, size_t size);
 int		buffer_addstr(t_buffer *buf, const char *str);
 int		buffer_erase(t_buffer *buf, u32 len);
