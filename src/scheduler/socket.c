@@ -161,3 +161,48 @@ t_rinoosocket	*rinoo_socket_getexpired(t_rinoosched *sched)
     }
   return NULL;
 }
+
+/**
+ * Enables or disables raw socket even handling.
+ *
+ * @param socket Pointer to the socket to use.
+ * @param event Raw event to set.
+ * @param enable 1 to enable raw socket even or 0 to disable.
+ */
+void		rinoo_socket_rawevent_set(t_rinoosocket *socket,
+					  t_rinoosocket_rawevent event,
+					  short enable)
+{
+  XDASSERTN(socket != NULL);
+
+  switch (event)
+    {
+    case RAWEVENT_IN:
+      socket->rawin = enable;
+      break;
+    case RAWEVENT_OUT:
+      socket->rawout = enable;
+      break;
+    }
+}
+
+/**
+ * Checks if raw socket event handling is enabled.
+ *
+ * @param socket Pointer to the socket to use.
+ * @param event Raw socket event to be checked.
+ */
+int		rinoo_socket_rawevent_enabled(t_rinoosocket *socket,
+					      t_rinoosocket_rawevent event)
+{
+  XDASSERT(socket != NULL, 0);
+
+  switch (event)
+    {
+    case RAWEVENT_IN:
+      return socket->rawin;
+    case RAWEVENT_OUT:
+      return socket->rawout;
+    }
+  return FALSE;
+}

@@ -402,21 +402,24 @@ static void	rinoo_tcp_fsm(t_rinoosocket *socket, t_rinoosched_event event)
 	  rinoo_tcp_error(tcpsock, EVENT_TCP_IN);
 	  return;
 	}
-      res = read(socket->fd,
-		 buffer_ptr(socket->rdbuf) + buffer_len(socket->rdbuf),
-		 buffer_size(socket->rdbuf) - buffer_len(socket->rdbuf));
-      if (unlikely(res < 0))
+      if (rinoo_socket_rawevent_enabled(socket, RAWEVENT_IN) == 0)
 	{
-	  rinoo_tcp_error(tcpsock, EVENT_TCP_IN);
-	  return;
+	  res = read(socket->fd,
+		     buffer_ptr(socket->rdbuf) + buffer_len(socket->rdbuf),
+		     buffer_size(socket->rdbuf) - buffer_len(socket->rdbuf));
+	  if (unlikely(res < 0))
+	    {
+	      rinoo_tcp_error(tcpsock, EVENT_TCP_IN);
+	      return;
+	    }
+	  else if (res == 0)
+	    {
+	      tcpsock->event_fsm(tcpsock, EVENT_TCP_CLOSE);
+	      rinoo_tcp_destroy(tcpsock);
+	      return;
+	    }
+	  buffer_setlen(socket->rdbuf, buffer_len(socket->rdbuf) + res);
 	}
-      else if (res == 0)
-	{
-	  tcpsock->event_fsm(tcpsock, EVENT_TCP_CLOSE);
-	  rinoo_tcp_destroy(tcpsock);
-	  return;
-	}
-      buffer_setlen(socket->rdbuf, buffer_len(socket->rdbuf) + res);
       if (buffer_isfull(socket->rdbuf))
 	buffer_extend(socket->rdbuf, 0);
       tcpsock->event_fsm(tcpsock, EVENT_TCP_IN);
@@ -434,7 +437,8 @@ static void	rinoo_tcp_fsm(t_rinoosocket *socket, t_rinoosched_event event)
 	    }
 	  buffer_erase(socket->wrbuf, res);
 	}
-      if (buffer_len(socket->wrbuf) <= 0 &&
+      if (rinoo_socket_rawevent_enabled(socket, RAWEVENT_OUT) == 0 &&
+	  buffer_len(socket->wrbuf) <= 0 &&
 	  rinoo_sched_socket(RINOO_SCHED_MODDEL, socket, EVENT_SCHED_OUT) == -1)
 	{
 	  rinoo_tcp_error(tcpsock, EVENT_TCP_OUT);
