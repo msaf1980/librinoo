@@ -22,13 +22,13 @@ typedef struct	s_buffer
   u32		max_size;	/**< Buffer maximum size */
 }		t_buffer;
 
-# define	buffer_ptr(ptr)			(ptr)->buf
-# define	buffer_len(ptr)			(ptr)->len
-# define	buffer_size(ptr)		(ptr)->size
-# define	buffer_isfull(ptr)		((ptr)->len == (ptr)->size)
-# define	buffer_setlen(ptr, length)	(ptr)->len = length
-# define	buffer_static(buffer, ptr, len)	do { buffer.buf = (char *) ptr; buffer.len = len; buffer.size = buffer.len; buffer.max_size = 0; } while (0)
-# define	strtobuffer(buffer, str)	do { buffer.buf = (char *) str; buffer.len = strlen(str); buffer.size = buffer.len; buffer.max_size = 0; } while (0)
+# define	buffer_ptr(ptr)				(ptr)->buf
+# define	buffer_len(ptr)				(ptr)->len
+# define	buffer_size(ptr)			(ptr)->size
+# define	buffer_isfull(ptr)			((ptr)->len == (ptr)->size)
+# define	buffer_setlen(ptr, length)		(ptr)->len = length
+# define	buffer_static(buffer, ptr, length)	do { buffer.buf = (char *) (ptr); buffer.len = (length); buffer.size = buffer.len; buffer.max_size = 0; } while (0)
+# define	strtobuffer(buffer, str)		do { buffer.buf = (char *) (str); buffer.len = strlen((str)); buffer.size = buffer.len; buffer.max_size = 0; } while (0)
 
 t_buffer		*buffer_create(u32 init_size, u32 maxsize);
 void			buffer_destroy(t_buffer *ptr);
