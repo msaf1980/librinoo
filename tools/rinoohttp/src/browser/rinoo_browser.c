@@ -19,7 +19,7 @@ t_rinoobrowser		*rinoo_browser(t_rinoosched *sched)
   rb = xcalloc(1, sizeof(*rb));
   XASSERT(rb != NULL, NULL);
   rb->sched = sched;
-  rb->timeout = 10000;
+  rb->timeout = 15000;
   rb->headers = rinoo_http_header_createtable();
   if (rb->headers == NULL)
     {
@@ -104,8 +104,9 @@ static void	rinoo_browser_process_regexps(t_rinoobrowser *rb, t_buffer *result)
 	      for (i = (rc == 1 ? 0 : 1); i < rc; i++)
 		{
 		  succeed++;
-		  cur_substr.buf = buffer_ptr(result) + ovector[2 * i];
-		  cur_substr.len = ovector[2 * i + 1] - ovector[2 * i];
+		  buffer_static(cur_substr,
+				buffer_ptr(result) + ovector[2 * i],
+				ovector[2 * i + 1] - ovector[2 * i]);
 		  rb->event_fsm(rb,
 				&cur_substr,
 				EVENT_BROWSER_MATCH,
@@ -132,10 +133,7 @@ static void	rinoo_browser_fsm(t_rinoohttp *httpsock, t_rinoohttp_event event)
 
   rb = (t_rinoobrowser *) httpsock->data;
   XDASSERTN(rb != NULL);
-  if (rb->http == NULL)
-    {
-      raise(SIGTRAP);
-    }
+  XDASSERTN(rb->http != NULL);
   switch (event)
     {
     case EVENT_HTTP_CONNECT:
@@ -192,6 +190,36 @@ static void	rinoo_browser_fsm(t_rinoohttp *httpsock, t_rinoohttp_event event)
     }
 }
 
+static void		rinoo_browser_generate_request(t_rinoobrowser *rb)
+{
+  rb->http->data = rb;
+  buffer_add(rb->http->request.uri,
+	     buffer_ptr(&rb->uri),
+	     buffer_len(&rb->uri));
+  if (rinoo_http_header_adddata(rb->http->request.headers,
+				"Host",
+				buffer_ptr(&rb->host),
+				buffer_len(&rb->host)) != 0)
+    {
+      rinoo_http_socket_destroy(rb->http);
+      rb->http = NULL;
+      rb->event_fsm(rb, NULL, EVENT_BROWSER_ERROR, NULL);
+      return;
+    }
+  if (rb->useragent != NULL &&
+      rinoo_http_header_adddata(rb->http->request.headers,
+				"User-Agent",
+				rb->useragent,
+				strlen(rb->useragent)) != 0)
+    {
+      rinoo_http_socket_destroy(rb->http);
+      rb->http = NULL;
+      rb->event_fsm(rb, NULL, EVENT_BROWSER_ERROR, NULL);
+      return;
+    }
+  rinoo_socket_timeout_reset(&rb->http->tcpsock->socket);
+}
+
 static void		rinoo_browser_dnsfsm(t_rinoodns *rdns,
 					     t_rinoodns_event event,
 					     t_ip ip)
@@ -206,38 +234,14 @@ static void		rinoo_browser_dnsfsm(t_rinoodns *rdns,
     case RINOODNS_EVENT_OK:
       rb->ip = ip;
       rb->http = rinoo_http_client(rb->sched,
-				       ip,
-				       rb->port,
-				       rb->timeout,
-				       rinoo_browser_fsm);
-      rb->http->data = rb;
-      buffer_add(rb->http->request.uri,
-		 buffer_ptr(&rb->uri),
-		 buffer_len(&rb->uri));
-      if (rinoo_http_header_adddata(rb->http->request.headers,
-				    "Host",
-				    buffer_ptr(&rb->host),
-				    buffer_len(&rb->host)) != 0)
-	{
-	  rinoo_http_socket_destroy(rb->http);
-	  rb->http = NULL;
-	  rb->event_fsm(rb, NULL, EVENT_BROWSER_ERROR, NULL);
-	  break;
-	}
-      if (rb->useragent != NULL &&
-	  rinoo_http_header_adddata(rb->http->request.headers,
-				    "User-Agent",
-				    rb->useragent,
-				    strlen(rb->useragent)) != 0)
-	{
-	  rinoo_http_socket_destroy(rb->http);
-	  rb->http = NULL;
-	  rb->event_fsm(rb, NULL, EVENT_BROWSER_ERROR, NULL);
-	  break;
-	}
+				   rb->ip,
+				   rb->port,
+				   rb->timeout,
+				   rinoo_browser_fsm);
+      rinoo_browser_generate_request(rb);
       break;
-    case RINOODNS_EVENT_ERROR:
-      rb->event_fsm(rb, NULL, EVENT_BROWSER_ERROR, NULL);
+    /* case RINOODNS_EVENT_ERROR: */
+    /*   rb->event_fsm(rb, NULL, EVENT_BROWSER_ERROR, NULL); */
       break;
     }
 }
@@ -249,6 +253,8 @@ int		rinoo_browser_get(t_rinoobrowser *rb,
 						    t_rinoobrowser_event event,
 						    void *arg))
 {
+  u32		port;
+  t_buffer	hostbuf;
   char		host[256];
   t_rinoodns	*rdns;
 
@@ -259,15 +265,31 @@ int		rinoo_browser_get(t_rinoobrowser *rb,
 
   rb->url = url;
   rb->event_fsm = event_fsm;
-  if (rb->http != NULL)
-    {
-      rinoo_http_socket_destroy(rb->http);
-      rb->http = NULL;
-    }
-  if (rinoo_parse_url(url, &rb->host, &rb->port, &rb->uri) != 0)
+  if (rinoo_parse_url(url, &hostbuf, &port, &rb->uri) != 0)
     {
       return -1;
     }
+  if (rb->post_data != NULL)
+    {
+      xfree(rb->post_data);
+      rb->post_data = NULL;
+    }
+  if (rb->http != NULL)
+    {
+      if (rb->port == port &&
+	  buffer_len(&rb->host) == buffer_len(&hostbuf) &&
+	  memcmp(buffer_ptr(&rb->host), buffer_ptr(&hostbuf), buffer_len(&hostbuf)) == 0 &&
+	  rb->http->last_event == EVENT_HTTP_CONNECT)
+	{
+	  rinoo_sched_socket(RINOO_SCHED_MODADD, &rb->http->tcpsock->socket, EVENT_SCHED_OUT);
+	  rinoo_browser_generate_request(rb);
+	  return 0;
+	}
+      rinoo_http_socket_destroy(rb->http);
+      rb->http = NULL;
+    }
+  rb->host = hostbuf;
+  rb->port = port;
   snprintf(host, 256, "%.*s", buffer_len(&rb->host), buffer_ptr(&rb->host));
   rdns = rinoo_resolv(rb->sched, host, RINOODNS_TYPE_A, 0, rinoo_browser_dnsfsm);
   if (rdns == NULL)
@@ -275,11 +297,6 @@ int		rinoo_browser_get(t_rinoobrowser *rb,
       return -1;
     }
   rdns->data = rb;
-  if (rb->post_data != NULL)
-    {
-      xfree(rb->post_data);
-      rb->post_data = NULL;
-    }
   return 0;
 }
 
@@ -291,6 +308,8 @@ int		rinoo_browser_post(t_rinoobrowser *rb,
 						     t_rinoobrowser_event event,
 						     void *arg))
 {
+  u32		port;
+  t_buffer	hostbuf;
   char		host[256];
   t_rinoodns	*rdns;
 
@@ -302,10 +321,9 @@ int		rinoo_browser_post(t_rinoobrowser *rb,
 
   rb->url = url;
   rb->event_fsm = event_fsm;
-  if (rb->http != NULL)
+  if (rinoo_parse_url(url, &hostbuf, &port, &rb->uri) != 0)
     {
-      rinoo_http_socket_destroy(rb->http);
-      rb->http = NULL;
+      return -1;
     }
   if (rb->post_data != NULL)
     {
@@ -316,12 +334,22 @@ int		rinoo_browser_post(t_rinoobrowser *rb,
     {
       return -1;
     }
-  if (rinoo_parse_url(url, &rb->host, &rb->port, &rb->uri) != 0)
+  if (rb->http != NULL)
     {
-      xfree(rb->post_data);
-      rb->post_data = NULL;
-      return -1;
+      if (rb->port == port &&
+	  buffer_len(&rb->host) == buffer_len(&hostbuf) &&
+	  memcmp(buffer_ptr(&rb->host), buffer_ptr(&hostbuf), buffer_len(&hostbuf)) == 0 &&
+	  rb->http->last_event == EVENT_HTTP_CONNECT)
+	{
+	  rinoo_sched_socket(RINOO_SCHED_MODADD, &rb->http->tcpsock->socket, EVENT_SCHED_OUT);
+	  rinoo_browser_generate_request(rb);
+	  return 0;
+	}
+      rinoo_http_socket_destroy(rb->http);
+      rb->http = NULL;
     }
+  rb->host = hostbuf;
+  rb->port = port;
   snprintf(host, 256, "%.*s", buffer_len(&rb->host), buffer_ptr(&rb->host));
   rdns = rinoo_resolv(rb->sched, host, RINOODNS_TYPE_A, 0, rinoo_browser_dnsfsm);
   if (rdns == NULL)

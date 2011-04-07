@@ -88,9 +88,26 @@ static void			rinoo_http_easysend_fsm(t_rinoohttp *httpsock,
     }
 }
 
-void		rinoo_http_easysend_print_destroy(void *data)
+static void	rinoo_http_easysend_buffer_destroy(void *data)
 {
   buffer_destroy((t_buffer *) data);
+}
+
+int		rinoo_http_easysend_buffer(t_rinoohttp *httpsock, t_buffer *buffer)
+{
+  int			res;
+  t_rinoohttp_send_ctx	*sctx;
+
+  XASSERT(httpsock != NULL, -1);
+
+  sctx = rinoo_http_easysend(httpsock);
+  XASSERT(sctx != NULL, -1);
+  sctx->tosend = buffer;
+  sctx->data = buffer;
+  sctx->free_func = rinoo_http_easysend_buffer_destroy;
+  httpsock->response.code = 200;
+  httpsock->response.contentlength = buffer_len(sctx->tosend);
+  return 0;
 }
 
 int		rinoo_http_easysend_print(t_rinoohttp *httpsock,
@@ -99,31 +116,28 @@ int		rinoo_http_easysend_print(t_rinoohttp *httpsock,
   int			res;
   va_list		ap;
   t_buffer		*response;
-  t_rinoohttp_send_ctx	*sctx;
 
   XASSERT(httpsock != NULL, -1);
 
-  sctx = rinoo_http_easysend(httpsock);
-  XASSERT(sctx != NULL, -1);
   response = buffer_create(1024, BUFFER_DEFAULT_MAXSIZE);
   if (response == NULL)
     {
-      rinoo_http_easysend_destroy(sctx);
       return -1;
     }
-  sctx->tosend = response;
-  sctx->data = response;
-  sctx->free_func = rinoo_http_easysend_print_destroy;
   va_start(ap, format);
   res = buffer_vprint(response, format, ap);
   va_end(ap);
   if (res < 0)
     {
-      rinoo_http_easysend_destroy(sctx);
+      buffer_destroy(response);
       return -1;
     }
-  httpsock->response.code = 200;
-  httpsock->response.contentlength = buffer_len(sctx->tosend);
+  res = rinoo_http_easysend_buffer(httpsock, response);
+  if (res < 0)
+    {
+      buffer_destroy(response);
+      return -1;
+    }
   return 0;
 }
 

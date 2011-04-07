@@ -25,6 +25,8 @@ typedef struct	t_rinoohttp_send_ctx
 
 t_rinoohttp_send_ctx	*rinoo_http_easysend(t_rinoohttp *httpsock);
 void			rinoo_http_easysend_destroy(t_rinoohttp_send_ctx *sctx);
+int			rinoo_http_easysend_buffer(t_rinoohttp *httpsock,
+						   t_buffer *buffer);
 int			rinoo_http_easysend_print(t_rinoohttp *httpsock,
 						  const char *format, ...);
 int			rinoo_http_easysend_file(t_rinoohttp *httpsock,

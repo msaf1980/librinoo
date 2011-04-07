@@ -22,6 +22,8 @@ void		rinoo_http_request_reset(struct s_rinoohttp *httpsock)
   httpsock->request.received = 0;
   httpsock->request.contentlength = 0;
   buffer_erase(httpsock->request.uri, buffer_len(httpsock->request.uri));
+  rinoo_http_header_destroytable(httpsock->request.headers);
+  httpsock->request.headers = rinoo_http_header_createtable();
 }
 
 void		rinoo_http_request_setdefaultheaders(struct s_rinoohttp *httpsock)

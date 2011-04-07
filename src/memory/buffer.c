@@ -22,7 +22,7 @@ t_buffer	*buffer_create(u32 init_size, u32 maxsize)
 {
   t_buffer	*buf;
 
-  XDASSERT(init_size <= maxsize, NULL);
+  XDASSERT(init_size <= maxsize || maxsize == 0, NULL);
   XDASSERT(init_size > 0, NULL);
 
   buf = xcalloc(1, sizeof(*buf));
@@ -35,7 +35,14 @@ t_buffer	*buffer_create(u32 init_size, u32 maxsize)
     }
   buf->len = 0;
   buf->size = init_size;
-  buf->max_size = maxsize;
+  if (likely(maxsize != 0))
+    {
+      buf->max_size = maxsize;
+    }
+  else
+    {
+      buf->max_size = BUFFER_DEFAULT_MAXSIZE;
+    }
   return (buf);
 }
 
@@ -180,6 +187,22 @@ int		buffer_addstr(t_buffer *buf, const char *str)
 }
 
 /**
+ * Adds a null byte to the end of a buffer.
+ *
+ * @param buf Buffer where the null byte will be added
+ *
+ * @return 0 on success, or -1 if an error occurs
+ */
+int		buffer_addnull(t_buffer *buf)
+{
+  if (buffer_add(buf, "\0", 1) < 0)
+    {
+      return -1;
+    }
+  return 0;
+}
+
+/**
  * Erases beginning data in the buffer and moves the rest
  * to the beginning. This function does -not- reduce the buffer.
  *
@@ -296,4 +319,174 @@ int		buffer_strncmp(t_buffer *buf, const char *str, size_t len)
   if (i < len && i >= buffer_len(buf))
     return -buf->buf[buffer_len(buf) - 1];
   return 0;
+}
+
+/**
+ * Converts a buffer to a long int accordingly to strtol.
+ *
+ * @param buf Pointer to a buffer to convert.
+ * @param len If not NULL, it stores the buffer length processed for conversion.
+ * @param base Conversion base.
+ *
+ * @return Result of conversion.
+ */
+long int	buffer_tolong(t_buffer *buf, size_t *len, int base)
+{
+  long int	result;
+  char		*endptr;
+  t_buffer	*workbuf;
+
+  workbuf = buf;
+  if (buf->max_size == 0)
+    {
+      /* Considering buf->buf has not been allocated */
+      workbuf = buffer_dup(buf);
+    }
+  result = 0;
+  endptr = workbuf->buf;
+  if (buffer_addnull(workbuf) == 0)
+    {
+      result = strtol(workbuf->buf, &endptr, base);
+    }
+  if (len != NULL)
+    {
+      *len = endptr - workbuf->buf;
+    }
+  if (workbuf != buf)
+    {
+      buffer_destroy(workbuf);
+    }
+  else
+    {
+      /* Removing null byte */
+      buf->len--;
+    }
+  return result;
+}
+
+/**
+ * Converts a buffer to an unsigned long int accordingly to strtoul.
+ *
+ * @param buf Pointer to a buffer to convert.
+ * @param len If not NULL, it stores the buffer length processed for conversion.
+ * @param base Conversion base.
+ *
+ * @return Result of conversion.
+ */
+unsigned long int	buffer_toulong(t_buffer *buf, size_t *len, int base)
+{
+  unsigned long int	result;
+  char			*endptr;
+  t_buffer		*workbuf;
+
+  workbuf = buf;
+  if (buf->max_size == 0)
+    {
+      /* Considering buf->buf has not been allocated */
+      workbuf = buffer_dup(buf);
+    }
+  result = 0;
+  endptr = workbuf->buf;
+  if (buffer_addnull(workbuf) == 0)
+    {
+      result = strtoul(workbuf->buf, &endptr, base);
+    }
+  if (len != NULL)
+    {
+      *len = endptr - workbuf->buf;
+    }
+  if (workbuf != buf)
+    {
+      buffer_destroy(workbuf);
+    }
+  else
+    {
+      /* Removing null byte */
+      buf->len--;
+    }
+  return result;
+}
+
+/**
+ * Converts a buffer to a float accordingly to strtof.
+ *
+ * @param buf Pointer to a buffer to convert.
+ * @param len If not NULL, it stores the buffer length processed for conversion.
+ *
+ * @return Result of conversion.
+ */
+float		buffer_tofloat(t_buffer *buf, size_t *len)
+{
+  float		result;
+  char		*endptr;
+  t_buffer	*workbuf;
+
+  workbuf = buf;
+  if (buf->max_size == 0)
+    {
+      /* Considering buf->buf has not been allocated */
+      workbuf = buffer_dup(buf);
+    }
+  result = 0;
+  endptr = workbuf->buf;
+  if (buffer_addnull(workbuf) == 0)
+    {
+      result = strtof(workbuf->buf, &endptr);
+    }
+  if (len != NULL)
+    {
+      *len = endptr - workbuf->buf;
+    }
+  if (workbuf != buf)
+    {
+      buffer_destroy(workbuf);
+    }
+  else
+    {
+      /* Removing null byte */
+      buf->len--;
+    }
+  return result;
+}
+
+/**
+ * Converts a buffer to a double accordingly to strtod.
+ *
+ * @param buf Pointer to a buffer to convert.
+ * @param len If not NULL, it stores the buffer length processed for conversion.
+ *
+ * @return Result of conversion.
+ */
+double		buffer_todouble(t_buffer *buf, size_t *len)
+{
+  double	result;
+  char		*endptr;
+  t_buffer	*workbuf;
+
+  workbuf = buf;
+  if (buf->max_size == 0)
+    {
+      /* Considering buf->buf has not been allocated */
+      workbuf = buffer_dup(buf);
+    }
+  result = 0;
+  endptr = workbuf->buf;
+  if (buffer_addnull(workbuf) == 0)
+    {
+      result = strtod(workbuf->buf, &endptr);
+    }
+  if (len != NULL)
+    {
+      *len = endptr - workbuf->buf;
+    }
+  if (workbuf != buf)
+    {
+      buffer_destroy(workbuf);
+    }
+  else
+    {
+      /* Removing null byte */
+      buf->len--;
+    }
+  return result;
 }
