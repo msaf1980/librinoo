@@ -42,8 +42,9 @@ typedef struct	s_rinoobrowser
   char		*post_data;
   t_hashtable	*headers;
   void		(*event_fsm)(struct s_rinoobrowser *rb,
-			     t_buffer *result,
 			     t_rinoobrowser_event event,
+			     t_buffer *result,
+			     u32 nbresults,
 			     void *arg);
 }		t_rinoobrowser;
 
@@ -61,15 +62,17 @@ int			rinoo_browser_setproperty(t_rinoobrowser *rb,
 int			rinoo_browser_get(t_rinoobrowser *rb,
 					  const char *url,
 					  void (*event_fsm)(t_rinoobrowser *rb,
-							    t_buffer *result,
 							    t_rinoobrowser_event event,
+							    t_buffer *result,
+							    u32 nbresults,
 							    void *arg));
 int			rinoo_browser_post(t_rinoobrowser *rb,
 					   const char *url,
 					   const char *post_data,
 					   void (*event_fsm)(t_rinoobrowser *rb,
-							     t_buffer *result,
 							     t_rinoobrowser_event event,
+							     t_buffer *result,
+							     u32 nbresults,
 							     void *arg));
 int			rinoo_browser_search(t_rinoobrowser *rb,
 					     const char *regexp,

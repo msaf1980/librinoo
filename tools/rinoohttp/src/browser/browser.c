@@ -1,5 +1,5 @@
 /**
- * @file   rinoo_browser.c
+ * @file   browser.c
  * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
  * @date   Sun Feb 20 16:07:38 2011
  *
@@ -77,10 +77,11 @@ static void	rinoo_browser_process_regexps(t_rinoobrowser *rb, t_buffer *result)
   int			rc;
   u32			offset;
   int			succeed;
-  t_buffer		cur_substr;
+  u32			nbsubstrs;
   t_listiterator	listit = NULL;
   t_rinoobrowser_search	*cur_search;
   int			ovector[RINOO_BROWSER_MAX_SUBSTRINGS];
+  t_buffer		substrs[RINOO_BROWSER_MAX_SUBSTRINGS];
 
   XDASSERTN(rb->regexps != NULL);
 
@@ -101,18 +102,24 @@ static void	rinoo_browser_process_regexps(t_rinoobrowser *rb, t_buffer *result)
 
 	  if (rc > 0)
 	    {
-	      for (i = (rc == 1 ? 0 : 1); i < rc; i++)
+	      memset(substrs, 0, sizeof(substrs));
+	      for (i = (rc == 1 ? 0 : 1), nbsubstrs = 0; i < rc; i++)
 		{
-		  succeed++;
-		  buffer_static(cur_substr,
+		  buffer_static(substrs[nbsubstrs],
 				buffer_ptr(result) + ovector[2 * i],
 				ovector[2 * i + 1] - ovector[2 * i]);
-		  rb->event_fsm(rb,
-				&cur_substr,
-				EVENT_BROWSER_MATCH,
-				cur_search->arg);
+		  succeed++;
+		  nbsubstrs++;
 		}
 	      offset = ovector[1];
+	      if (nbsubstrs > 0)
+		{
+		  rb->event_fsm(rb,
+				EVENT_BROWSER_MATCH,
+				substrs,
+				nbsubstrs,
+				cur_search->arg);
+		}
 	    }
 	  else
 	    {
@@ -121,10 +128,10 @@ static void	rinoo_browser_process_regexps(t_rinoobrowser *rb, t_buffer *result)
 	}
       if (succeed == 0)
 	{
-	  rb->event_fsm(rb, NULL, EVENT_BROWSER_NOMATCH, cur_search->arg);
+	  rb->event_fsm(rb, EVENT_BROWSER_NOMATCH, NULL, 0, cur_search->arg);
 	}
     }
-  rb->event_fsm(rb, NULL, EVENT_BROWSER_MATCH_END, NULL);
+  rb->event_fsm(rb, EVENT_BROWSER_MATCH_END, NULL, 0, NULL);
 }
 
 static void	rinoo_browser_fsm(t_rinoohttp *httpsock, t_rinoohttp_event event)
@@ -157,7 +164,7 @@ static void	rinoo_browser_fsm(t_rinoohttp *httpsock, t_rinoohttp_event event)
     case EVENT_HTTP_RESPONSE:
       if (httpsock->response.contentlength == 0)
 	{
-	  rb->event_fsm(rb, NULL, EVENT_BROWSER_MATCH_END, NULL);
+	  rb->event_fsm(rb, EVENT_BROWSER_MATCH_END, NULL, 0, NULL);
 	}
       break;
     case EVENT_HTTP_RESPBODY:
@@ -170,21 +177,22 @@ static void	rinoo_browser_fsm(t_rinoohttp *httpsock, t_rinoohttp_event event)
 	  else
 	    {
 	      rb->event_fsm(rb,
-			    httpsock->tcpsock->socket.rdbuf,
 			    EVENT_BROWSER_MATCH,
+			    httpsock->tcpsock->socket.rdbuf,
+			    1,
 			    NULL);
 	    }
 	}
       break;
     case EVENT_HTTP_ERROR:
-      rb->event_fsm(rb, NULL, EVENT_BROWSER_ERROR, NULL);
+      rb->event_fsm(rb, EVENT_BROWSER_ERROR, NULL, 0, NULL);
       rb->http = NULL;
       break;
     case EVENT_HTTP_CLOSE:
       rb->http = NULL;
       break;
     case EVENT_HTTP_TIMEOUT:
-      rb->event_fsm(rb, NULL, EVENT_BROWSER_ERROR, NULL);
+      rb->event_fsm(rb, EVENT_BROWSER_ERROR, NULL, 0, NULL);
       rb->http = NULL;
       break;
     }
@@ -203,7 +211,7 @@ static void		rinoo_browser_generate_request(t_rinoobrowser *rb)
     {
       rinoo_http_socket_destroy(rb->http);
       rb->http = NULL;
-      rb->event_fsm(rb, NULL, EVENT_BROWSER_ERROR, NULL);
+      rb->event_fsm(rb, EVENT_BROWSER_ERROR, NULL, 0, NULL);
       return;
     }
   if (rb->useragent != NULL &&
@@ -214,7 +222,7 @@ static void		rinoo_browser_generate_request(t_rinoobrowser *rb)
     {
       rinoo_http_socket_destroy(rb->http);
       rb->http = NULL;
-      rb->event_fsm(rb, NULL, EVENT_BROWSER_ERROR, NULL);
+      rb->event_fsm(rb, EVENT_BROWSER_ERROR, NULL, 0, NULL);
       return;
     }
   rinoo_socket_timeout_reset(&rb->http->tcpsock->socket);
@@ -240,8 +248,8 @@ static void		rinoo_browser_dnsfsm(t_rinoodns *rdns,
 				   rinoo_browser_fsm);
       rinoo_browser_generate_request(rb);
       break;
-    /* case RINOODNS_EVENT_ERROR: */
-    /*   rb->event_fsm(rb, NULL, EVENT_BROWSER_ERROR, NULL); */
+    case RINOODNS_EVENT_ERROR:
+      rb->event_fsm(rb, EVENT_BROWSER_ERROR, NULL, 0, NULL);
       break;
     }
 }
@@ -249,8 +257,9 @@ static void		rinoo_browser_dnsfsm(t_rinoodns *rdns,
 int		rinoo_browser_get(t_rinoobrowser *rb,
 				  const char *url,
 				  void (*event_fsm)(t_rinoobrowser *rb,
-						    t_buffer *result,
 						    t_rinoobrowser_event event,
+						    t_buffer *result,
+						    u32 nbresults,
 						    void *arg))
 {
   u32		port;
@@ -304,8 +313,9 @@ int		rinoo_browser_post(t_rinoobrowser *rb,
 				   const char *url,
 				   const char *post_data,
 				   void (*event_fsm)(t_rinoobrowser *rb,
-						     t_buffer *result,
 						     t_rinoobrowser_event event,
+						     t_buffer *result,
+						     u32 nbresults,
 						     void *arg))
 {
   u32		port;

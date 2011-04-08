@@ -95,7 +95,6 @@ static void	rinoo_http_easysend_buffer_destroy(void *data)
 
 int		rinoo_http_easysend_buffer(t_rinoohttp *httpsock, t_buffer *buffer)
 {
-  int			res;
   t_rinoohttp_send_ctx	*sctx;
 
   XASSERT(httpsock != NULL, -1);
