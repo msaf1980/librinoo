@@ -71,6 +71,32 @@ int		rinoo_browser_setproperty(t_rinoobrowser *rb,
   return 0;
 }
 
+static void	rinoo_browser_call_fsm(t_rinoobrowser *rb,
+				       t_rinoobrowser_event event,
+				       t_buffer *result,
+				       u32 nbresults,
+				       void *arg)
+{
+  if (rb->done == 0)
+    {
+      rb->event_fsm(rb,
+		    event,
+		    result,
+		    nbresults,
+		    arg);
+      switch (event)
+	{
+	case EVENT_BROWSER_MATCH:
+	case EVENT_BROWSER_NOMATCH:
+	  break;
+	case EVENT_BROWSER_ERROR:
+	case EVENT_BROWSER_MATCH_END:
+	  rb->done = 1;
+	  break;
+	}
+    }
+}
+
 static void	rinoo_browser_process_regexps(t_rinoobrowser *rb, t_buffer *result)
 {
   int			i;
@@ -114,7 +140,7 @@ static void	rinoo_browser_process_regexps(t_rinoobrowser *rb, t_buffer *result)
 	      offset = ovector[1];
 	      if (nbsubstrs > 0)
 		{
-		  rb->event_fsm(rb,
+		  rinoo_browser_call_fsm(rb,
 				EVENT_BROWSER_MATCH,
 				substrs,
 				nbsubstrs,
@@ -128,10 +154,10 @@ static void	rinoo_browser_process_regexps(t_rinoobrowser *rb, t_buffer *result)
 	}
       if (succeed == 0)
 	{
-	  rb->event_fsm(rb, EVENT_BROWSER_NOMATCH, NULL, 0, cur_search->arg);
+	  rinoo_browser_call_fsm(rb, EVENT_BROWSER_NOMATCH, NULL, 0, cur_search->arg);
 	}
     }
-  rb->event_fsm(rb, EVENT_BROWSER_MATCH_END, NULL, 0, NULL);
+  rinoo_browser_call_fsm(rb, EVENT_BROWSER_MATCH_END, NULL, 0, NULL);
 }
 
 static void	rinoo_browser_fsm(t_rinoohttp *httpsock, t_rinoohttp_event event)
@@ -164,7 +190,7 @@ static void	rinoo_browser_fsm(t_rinoohttp *httpsock, t_rinoohttp_event event)
     case EVENT_HTTP_RESPONSE:
       if (httpsock->response.contentlength == 0)
 	{
-	  rb->event_fsm(rb, EVENT_BROWSER_MATCH_END, NULL, 0, NULL);
+	  rinoo_browser_call_fsm(rb, EVENT_BROWSER_MATCH_END, NULL, 0, NULL);
 	}
       break;
     case EVENT_HTTP_RESPBODY:
@@ -176,23 +202,30 @@ static void	rinoo_browser_fsm(t_rinoohttp *httpsock, t_rinoohttp_event event)
 	    }
 	  else
 	    {
-	      rb->event_fsm(rb,
-			    EVENT_BROWSER_MATCH,
-			    httpsock->tcpsock->socket.rdbuf,
-			    1,
-			    NULL);
+	      rinoo_browser_call_fsm(rb,
+				     EVENT_BROWSER_MATCH,
+				     httpsock->tcpsock->socket.rdbuf,
+				     1,
+				     NULL);
+	      rinoo_browser_call_fsm(rb,
+				     EVENT_BROWSER_MATCH_END,
+				     NULL,
+				     0,
+				     NULL);
 	    }
 	}
       break;
     case EVENT_HTTP_ERROR:
-      rb->event_fsm(rb, EVENT_BROWSER_ERROR, NULL, 0, NULL);
+      rinoo_browser_call_fsm(rb, EVENT_BROWSER_ERROR, NULL, 0, NULL);
       rb->http = NULL;
       break;
     case EVENT_HTTP_CLOSE:
+      /* CLOSE is an error if request is not done (see rinoo_browser_call_fsm) */
+      rinoo_browser_call_fsm(rb, EVENT_BROWSER_ERROR, NULL, 0, NULL);
       rb->http = NULL;
       break;
     case EVENT_HTTP_TIMEOUT:
-      rb->event_fsm(rb, EVENT_BROWSER_ERROR, NULL, 0, NULL);
+      rinoo_browser_call_fsm(rb, EVENT_BROWSER_ERROR, NULL, 0, NULL);
       rb->http = NULL;
       break;
     }
@@ -211,7 +244,7 @@ static void		rinoo_browser_generate_request(t_rinoobrowser *rb)
     {
       rinoo_http_socket_destroy(rb->http);
       rb->http = NULL;
-      rb->event_fsm(rb, EVENT_BROWSER_ERROR, NULL, 0, NULL);
+      rinoo_browser_call_fsm(rb, EVENT_BROWSER_ERROR, NULL, 0, NULL);
       return;
     }
   if (rb->useragent != NULL &&
@@ -222,7 +255,7 @@ static void		rinoo_browser_generate_request(t_rinoobrowser *rb)
     {
       rinoo_http_socket_destroy(rb->http);
       rb->http = NULL;
-      rb->event_fsm(rb, EVENT_BROWSER_ERROR, NULL, 0, NULL);
+      rinoo_browser_call_fsm(rb, EVENT_BROWSER_ERROR, NULL, 0, NULL);
       return;
     }
   rinoo_socket_timeout_reset(&rb->http->tcpsock->socket);
@@ -238,7 +271,6 @@ static void		rinoo_browser_dnsfsm(t_rinoodns *rdns,
   XDASSERTN(rb != NULL);
   switch (event)
     {
-    default:
     case RINOODNS_EVENT_OK:
       rb->ip = ip;
       rb->http = rinoo_http_client(rb->sched,
@@ -249,7 +281,7 @@ static void		rinoo_browser_dnsfsm(t_rinoodns *rdns,
       rinoo_browser_generate_request(rb);
       break;
     case RINOODNS_EVENT_ERROR:
-      rb->event_fsm(rb, EVENT_BROWSER_ERROR, NULL, 0, NULL);
+      rinoo_browser_call_fsm(rb, EVENT_BROWSER_ERROR, NULL, 0, NULL);
       break;
     }
 }
@@ -288,8 +320,9 @@ int		rinoo_browser_get(t_rinoobrowser *rb,
       if (rb->port == port &&
 	  buffer_len(&rb->host) == buffer_len(&hostbuf) &&
 	  memcmp(buffer_ptr(&rb->host), buffer_ptr(&hostbuf), buffer_len(&hostbuf)) == 0 &&
-	  rb->http->last_event == EVENT_HTTP_CONNECT)
+	  rb->done == 1)
 	{
+	  rb->done = 0;
 	  rinoo_sched_socket(RINOO_SCHED_MODADD, &rb->http->tcpsock->socket, EVENT_SCHED_OUT);
 	  rinoo_browser_generate_request(rb);
 	  return 0;
@@ -297,6 +330,7 @@ int		rinoo_browser_get(t_rinoobrowser *rb,
       rinoo_http_socket_destroy(rb->http);
       rb->http = NULL;
     }
+  rb->done = 0;
   rb->host = hostbuf;
   rb->port = port;
   snprintf(host, 256, "%.*s", buffer_len(&rb->host), buffer_ptr(&rb->host));
@@ -349,8 +383,9 @@ int		rinoo_browser_post(t_rinoobrowser *rb,
       if (rb->port == port &&
 	  buffer_len(&rb->host) == buffer_len(&hostbuf) &&
 	  memcmp(buffer_ptr(&rb->host), buffer_ptr(&hostbuf), buffer_len(&hostbuf)) == 0 &&
-	  rb->http->last_event == EVENT_HTTP_CONNECT)
+	  rb->done == 1)
 	{
+	  rb->done = 0;
 	  rinoo_sched_socket(RINOO_SCHED_MODADD, &rb->http->tcpsock->socket, EVENT_SCHED_OUT);
 	  rinoo_browser_generate_request(rb);
 	  return 0;
@@ -358,6 +393,7 @@ int		rinoo_browser_post(t_rinoobrowser *rb,
       rinoo_http_socket_destroy(rb->http);
       rb->http = NULL;
     }
+  rb->done = 0;
   rb->host = hostbuf;
   rb->port = port;
   snprintf(host, 256, "%.*s", buffer_len(&rb->host), buffer_ptr(&rb->host));

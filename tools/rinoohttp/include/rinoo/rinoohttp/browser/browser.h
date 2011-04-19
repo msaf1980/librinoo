@@ -36,6 +36,7 @@ typedef struct	s_rinoobrowser
   t_ip		ip;
   u32		port;
   t_buffer	uri;
+  u32		done;
   t_rinoosched	*sched;
   t_rinoohttp	*http;
   t_list	*regexps;

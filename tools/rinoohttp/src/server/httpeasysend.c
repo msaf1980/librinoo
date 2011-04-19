@@ -99,6 +99,12 @@ int		rinoo_http_easysend_buffer(t_rinoohttp *httpsock, t_buffer *buffer)
 
   XASSERT(httpsock != NULL, -1);
 
+  if (buffer_len(buffer) == 0)
+    {
+      httpsock->response.code = 200;
+      httpsock->response.contentlength = 0;
+      return 0;
+    }
   sctx = rinoo_http_easysend(httpsock);
   XASSERT(sctx != NULL, -1);
   sctx->tosend = buffer;
