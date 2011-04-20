@@ -103,6 +103,7 @@ int		rinoo_http_easysend_buffer(t_rinoohttp *httpsock, t_buffer *buffer)
     {
       httpsock->response.code = 200;
       httpsock->response.contentlength = 0;
+      buffer_destroy(buffer);
       return 0;
     }
   sctx = rinoo_http_easysend(httpsock);
