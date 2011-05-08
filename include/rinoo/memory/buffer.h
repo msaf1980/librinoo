@@ -46,5 +46,6 @@ long int		buffer_tolong(t_buffer *buf, size_t *len, int base);
 unsigned long int	buffer_toulong(t_buffer *buf, size_t *len, int base);
 float			buffer_tofloat(t_buffer *buf, size_t *len);
 double			buffer_todouble(t_buffer *buf, size_t *len);
+char			*buffer_tostr(t_buffer *buf);
 
 #endif		/* !RINOO_BUFFER_H_ */

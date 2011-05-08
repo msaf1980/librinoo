@@ -195,7 +195,7 @@ int		buffer_addstr(t_buffer *buf, const char *str)
  */
 int		buffer_addnull(t_buffer *buf)
 {
-  if (buffer_add(buf, "\0", 1) < 0)
+  if ((buf->len == 0 || buf->buf[buf->len - 1] != 0) && buffer_add(buf, "\0", 1) < 0)
     {
       return -1;
     }
@@ -489,4 +489,22 @@ double		buffer_todouble(t_buffer *buf, size_t *len)
       buf->len--;
     }
   return result;
+}
+
+/**
+ * Converts a buffer into a string.
+ * It makes sure the buffer ends with \0 and returns the internal buffer pointer.
+ * Buffer length changes, thus.
+ *
+ * @param buf Pointer to the buffer to convert.
+ *
+ * @return A pointer to a string or NULL if an error occurs.
+ */
+char		*buffer_tostr(t_buffer *buf)
+{
+  if (buffer_addnull(buf) != 0)
+    {
+      return NULL;
+    }
+  return buf->buf;
 }
