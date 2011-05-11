@@ -11,6 +11,7 @@
 #ifndef		RINOO_MODULE_MEMORY_H_
 # define	RINOO_MODULE_MEMORY_H_
 
+# include	"rinoo/memory/blob.h"
 # include	"rinoo/memory/stdmem.h"
 # include	"rinoo/memory/buffer.h"
 
