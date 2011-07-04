@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.6)
 project(rinoohttp)
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "1")
-set(VERSION_PATCH "1")
+set(VERSION_PATCH "2")
 set(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
 #include(CMakeForceCompiler)
@@ -66,13 +66,6 @@ endforeach (loop_var)
 add_library(${CMAKE_PROJECT_NAME}_static STATIC ${src_files})
 add_library(${CMAKE_PROJECT_NAME} SHARED ${src_files})
 
-add_executable(${CMAKE_PROJECT_NAME}d "test/daemon.c")
-target_link_libraries(${CMAKE_PROJECT_NAME}d rinoo pcre)
-target_link_libraries(${CMAKE_PROJECT_NAME}d ${CMAKE_PROJECT_NAME}_static)
-
-add_executable(${CMAKE_PROJECT_NAME}c "test/client.c")
-target_link_libraries(${CMAKE_PROJECT_NAME}c rinoo pcre)
-target_link_libraries(${CMAKE_PROJECT_NAME}c ${CMAKE_PROJECT_NAME}_static)
 ## !Library ##
 
 

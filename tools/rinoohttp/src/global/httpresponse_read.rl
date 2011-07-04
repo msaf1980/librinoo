@@ -11,6 +11,24 @@
 
 #include	"rinoo/rinoohttp.h"
 
+void	rinoo_http_response_addheader(t_rinoohttp *httpsock,
+				      char *key_start, char *key_end,
+				      char *val_start, char *val_end)
+{
+  char	*key;
+
+  if (key_start >= key_end || val_start >= val_end)
+    {
+      return;
+    }
+  key = strndup(key_start, key_end - key_start);
+  rinoo_http_header_adddata(httpsock->response.headers,
+			    key,
+			    val_start,
+			    val_end - val_start);
+  xfree(key);
+}
+
 %%{
   machine httpres_reader;
   write data;
@@ -21,6 +39,21 @@
   action endmsg		{ msg_end = fpc; }
   action startcl	{ cl_start = fpc; }
   action endcl		{ cl_end = fpc; }
+  action startheaderkey	{ headerkey_start = fpc; }
+  action endheaderkey	{ headerkey_end = fpc; }
+  action startheaderval	{ headerval_start = fpc; }
+  action endheaderval	{
+    headerval_end = fpc;
+    rinoo_http_response_addheader(httpsock,
+				  headerkey_start,
+				  headerkey_end,
+				  headerval_start,
+				  headerval_end);
+    headerkey_start = NULL;
+    headerkey_end = NULL;
+    headerval_start = NULL;
+    headerval_end = NULL;
+  }
   action okac		{
     if (code_start != NULL && code_end != NULL)
       {
@@ -52,7 +85,7 @@
   http = 'HTTP/1.' ('0' %{ httpsock->response.version = HTTP_VERSION_10; } |
 		    '1' %{ httpsock->response.version = HTTP_VERSION_11; });
   contentlength = 'Content-length: 'i (digit+) >startcl %endcl crlf;
-  header = (alnum | punct)+ ': ' (ascii* -- crlf) crlf;
+  header = (alnum | punct)+ >startheaderkey %endheaderkey ': ' (ascii* -- crlf) >startheaderval %endheaderval crlf;
   main := (http ' ' code ' ' msg crlf
 	   header*
 	   contentlength?
@@ -76,6 +109,10 @@ int		rinoo_http_response_read(t_rinoohttp *httpsock)
   char		*msg_end = NULL;
   char		*cl_start = NULL;
   char		*cl_end = NULL;
+  char		*headerkey_start = NULL;
+  char		*headerkey_end = NULL;
+  char		*headerval_start = NULL;
+  char		*headerval_end = NULL;
   char		tmp;
 
   %% write init;
