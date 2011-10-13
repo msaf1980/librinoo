@@ -1,6 +1,6 @@
 /**
  * @file   xtypes.h
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2012
  * @date   Mon Oct 26 14:09:29 2009
  *
  * @brief  Header file for type declarations
@@ -12,8 +12,8 @@
 # define	RINOO_XTYPES_H_
 
 typedef unsigned short		u16;
-typedef unsigned int            u32;
-typedef unsigned long long      u64;
+typedef unsigned int		u32;
+typedef unsigned long long	u64;
 
 # if		__WORDSIZE == 64
 #  define	PTR_TO_U32(p)	((u32)((u64)(p) % UINT_MAX))

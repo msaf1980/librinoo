@@ -1,6 +1,6 @@
 /**
  * @file   rinoo.h
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2012
  * @date   Tue Dec 22 17:29:14 2009
  *
  * @brief  This is the global header file.
@@ -25,6 +25,7 @@
 # include	<string.h>
 # include	<stdarg.h>
 # include	<limits.h>
+# include	<ucontext.h>
 # include	<sys/types.h>
 # include	<sys/time.h>
 # include	<sys/ioctl.h>
@@ -45,14 +46,5 @@
 
 /* STRUCT */
 # include	"rinoo/struct/module.h"
-
-/* SCHEDULER */
-# include	"rinoo/scheduler/module.h"
-
-/* NET */
-# include	"rinoo/net/module.h"
-
-/* SERVICES */
-# include	"rinoo/services/module.h"
 
 #endif		/* !RINOO_H_ */

@@ -1,6 +1,6 @@
 /**
  * @file   buffer.c
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2012
  * @date   Thu Dec  3 23:23:17 2009
  *
  * @brief  Contains functions to create a buffer (pointer & size)
@@ -14,36 +14,26 @@
  * Creates a new buffer. It allocates the needed memory.
  *
  * @param init_size Initial size of the buffer.
- * @param maxsize Maximum size of the buffer.
  *
  * @return Pointer to the created buffer.
  */
-t_buffer	*buffer_create(u32 init_size, u32 maxsize)
+t_buffer *buffer_create(u32 init_size)
 {
-  t_buffer	*buf;
+	t_buffer *buf;
 
-  XDASSERT(init_size <= maxsize || maxsize == 0, NULL);
-  XDASSERT(init_size > 0, NULL);
+	XDASSERT(init_size > 0, NULL);
 
-  buf = xcalloc(1, sizeof(*buf));
-  XASSERT(buf != NULL, NULL);
-  buf->buf = xcalloc(1, init_size);
-  if (buf->buf == NULL)
-    {
-      xfree(buf);
-      XASSERT(0, NULL);
-    }
-  buf->len = 0;
-  buf->size = init_size;
-  if (likely(maxsize != 0))
-    {
-      buf->max_size = maxsize;
-    }
-  else
-    {
-      buf->max_size = BUFFER_DEFAULT_MAXSIZE;
-    }
-  return (buf);
+	buf = calloc(1, sizeof(*buf));
+	XASSERT(buf != NULL, NULL);
+	buf->buf = calloc(1, init_size);
+	if (buf->buf == NULL) {
+		free(buf);
+		XASSERT(0, NULL);
+	}
+	buf->len = 0;
+	buf->size = init_size;
+	buf->alloc = 1;
+	return buf;
 }
 
 /**
@@ -51,47 +41,45 @@ t_buffer	*buffer_create(u32 init_size, u32 maxsize)
  *
  * @param buffer Pointer to the buffer to destroy.
  */
-void		buffer_destroy(t_buffer *buf)
+void buffer_destroy(t_buffer *buf)
 {
-  XDASSERTN(buf != NULL);
-  XDASSERTN(buf->buf != NULL);
-  /* Means buf->buf has been allocated, see strtobuffer macro in buffer.h */
-  XDASSERTN(buf->max_size > 0);
+	XDASSERTN(buf != NULL);
+	XDASSERTN(buf->buf != NULL);
 
-  xfree(buf->buf);
-  xfree(buf);
+	buf->alloc = 0;
+	free(buf->buf);
+	buf->buf = NULL;
+	free(buf);
 }
 
 /**
- * Extends a buffer. It trys to add 'size' + BUFFER_INCREMENT of memory.
- * This function fails if the buffer maximum size is reached.
+ * Extends a buffer. It tries to set new size to (size * 2).
  *
  * @param buf Pointer to the buffer to extend.
  * @param size New desired size.
  *
- * @return 1 if succeeds, 0 if the maximum size is reached, -1 on error.
+ * @return 0 if succeeds, -1 if an error occurs.
  */
-int		buffer_extend(t_buffer *buf, size_t size)
+int buffer_extend(t_buffer *buf, size_t size)
 {
-  int		newsize;
-  void		*newbuf;
+	void *newbuf;
 
-  XDASSERT(buf != NULL, -1);
-  XDASSERT(buf->buf != NULL, -1);
+	XDASSERT(buf != NULL, -1);
+	XDASSERT(buf->buf != NULL, -1);
+	XDASSERT(buf->alloc == 1, -1);
 
-  if (buf->size == buf->max_size)
-    return (0);
-  size = (size > BUFFER_INCREMENT ?
-	  size + BUFFER_INCREMENT : BUFFER_INCREMENT);
-  newsize = (buf->size + size > buf->max_size ?
-	     buf->max_size : buf->size + size);
-  newbuf = xrealloc(buf->buf, newsize);
- /* if realloc fails, buf->buf is untouched, we'll keep it */
-  if (newbuf == NULL)
-    XASSERT(0, -1);
-  buf->buf = newbuf;
-  buf->size = newsize;
-  return (1);
+	if (buf->size >= size) {
+		return 0;
+	}
+	size = 2 * (size > BUFFER_INCREMENT ? size : BUFFER_INCREMENT);
+	newbuf = realloc(buf->buf, size);
+	/* if realloc fails, buf->buf is untouched, we'll keep it */
+	if (unlikely(newbuf == NULL)) {
+		return -1;
+	}
+	buf->buf = newbuf;
+	buf->size = size;
+	return 0;
 }
 
 /**
@@ -106,26 +94,26 @@ int		buffer_extend(t_buffer *buf, size_t size)
  *
  * @return Number of bytes printed if succeeds, else -1.
  */
-int		buffer_vprint(t_buffer *buf, const char *format, va_list ap)
+int buffer_vprint(t_buffer *buf, const char *format, va_list ap)
 {
-  int		res;
-  va_list	ap2;
+	int res;
+	va_list ap2;
 
-  XDASSERT(buf != NULL, -1);
-  XDASSERT(buf->buf != NULL, -1);
+	XDASSERT(buf != NULL, -1);
+	XDASSERT(buf->buf != NULL, -1);
+	XDASSERT(buf->alloc == 1, -1);
 
-  va_copy(ap2, ap);
-  while (((u32)(res = vsnprintf(buf->buf + buf->len,
-				buf->size - buf->len,
-				format, ap2)) >= buf->size - buf->len) &&
-	 buffer_extend(buf, res) == 1)
-    {
-      va_end(ap2);
-      va_copy(ap2, ap);
-    }
-  va_end(ap2);
-  buf->len += res;
-  return (res);
+	va_copy(ap2, ap);
+	while (((u32) (res = vsnprintf(buf->buf + buf->len,
+				       buf->size - buf->len,
+				       format, ap2)) >= buf->size - buf->len) &&
+	       buffer_extend(buf, buf->len + res + 1) == 0) {
+		va_end(ap2);
+		va_copy(ap2, ap);
+	}
+	va_end(ap2);
+	buf->len += res;
+	return res;
 }
 
 /**
@@ -138,15 +126,15 @@ int		buffer_vprint(t_buffer *buf, const char *format, va_list ap)
  *
  * @return Number of bytes printed if succeeds, else -1.
  */
-int		buffer_print(t_buffer *buf, const char *format, ...)
+int buffer_print(t_buffer *buf, const char *format, ...)
 {
-  int		res;
-  va_list	ap;
+	int res;
+	va_list ap;
 
-  va_start(ap, format);
-  res = buffer_vprint(buf, format, ap);
-  va_end(ap);
-  return res;
+	va_start(ap, format);
+	res = buffer_vprint(buf, format, ap);
+	va_end(ap);
+	return res;
 }
 
 /**
@@ -159,17 +147,20 @@ int		buffer_print(t_buffer *buf, const char *format, ...)
  *
  * @return size if data is added to the buffer, else -1.
  */
-int		buffer_add(t_buffer *buf, const char *data, size_t size)
+int buffer_add(t_buffer *buf, const char *data, size_t size)
 {
-  XDASSERT(buf != NULL, -1);
-  XDASSERT(buf->buf != NULL, -1);
-  XDASSERT(data != NULL, -1);
+	XDASSERT(buf != NULL, -1);
+	XDASSERT(buf->buf != NULL, -1);
+	XDASSERT(buf->alloc == 1, -1);
+	XDASSERT(data != NULL, -1);
 
-  if (size + buf->len > buf->size && buffer_extend(buf, size + buf->len) != 1)
-    return (-1);
-  memcpy(buf->buf + buf->len, data, size);
-  buf->len += size;
-  return (size);
+	if (size + buf->len > buf->size &&
+	    buffer_extend(buf, size + buf->len) < 0) {
+		return -1;
+	}
+	memcpy(buf->buf + buf->len, data, size);
+	buf->len += size;
+	return size;
 }
 
 /**
@@ -181,9 +172,9 @@ int		buffer_add(t_buffer *buf, const char *data, size_t size)
  *
  * @return Number of bytes added on success, or -1 if an error occurs
  */
-int		buffer_addstr(t_buffer *buf, const char *str)
+int buffer_addstr(t_buffer *buf, const char *str)
 {
-  return buffer_add(buf, str, strlen(str));
+	return buffer_add(buf, str, strlen(str));
 }
 
 /**
@@ -193,13 +184,13 @@ int		buffer_addstr(t_buffer *buf, const char *str)
  *
  * @return 0 on success, or -1 if an error occurs
  */
-int		buffer_addnull(t_buffer *buf)
+int buffer_addnull(t_buffer *buf)
 {
-  if ((buf->len == 0 || buf->buf[buf->len - 1] != 0) && buffer_add(buf, "\0", 1) < 0)
-    {
-      return -1;
-    }
-  return 0;
+	if ((buf->len == 0 || buf->buf[buf->len - 1] != 0) &&
+	    buffer_add(buf, "\0", 1) < 0) {
+		return -1;
+	}
+	return 0;
 }
 
 /**
@@ -209,26 +200,24 @@ int		buffer_addnull(t_buffer *buf)
  * @param buf Buffer where the data will be erased.
  * @param len Amount of data erased ('len' first bytes).
  *
- * @return 1 if data has been erased, else 0.
+ * @return 0 if data has been erased, else -1.
  */
-int		buffer_erase(t_buffer *buf, u32 len)
+int buffer_erase(t_buffer *buf, u32 len)
 {
-  XDASSERT(buf != NULL, 0);
-  XDASSERT(buf->buf != NULL, 0);
+	XDASSERT(buf != NULL, -1);
+	XDASSERT(buf->buf != NULL, -1);
 
-  if (buf->len > 0)
-    {
-      if (len > buf->len)
-	len = buf->len;
-      if (len < buf->len)
-	{
-	  memmove(buf->buf, buf->buf + len, buf->size - len);
+	if (buf->len > 0) {
+		if (len > buf->len)
+			len = buf->len;
+		if (len < buf->len) {
+			memmove(buf->buf, buf->buf + len, buf->size - len);
+		}
+		bzero(buf->buf + (buf->size - len), len);
+		buf->len -= len;
+		return 0;
 	}
-      bzero(buf->buf + (buf->size - len), len);
-      buf->len -= len;
-      return (1);
-    }
-  return (0);
+	return -1;
 }
 
 /**
@@ -238,34 +227,29 @@ int		buffer_erase(t_buffer *buf, u32 len)
  *
  * @return A pointer to the new buffer, or NULL if an error occurs.
  */
-t_buffer	*buffer_dup(t_buffer *buf)
+t_buffer *buffer_dup(t_buffer *buf)
 {
-  t_buffer	*newbuf;
+	t_buffer *newbuf;
 
-  XDASSERT(buf != NULL, NULL);
-  XDASSERT(buf->buf != NULL, NULL);
+	XDASSERT(buf != NULL, NULL);
+	XDASSERT(buf->buf != NULL, NULL);
 
-  newbuf = xcalloc(1, sizeof(*newbuf));
-  XASSERT(newbuf != NULL, NULL);
-  newbuf->len = buf->len;
-  newbuf->size = buf->size;
-  newbuf->max_size = buf->max_size;
-  if (unlikely(newbuf->size) == 0)
-    {
-      newbuf->size = BUFFER_INCREMENT;
-    }
-  if (newbuf->max_size == 0)
-    {
-      newbuf->max_size = BUFFER_DEFAULT_MAXSIZE;
-    }
-  newbuf->buf = xcalloc(1, newbuf->size);
-  if (newbuf->buf == NULL)
-    {
-      xfree(newbuf);
-      XASSERT(0, NULL);
-    }
-  memcpy(newbuf->buf, buf->buf, buf->len);
-  return newbuf;
+	newbuf = calloc(1, sizeof(*newbuf));
+	if (unlikely(newbuf == NULL)) {
+		return NULL;
+	}
+	newbuf->len = buf->len;
+	newbuf->size = buf->size;
+	if (unlikely(newbuf->size) == 0) {
+		newbuf->size = BUFFER_INCREMENT;
+	}
+	newbuf->buf = calloc(1, newbuf->size);
+	if (unlikely(newbuf->buf == NULL)) {
+		free(newbuf);
+		return NULL;
+	}
+	memcpy(newbuf->buf, buf->buf, buf->len);
+	return newbuf;
 }
 
 /**
@@ -276,23 +260,21 @@ t_buffer	*buffer_dup(t_buffer *buf)
  *
  * @return An integer less than, equal to, or greater than zero if buf is found, respectively, to be less than, to match, or be greater than s2
  */
-int		buffer_strcmp(t_buffer *buf, const char *str)
+int buffer_strcmp(t_buffer *buf, const char *str)
 {
-  u32		size;
+	u32 size;
 
-  XASSERT(buf != NULL, -1);
-  XASSERT(str != NULL, -1);
+	XASSERT(buf != NULL, -1);
+	XASSERT(str != NULL, -1);
 
-  size = strlen(str);
-  if (buffer_len(buf) < size)
-    {
-      return -str[buffer_len(buf)];
-    }
-  if (buffer_len(buf) > size)
-    {
-      return buf->buf[size];
-    }
-  return memcmp(buffer_ptr(buf), str, size);
+	size = strlen(str);
+	if (buffer_len(buf) < size) {
+		return -str[buffer_len(buf)];
+	}
+	if (buffer_len(buf) > size) {
+		return buf->buf[size];
+	}
+	return memcmp(buffer_ptr(buf), str, size);
 }
 
 /**
@@ -304,21 +286,20 @@ int		buffer_strcmp(t_buffer *buf, const char *str)
  *
  * @return An integer less than, equal to, or greater than zero if buf is found, respectively, to be less than, to match, or be greater than s2
  */
-int		buffer_strncmp(t_buffer *buf, const char *str, size_t len)
+int buffer_strncmp(t_buffer *buf, const char *str, size_t len)
 {
-  u32		i;
+	u32 i;
 
-  XASSERT(buf != NULL, -1);
-  XASSERT(str != NULL, -1);
+	XASSERT(buf != NULL, -1);
+	XASSERT(str != NULL, -1);
 
-  for (i = 0; i < len && i < buffer_len(buf); i++)
-    {
-      if (buf->buf[i] != str[i] || str[i] == 0)
-	return buf->buf[i] - str[i];
-    }
-  if (i < len && i >= buffer_len(buf))
-    return -buf->buf[buffer_len(buf) - 1];
-  return 0;
+	for (i = 0; i < len && i < buffer_len(buf); i++) {
+		if (buf->buf[i] != str[i] || str[i] == 0)
+			return buf->buf[i] - str[i];
+	}
+	if (i < len && i >= buffer_len(buf))
+		return -buf->buf[buffer_len(buf) - 1];
+	return 0;
 }
 
 /**
@@ -330,38 +311,35 @@ int		buffer_strncmp(t_buffer *buf, const char *str, size_t len)
  *
  * @return Result of conversion.
  */
-long int	buffer_tolong(t_buffer *buf, size_t *len, int base)
+long int buffer_tolong(t_buffer *buf, size_t *len, int base)
 {
-  long int	result;
-  char		*endptr;
-  t_buffer	*workbuf;
+	long int result;
+	char *endptr;
+	t_buffer *workbuf;
 
-  workbuf = buf;
-  if (buf->max_size == 0)
-    {
-      /* Considering buf->buf has not been allocated */
-      workbuf = buffer_dup(buf);
-    }
-  result = 0;
-  endptr = workbuf->buf;
-  if (buffer_addnull(workbuf) == 0)
-    {
-      result = strtol(workbuf->buf, &endptr, base);
-    }
-  if (len != NULL)
-    {
-      *len = endptr - workbuf->buf;
-    }
-  if (workbuf != buf)
-    {
-      buffer_destroy(workbuf);
-    }
-  else
-    {
-      /* Removing null byte */
-      buf->len--;
-    }
-  return result;
+	XDASSERT(buf != NULL, 0);
+	XDASSERT(buf->buf != NULL, 0);
+
+	workbuf = buf;
+	if (buf->alloc == 0) {
+		/* Considering buf->buf has not been allocated */
+		workbuf = buffer_dup(buf);
+	}
+	result = 0;
+	endptr = workbuf->buf;
+	if (buffer_addnull(workbuf) == 0) {
+		result = strtol(workbuf->buf, &endptr, base);
+	}
+	if (len != NULL) {
+		*len = endptr - workbuf->buf;
+	}
+	if (workbuf != buf) {
+		buffer_destroy(workbuf);
+	} else {
+		/* Removing null byte */
+		buf->len--;
+	}
+	return result;
 }
 
 /**
@@ -373,38 +351,35 @@ long int	buffer_tolong(t_buffer *buf, size_t *len, int base)
  *
  * @return Result of conversion.
  */
-unsigned long int	buffer_toulong(t_buffer *buf, size_t *len, int base)
+unsigned long int buffer_toulong(t_buffer *buf, size_t *len, int base)
 {
-  unsigned long int	result;
-  char			*endptr;
-  t_buffer		*workbuf;
+	char *endptr;
+	t_buffer *workbuf;
+	unsigned long int result;
 
-  workbuf = buf;
-  if (buf->max_size == 0)
-    {
-      /* Considering buf->buf has not been allocated */
-      workbuf = buffer_dup(buf);
-    }
-  result = 0;
-  endptr = workbuf->buf;
-  if (buffer_addnull(workbuf) == 0)
-    {
-      result = strtoul(workbuf->buf, &endptr, base);
-    }
-  if (len != NULL)
-    {
-      *len = endptr - workbuf->buf;
-    }
-  if (workbuf != buf)
-    {
-      buffer_destroy(workbuf);
-    }
-  else
-    {
-      /* Removing null byte */
-      buf->len--;
-    }
-  return result;
+	XDASSERT(buf != NULL, 0);
+	XDASSERT(buf->buf != NULL, 0);
+
+	workbuf = buf;
+	if (buf->alloc == 0) {
+		/* Considering buf->buf has not been allocated */
+		workbuf = buffer_dup(buf);
+	}
+	result = 0;
+	endptr = workbuf->buf;
+	if (buffer_addnull(workbuf) == 0) {
+		result = strtoul(workbuf->buf, &endptr, base);
+	}
+	if (len != NULL) {
+		*len = endptr - workbuf->buf;
+	}
+	if (workbuf != buf) {
+		buffer_destroy(workbuf);
+	} else {
+		/* Removing null byte */
+		buf->len--;
+	}
+	return result;
 }
 
 /**
@@ -415,38 +390,35 @@ unsigned long int	buffer_toulong(t_buffer *buf, size_t *len, int base)
  *
  * @return Result of conversion.
  */
-float		buffer_tofloat(t_buffer *buf, size_t *len)
+float buffer_tofloat(t_buffer *buf, size_t *len)
 {
-  float		result;
-  char		*endptr;
-  t_buffer	*workbuf;
+	float result;
+	char *endptr;
+	t_buffer *workbuf;
 
-  workbuf = buf;
-  if (buf->max_size == 0)
-    {
-      /* Considering buf->buf has not been allocated */
-      workbuf = buffer_dup(buf);
-    }
-  result = 0;
-  endptr = workbuf->buf;
-  if (buffer_addnull(workbuf) == 0)
-    {
-      result = strtof(workbuf->buf, &endptr);
-    }
-  if (len != NULL)
-    {
-      *len = endptr - workbuf->buf;
-    }
-  if (workbuf != buf)
-    {
-      buffer_destroy(workbuf);
-    }
-  else
-    {
-      /* Removing null byte */
-      buf->len--;
-    }
-  return result;
+	XDASSERT(buf != NULL, 0);
+	XDASSERT(buf->buf != NULL, 0);
+
+	workbuf = buf;
+	if (buf->alloc == 0) {
+		/* Considering buf->buf has not been allocated */
+		workbuf = buffer_dup(buf);
+	}
+	result = 0;
+	endptr = workbuf->buf;
+	if (buffer_addnull(workbuf) == 0) {
+		result = strtof(workbuf->buf, &endptr);
+	}
+	if (len != NULL) {
+		*len = endptr - workbuf->buf;
+	}
+	if (workbuf != buf) {
+		buffer_destroy(workbuf);
+	} else {
+		/* Removing null byte */
+		buf->len--;
+	}
+	return result;
 }
 
 /**
@@ -457,38 +429,35 @@ float		buffer_tofloat(t_buffer *buf, size_t *len)
  *
  * @return Result of conversion.
  */
-double		buffer_todouble(t_buffer *buf, size_t *len)
+double buffer_todouble(t_buffer *buf, size_t *len)
 {
-  double	result;
-  char		*endptr;
-  t_buffer	*workbuf;
+	double result;
+	char *endptr;
+	t_buffer *workbuf;
 
-  workbuf = buf;
-  if (buf->max_size == 0)
-    {
-      /* Considering buf->buf has not been allocated */
-      workbuf = buffer_dup(buf);
-    }
-  result = 0;
-  endptr = workbuf->buf;
-  if (buffer_addnull(workbuf) == 0)
-    {
-      result = strtod(workbuf->buf, &endptr);
-    }
-  if (len != NULL)
-    {
-      *len = endptr - workbuf->buf;
-    }
-  if (workbuf != buf)
-    {
-      buffer_destroy(workbuf);
-    }
-  else
-    {
-      /* Removing null byte */
-      buf->len--;
-    }
-  return result;
+	XDASSERT(buf != NULL, 0);
+	XDASSERT(buf->buf != NULL, 0);
+
+	workbuf = buf;
+	if (buf->alloc == 0) {
+		/* Considering buf->buf has not been allocated */
+		workbuf = buffer_dup(buf);
+	}
+	result = 0;
+	endptr = workbuf->buf;
+	if (buffer_addnull(workbuf) == 0) {
+		result = strtod(workbuf->buf, &endptr);
+	}
+	if (len != NULL) {
+		*len = endptr - workbuf->buf;
+	}
+	if (workbuf != buf) {
+		buffer_destroy(workbuf);
+	} else {
+		/* Removing null byte */
+		buf->len--;
+	}
+	return result;
 }
 
 /**
@@ -500,11 +469,10 @@ double		buffer_todouble(t_buffer *buf, size_t *len)
  *
  * @return A pointer to a string or NULL if an error occurs.
  */
-char		*buffer_tostr(t_buffer *buf)
+char *buffer_tostr(t_buffer *buf)
 {
-  if (buffer_addnull(buf) != 0)
-    {
-      return NULL;
-    }
-  return buf->buf;
+	if (buffer_addnull(buf) != 0) {
+		return NULL;
+	}
+	return buf->buf;
 }

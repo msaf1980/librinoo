@@ -1,6 +1,6 @@
 /**
  * @file   buffer.h
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2012
  * @date   Tue Dec 15 02:20:19 2009
  *
  * @brief  Header file for buffer management
@@ -12,25 +12,24 @@
 # define	RINOO_BUFFER_H_
 
 # define	BUFFER_INCREMENT	2048
-# define	BUFFER_DEFAULT_MAXSIZE	1024 * 1024
 
-typedef struct	s_buffer
+typedef struct s_buffer
 {
-  char		*buf;		/**< Pointer to the data */
-  u32		len;		/**< Data length */
-  u32		size;		/**< Buffer size */
-  u32		max_size;	/**< Buffer maximum size */
-}		t_buffer;
+	char	*buf;		/**< Pointer to the data */
+	size_t	len;		/**< Data length */
+	size_t	size;		/**< Buffer size */
+	char	alloc;
+} t_buffer;
 
 # define	buffer_ptr(ptr)				(ptr)->buf
 # define	buffer_len(ptr)				(ptr)->len
 # define	buffer_size(ptr)			(ptr)->size
 # define	buffer_isfull(ptr)			((ptr)->len == (ptr)->size)
 # define	buffer_setlen(ptr, length)		(ptr)->len = length
-# define	buffer_static(buffer, ptr, length)	do { buffer.buf = (char *) (ptr); buffer.len = (length); buffer.size = buffer.len; buffer.max_size = 0; } while (0)
-# define	strtobuffer(buffer, str)		do { buffer.buf = (char *) (str); buffer.len = strlen((str)); buffer.size = buffer.len; buffer.max_size = 0; } while (0)
+# define	buffer_static(buffer, ptr, length)	do { buffer.buf = (char *) (ptr); buffer.len = (length); buffer.size = buffer.len; buffer.alloc = 0; } while (0)
+# define	strtobuffer(buffer, str)		do { buffer.buf = (char *) (str); buffer.len = strlen((str)); buffer.size = buffer.len; buffer.alloc = 0; } while (0)
 
-t_buffer		*buffer_create(u32 init_size, u32 maxsize);
+t_buffer		*buffer_create(u32 init_size);
 void			buffer_destroy(t_buffer *ptr);
 int			buffer_extend(t_buffer *buf, size_t size);
 int			buffer_vprint(t_buffer *buf, const char *format, va_list ap);

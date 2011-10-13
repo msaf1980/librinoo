@@ -1,6 +1,6 @@
 /**
  * @file   fifo.c
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2012
  * @date   Fri Jan 29 15:00:41 2010
  *
  * @brief  Functions to manage fifo list structures.
@@ -16,13 +16,13 @@
  *
  * @return Pointer to the new fifo list, or NULL if an error occurs.
  */
-t_fifo		*fifo_create()
+t_fifo *fifo_create()
 {
-  t_fifo	*fifo;
+	t_fifo *fifo;
 
-  fifo = xcalloc(1, sizeof(*fifo));
-  XASSERT(fifo != NULL, NULL);
-  return (fifo);
+	fifo = calloc(1, sizeof(*fifo));
+	XASSERT(fifo != NULL, NULL);
+	return (fifo);
 }
 
 /**
@@ -30,26 +30,25 @@ t_fifo		*fifo_create()
  *
  * @param ptr
  */
-void		fifo_destroy(void *ptr)
+void fifo_destroy(void *ptr)
 {
-  t_fifo	*fifo;
-  t_fifonode	*cur;
-  t_fifonode	*tmp;
+	t_fifo *fifo;
+	t_fifonode *cur;
+	t_fifonode *tmp;
 
-  XASSERTN(ptr != NULL);
+	XASSERTN(ptr != NULL);
 
-  fifo = (t_fifo *) ptr;
+	fifo = (t_fifo *) ptr;
 
-  cur = fifo->head;
-  while (cur != NULL)
-    {
-      tmp = cur->next;
-      if (cur->free_func != NULL)
-	cur->free_func(cur->node);
-      xfree(cur);
-      cur = tmp;
-    }
-  xfree(fifo);
+	cur = fifo->head;
+	while (cur != NULL) {
+		tmp = cur->next;
+		if (cur->free_func != NULL)
+			cur->free_func(cur->node);
+		free(cur);
+		cur = tmp;
+	}
+	free(fifo);
 }
 
 /**
@@ -61,25 +60,24 @@ void		fifo_destroy(void *ptr)
  *
  * @return 1 on success, 0 if an error occurs.
  */
-int		fifo_push(t_fifo *fifo, void *node,
-			  void (*free_func)(void *node))
+int fifo_push(t_fifo * fifo, void *node, void (*free_func) (void *node))
 {
-  t_fifonode	*new;
+	t_fifonode *new;
 
-  XASSERT(fifo != NULL, FALSE);
-  XASSERT(node != NULL, FALSE);
+	XASSERT(fifo != NULL, FALSE);
+	XASSERT(node != NULL, FALSE);
 
-  new = xcalloc(1, sizeof(*new));
-  XASSERT(new != NULL, FALSE);
-  new->node = node;
-  new->free_func = free_func;
-  if (fifo->head == NULL)
-    fifo->head = new;
-  if (fifo->tail != NULL)
-    fifo->tail->next = new;
-  fifo->tail = new;
-  fifo->size++;
-  return (TRUE);
+	new = calloc(1, sizeof(*new));
+	XASSERT(new != NULL, FALSE);
+	new->node = node;
+	new->free_func = free_func;
+	if (fifo->head == NULL)
+		fifo->head = new;
+	if (fifo->tail != NULL)
+		fifo->tail->next = new;
+	fifo->tail = new;
+	fifo->size++;
+	return (TRUE);
 }
 
 /**
@@ -89,23 +87,23 @@ int		fifo_push(t_fifo *fifo, void *node,
  *
  * @return Pointer to the element.
  */
-void		*fifo_pop(t_fifo *fifo)
+void *fifo_pop(t_fifo * fifo)
 {
-  t_fifonode	*elem;
-  void		*node;
+	t_fifonode *elem;
+	void *node;
 
-  XASSERT(fifo != NULL, NULL);
+	XASSERT(fifo != NULL, NULL);
 
-  if (fifo->head == NULL)
-    return (NULL);
-  elem = fifo->head;
-  fifo->head = elem->next;
-  if (fifo->head == NULL)
-    fifo->tail = NULL;
-  node = elem->node;
-  xfree(elem);
-  fifo->size--;
-  return (node);
+	if (fifo->head == NULL)
+		return (NULL);
+	elem = fifo->head;
+	fifo->head = elem->next;
+	if (fifo->head == NULL)
+		fifo->tail = NULL;
+	node = elem->node;
+	free(elem);
+	fifo->size--;
+	return (node);
 }
 
 /**
@@ -115,13 +113,13 @@ void		*fifo_pop(t_fifo *fifo)
  *
  * @return Pointer to the element.
  */
-void		*fifo_get(t_fifo *fifo)
+void *fifo_get(t_fifo * fifo)
 {
-  XASSERT(fifo != NULL, NULL);
+	XASSERT(fifo != NULL, NULL);
 
-  if (fifo->head == NULL)
-    return (NULL);
-  return (fifo->head->node);
+	if (fifo->head == NULL)
+		return (NULL);
+	return (fifo->head->node);
 }
 
 /**
@@ -130,17 +128,16 @@ void		*fifo_get(t_fifo *fifo)
  * @param fifo
  * @param display_func
  */
-void		fifo_debug(t_fifo *fifo, void (*display_func)(void *node))
+void fifo_debug(t_fifo * fifo, void (*display_func) (void *node))
 {
-  t_fifonode	*node;
+	t_fifonode *node;
 
-  XASSERTN(fifo != NULL);
-  XASSERTN(display_func != NULL);
+	XASSERTN(fifo != NULL);
+	XASSERTN(display_func != NULL);
 
-  node = fifo->head;
-  while (node != NULL)
-    {
-      display_func(node->node);
-      node = node->next;
-    }
+	node = fifo->head;
+	while (node != NULL) {
+		display_func(node->node);
+		node = node->next;
+	}
 }

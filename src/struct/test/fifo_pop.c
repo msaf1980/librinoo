@@ -1,6 +1,6 @@
 /**
  * @file   fifo_pop.c
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2012
  * @date   Wed Apr 28 16:42:20 2010
  *
  * @brief  fifo_pop unit test
@@ -16,21 +16,21 @@
  *
  * @return 0 if test passed
  */
-int		main()
+int main()
 {
-  t_fifo	*fifo;
-  void		*testbuf;
+	t_fifo *fifo;
+	void *testbuf;
 
-  fifo = fifo_create();
-  testbuf = xmalloc(42);
-  XTEST(fifo != NULL);
-  XTEST(testbuf != NULL);
-  XTEST(fifo_push(fifo, testbuf, xfree) == TRUE);
-  XTEST(fifo_pop(fifo) == testbuf);
-  XTEST(fifo->head == NULL);
-  XTEST(fifo->tail == NULL);
-  XTEST(fifo->size == 0);
-  xfree(testbuf);
-  fifo_destroy(fifo);
-  XPASS();
+	fifo = fifo_create();
+	testbuf = malloc(42);
+	XTEST(fifo != NULL);
+	XTEST(testbuf != NULL);
+	XTEST(fifo_push(fifo, testbuf, free) == TRUE);
+	XTEST(fifo_pop(fifo) == testbuf);
+	XTEST(fifo->head == NULL);
+	XTEST(fifo->tail == NULL);
+	XTEST(fifo->size == 0);
+	free(testbuf);
+	fifo_destroy(fifo);
+	XPASS();
 }

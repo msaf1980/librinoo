@@ -1,6 +1,6 @@
 /**
  * @file   module.h
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2012
  * @date   Tue Dec 15 02:19:17 2009
  *
  * @brief  Header file for memory module
@@ -11,8 +11,6 @@
 #ifndef		RINOO_MODULE_MEMORY_H_
 # define	RINOO_MODULE_MEMORY_H_
 
-# include	"rinoo/memory/blob.h"
-# include	"rinoo/memory/stdmem.h"
 # include	"rinoo/memory/buffer.h"
 
 #endif		/* !RINOO_MODULE_MEMORY_H_ */

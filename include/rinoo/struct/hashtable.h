@@ -1,6 +1,6 @@
 /**
  * @file   hashtable.h
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2012
  * @date   Wed Apr 28 14:43:14 2010
  *
  * @brief  Header file for hash table functions declarations.
@@ -11,20 +11,20 @@
 #ifndef		RINOO_HASHTABLE_H_
 # define	RINOO_HASHTABLE_H_
 
-typedef struct	s_hashtable
+typedef struct s_hashtable
 {
-  u32		size;
-  u32		hashsize;
-  t_listtype	listtype;
-  t_list	**table;
-  u32		(*hash_func)(void *node);
-}		t_hashtable;
+	u32		size;
+	u32		hashsize;
+	t_listtype	listtype;
+	t_list		**table;
+	u32		(*hash_func)(void *node);
+} t_hashtable;
 
-typedef struct	s_hashiterator
+typedef struct s_hashiterator
 {
-  u32			hash;
-  t_listiterator	list_iterator;
-}		t_hashiterator;
+	u32		hash;
+	t_listiterator	list_iterator;
+} t_hashiterator;
 
 t_hashtable	*hashtable_create(t_listtype listtype,
 				  u32 hashsize,

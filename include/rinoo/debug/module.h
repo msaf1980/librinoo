@@ -1,6 +1,6 @@
 /**
  * @file   module.h
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2012
  * @date   Mon Oct 26 13:13:59 2009
  *
  * @brief  Header file for debug module
@@ -13,6 +13,5 @@
 
 # include	"rinoo/debug/xassert.h"
 # include	"rinoo/debug/test.h"
-# include	"rinoo/debug/backtrace.h"
 
 #endif		/* !RINOO_MODULE_DEBUG_H_ */

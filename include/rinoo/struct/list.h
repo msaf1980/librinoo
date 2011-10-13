@@ -1,6 +1,6 @@
 /**
  * @file   list.h
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2012
  * @date   Tue Apr 27 10:17:48 2010
  *
  * @brief  Header file for list functions declarations.
@@ -11,28 +11,28 @@
 #ifndef		RINOO_LIST_H_
 # define	RINOO_LIST_H_
 
-typedef enum	s_listtype
+typedef enum s_listtype
   {
-    LIST_SORTED_HEAD = 0,
-    LIST_SORTED_TAIL
-  }		t_listtype;
+	  LIST_SORTED_HEAD = 0,
+	  LIST_SORTED_TAIL
+  } t_listtype;
 
-typedef struct		s_listnode
+typedef struct s_listnode
 {
-  void			*node;
-  void			(*free_func)();
-  struct s_listnode	*prev;
-  struct s_listnode	*next;
-}			t_listnode;
+	void			*node;
+	void			(*free_func)();
+	struct s_listnode	*prev;
+	struct s_listnode	*next;
+} t_listnode;
 
-typedef struct	s_list
+typedef struct s_list
 {
-  u32		size;
-  t_listtype	type;
-  t_listnode	*head;
-  t_listnode	*tail;
-  int		(*cmp_func)(void *node1, void *node2);
-}		t_list;
+	u32		size;
+	t_listtype	type;
+	t_listnode	*head;
+	t_listnode	*tail;
+	int		(*cmp_func)(void *node1, void *node2);
+} t_list;
 
 typedef t_listnode	*t_listiterator;
 
