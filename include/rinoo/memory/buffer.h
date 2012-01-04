@@ -8,10 +8,10 @@
  *
  */
 
-#ifndef		RINOO_BUFFER_H_
-# define	RINOO_BUFFER_H_
+#ifndef		RINOO_MEMORY_BUFFER_H_
+# define	RINOO_MEMORY_BUFFER_H_
 
-# define	BUFFER_INCREMENT	2048
+# define	RINOO_BUFFER_INCREMENT	2048
 
 typedef struct s_buffer
 {
@@ -47,4 +47,4 @@ float			buffer_tofloat(t_buffer *buf, size_t *len);
 double			buffer_todouble(t_buffer *buf, size_t *len);
 char			*buffer_tostr(t_buffer *buf);
 
-#endif		/* !RINOO_BUFFER_H_ */
+#endif		/* !RINOO_MEMORY_BUFFER_H_ */

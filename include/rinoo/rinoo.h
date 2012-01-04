@@ -11,7 +11,7 @@
 #ifndef		RINOO_H_
 # define	RINOO_H_
 
-#define		_GNU_SOURCE
+# define	_GNU_SOURCE
 
 # include	<time.h>
 # include	<ctype.h>
@@ -46,5 +46,8 @@
 
 /* STRUCT */
 # include	"rinoo/struct/module.h"
+
+/* SCHEDULER */
+# include	"rinoo/scheduler/module.h"
 
 #endif		/* !RINOO_H_ */

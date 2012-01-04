@@ -34,12 +34,12 @@ int main()
 	XTEST(buf != NULL);
 	XTEST(buf->buf != NULL);
 	XTEST(buf->len == 0);
-	XTEST(buf->size == BUFFER_INCREMENT * 2);
-	XTEST(buffer_extend(buf, BUFFER_INCREMENT * 2 + 42) == 0);
+	XTEST(buf->size == RINOO_BUFFER_INCREMENT * 2);
+	XTEST(buffer_extend(buf, RINOO_BUFFER_INCREMENT * 2 + 42) == 0);
 	XTEST(buf != NULL);
 	XTEST(buf->buf != NULL);
 	XTEST(buf->len == 0);
-	XTEST(buf->size == (BUFFER_INCREMENT * 2 + 42) * 2);
+	XTEST(buf->size == (RINOO_BUFFER_INCREMENT * 2 + 42) * 2);
 	buffer_destroy(buf);
 	XPASS();
 }

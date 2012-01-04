@@ -34,7 +34,7 @@ int main()
 	XTEST(buf->buf != NULL);
 	XTEST(memcmp(buf->buf, "blablablablablabla", 18) == 0);
 	XTEST(buf->len == 18);
-	XTEST(buf->size == BUFFER_INCREMENT * 2);
+	XTEST(buf->size == RINOO_BUFFER_INCREMENT * 2);
 	buffer_destroy(buf);
 	XPASS();
 }

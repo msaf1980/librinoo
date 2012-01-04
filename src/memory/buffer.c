@@ -8,7 +8,7 @@
  *
  */
 
-#include	"rinoo/rinoo.h"
+#include "rinoo/rinoo.h"
 
 /**
  * Creates a new buffer. It allocates the needed memory.
@@ -21,7 +21,7 @@ t_buffer *buffer_create(u32 init_size)
 {
 	t_buffer *buf;
 
-	XDASSERT(init_size > 0, NULL);
+	XASSERT(init_size > 0, NULL);
 
 	buf = calloc(1, sizeof(*buf));
 	XASSERT(buf != NULL, NULL);
@@ -43,8 +43,8 @@ t_buffer *buffer_create(u32 init_size)
  */
 void buffer_destroy(t_buffer *buf)
 {
-	XDASSERTN(buf != NULL);
-	XDASSERTN(buf->buf != NULL);
+	XASSERTN(buf != NULL);
+	XASSERTN(buf->buf != NULL);
 
 	buf->alloc = 0;
 	free(buf->buf);
@@ -64,14 +64,14 @@ int buffer_extend(t_buffer *buf, size_t size)
 {
 	void *newbuf;
 
-	XDASSERT(buf != NULL, -1);
-	XDASSERT(buf->buf != NULL, -1);
-	XDASSERT(buf->alloc == 1, -1);
+	XASSERT(buf != NULL, -1);
+	XASSERT(buf->buf != NULL, -1);
+	XASSERT(buf->alloc == 1, -1);
 
 	if (buf->size >= size) {
 		return 0;
 	}
-	size = 2 * (size > BUFFER_INCREMENT ? size : BUFFER_INCREMENT);
+	size = 2 * (size > RINOO_BUFFER_INCREMENT ? size : RINOO_BUFFER_INCREMENT);
 	newbuf = realloc(buf->buf, size);
 	/* if realloc fails, buf->buf is untouched, we'll keep it */
 	if (unlikely(newbuf == NULL)) {
@@ -99,9 +99,9 @@ int buffer_vprint(t_buffer *buf, const char *format, va_list ap)
 	int res;
 	va_list ap2;
 
-	XDASSERT(buf != NULL, -1);
-	XDASSERT(buf->buf != NULL, -1);
-	XDASSERT(buf->alloc == 1, -1);
+	XASSERT(buf != NULL, -1);
+	XASSERT(buf->buf != NULL, -1);
+	XASSERT(buf->alloc == 1, -1);
 
 	va_copy(ap2, ap);
 	while (((u32) (res = vsnprintf(buf->buf + buf->len,
@@ -149,10 +149,10 @@ int buffer_print(t_buffer *buf, const char *format, ...)
  */
 int buffer_add(t_buffer *buf, const char *data, size_t size)
 {
-	XDASSERT(buf != NULL, -1);
-	XDASSERT(buf->buf != NULL, -1);
-	XDASSERT(buf->alloc == 1, -1);
-	XDASSERT(data != NULL, -1);
+	XASSERT(buf != NULL, -1);
+	XASSERT(buf->buf != NULL, -1);
+	XASSERT(buf->alloc == 1, -1);
+	XASSERT(data != NULL, -1);
 
 	if (size + buf->len > buf->size &&
 	    buffer_extend(buf, size + buf->len) < 0) {
@@ -204,8 +204,8 @@ int buffer_addnull(t_buffer *buf)
  */
 int buffer_erase(t_buffer *buf, u32 len)
 {
-	XDASSERT(buf != NULL, -1);
-	XDASSERT(buf->buf != NULL, -1);
+	XASSERT(buf != NULL, -1);
+	XASSERT(buf->buf != NULL, -1);
 
 	if (buf->len > 0) {
 		if (len > buf->len)
@@ -231,8 +231,8 @@ t_buffer *buffer_dup(t_buffer *buf)
 {
 	t_buffer *newbuf;
 
-	XDASSERT(buf != NULL, NULL);
-	XDASSERT(buf->buf != NULL, NULL);
+	XASSERT(buf != NULL, NULL);
+	XASSERT(buf->buf != NULL, NULL);
 
 	newbuf = calloc(1, sizeof(*newbuf));
 	if (unlikely(newbuf == NULL)) {
@@ -241,7 +241,7 @@ t_buffer *buffer_dup(t_buffer *buf)
 	newbuf->len = buf->len;
 	newbuf->size = buf->size;
 	if (unlikely(newbuf->size) == 0) {
-		newbuf->size = BUFFER_INCREMENT;
+		newbuf->size = RINOO_BUFFER_INCREMENT;
 	}
 	newbuf->buf = calloc(1, newbuf->size);
 	if (unlikely(newbuf->buf == NULL)) {
@@ -249,6 +249,7 @@ t_buffer *buffer_dup(t_buffer *buf)
 		return NULL;
 	}
 	memcpy(newbuf->buf, buf->buf, buf->len);
+	newbuf->alloc = 1;
 	return newbuf;
 }
 
@@ -317,8 +318,8 @@ long int buffer_tolong(t_buffer *buf, size_t *len, int base)
 	char *endptr;
 	t_buffer *workbuf;
 
-	XDASSERT(buf != NULL, 0);
-	XDASSERT(buf->buf != NULL, 0);
+	XASSERT(buf != NULL, 0);
+	XASSERT(buf->buf != NULL, 0);
 
 	workbuf = buf;
 	if (buf->alloc == 0) {
@@ -357,8 +358,8 @@ unsigned long int buffer_toulong(t_buffer *buf, size_t *len, int base)
 	t_buffer *workbuf;
 	unsigned long int result;
 
-	XDASSERT(buf != NULL, 0);
-	XDASSERT(buf->buf != NULL, 0);
+	XASSERT(buf != NULL, 0);
+	XASSERT(buf->buf != NULL, 0);
 
 	workbuf = buf;
 	if (buf->alloc == 0) {
@@ -396,8 +397,8 @@ float buffer_tofloat(t_buffer *buf, size_t *len)
 	char *endptr;
 	t_buffer *workbuf;
 
-	XDASSERT(buf != NULL, 0);
-	XDASSERT(buf->buf != NULL, 0);
+	XASSERT(buf != NULL, 0);
+	XASSERT(buf->buf != NULL, 0);
 
 	workbuf = buf;
 	if (buf->alloc == 0) {
@@ -435,8 +436,8 @@ double buffer_todouble(t_buffer *buf, size_t *len)
 	char *endptr;
 	t_buffer *workbuf;
 
-	XDASSERT(buf != NULL, 0);
-	XDASSERT(buf->buf != NULL, 0);
+	XASSERT(buf != NULL, 0);
+	XASSERT(buf->buf != NULL, 0);
 
 	workbuf = buf;
 	if (buf->alloc == 0) {

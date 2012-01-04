@@ -8,8 +8,8 @@
  *
  */
 
-#ifndef		RINOO_LIST_H_
-# define	RINOO_LIST_H_
+#ifndef		RINOO_STRUCT_LIST_H_
+# define	RINOO_STRUCT_LIST_H_
 
 typedef enum s_listtype
   {
@@ -55,4 +55,4 @@ int		list_popnode(t_list *list, t_listnode *node);
 void		*list_gethead(t_list *list);
 void		*list_getnext(t_list *list, t_listiterator *iterator);
 
-#endif		/* !RINOO_LIST_H_ */
+#endif		/* !RINOO_STRUCT_LIST_H_ */

@@ -8,8 +8,8 @@
  *
  */
 
-#ifndef		RINOO_FIFO_H_
-# define	RINOO_FIFO_H_
+#ifndef		RINOO_STRUCT_FIFO_H_
+# define	RINOO_STRUCT_FIFO_H_
 
 typedef struct s_fifonode
 {
@@ -32,5 +32,5 @@ int		fifo_push(t_fifo *fifo, void *node,
 void		*fifo_pop(t_fifo *fifo);
 void		*fifo_get(t_fifo *fifo);
 
-#endif		/* !RINOO_FIFO_H_ */
+#endif		/* !RINOO_STRUCT_FIFO_H_ */
 

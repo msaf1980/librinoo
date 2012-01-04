@@ -8,7 +8,7 @@
  *
  */
 
-#include	"rinoo/rinoo.h"
+#include "rinoo/rinoo.h"
 
 /**
  * Creates a new hash table.
@@ -21,8 +21,8 @@
  */
 t_hashtable *hashtable_create(t_listtype listtype,
 			      u32 hashsize,
-			      u32(*hash_func) (void *node),
-			      int (*cmp_func) (void *node1, void *node2))
+			      u32 (*hash_func)(void *node),
+			      int (*cmp_func)(void *node1, void *node2))
 {
 	u32 i;
 	t_hashtable *new;
@@ -32,14 +32,16 @@ t_hashtable *hashtable_create(t_listtype listtype,
 	XASSERT(cmp_func != NULL, NULL);
 
 	new = calloc(1, sizeof(*new));
-	XASSERT(new != NULL, NULL);
+	if (unlikely(new == NULL)) {
+		return NULL;
+	}
 	new->listtype = listtype;
 	new->hashsize = hashsize;
 	new->hash_func = hash_func;
 	new->table = calloc(hashsize, sizeof(*new->table));
-	if (new->table == NULL) {
+	if (unlikely(new->table == NULL)) {
 		free(new);
-		XASSERT(0, NULL);
+		return NULL;
 	}
 	for (i = 0; i < hashsize; i++) {
 		new->table[i] = list_create(listtype, cmp_func);
@@ -59,9 +61,10 @@ void hashtable_destroy(void *ptr)
 
 	XASSERTN(ptr != NULL);
 
-	htab = (t_hashtable *) ptr;
-	for (i = 0; i < htab->hashsize; i++)
+	htab = ptr;
+	for (i = 0; i < htab->hashsize; i++) {
 		list_destroy(htab->table[i]);
+	}
 	free(htab->table);
 	free(htab);
 }
@@ -74,13 +77,12 @@ void hashtable_destroy(void *ptr)
  *
  * @return 0 on success, -1 if an error occurs.
  */
-int hashtable_addnode(t_hashtable * htab, t_listnode * node)
+int hashtable_addnode(t_hashtable *htab, t_listnode *node)
 {
-	XDASSERT(htab != NULL, FALSE);
+	XASSERT(htab != NULL, FALSE);
 
-	if (list_addnode
-	    (htab->table[htab->hash_func(node->node) % htab->hashsize],
-	     node) != 0) {
+	if (unlikely(list_addnode(htab->table[htab->hash_func(node->node) % htab->hashsize],
+				  node) != 0)) {
 		return -1;
 	}
 	htab->size++;
@@ -96,15 +98,16 @@ int hashtable_addnode(t_hashtable * htab, t_listnode * node)
  *
  * @return A pointer to the new list node.
  */
-t_listnode *hashtable_add(t_hashtable * htab,
-			  void *node, void (*free_func) (void *node))
+t_listnode *hashtable_add(t_hashtable *htab, void *node, void (*free_func)(void *node))
 {
 	t_listnode *listnode;
-	XDASSERT(htab != NULL, FALSE);
+
+	XASSERT(htab != NULL, FALSE);
 
 	listnode = list_add(htab->table[htab->hash_func(node) % htab->hashsize],
-			    node, free_func);
-	if (listnode == NULL) {
+			    node,
+			    free_func);
+	if (unlikely(listnode == NULL)) {
 		return NULL;
 	}
 	htab->size++;
@@ -120,18 +123,19 @@ t_listnode *hashtable_add(t_hashtable * htab,
  *
  * @return 1 on success, 0 if an error occurs.
  */
-int hashtable_remove(t_hashtable * htab, void *node, u32 needfree)
+int hashtable_remove(t_hashtable *htab, void *node, u32 needfree)
 {
 	int res;
 
-	XDASSERT(htab != NULL, FALSE);
+	XASSERT(htab != NULL, FALSE);
 
 	res = list_remove(htab->table[htab->hash_func(node) % htab->hashsize],
-			  node, needfree);
+			  node,
+			  needfree);
 	if (res == TRUE) {
 		htab->size--;
 	}
-	return (res);
+	return res;
 }
 
 /**
@@ -143,17 +147,16 @@ int hashtable_remove(t_hashtable * htab, void *node, u32 needfree)
  *
  * @return 1 on success, 0 if an error occurs.
  */
-int hashtable_removenode(t_hashtable * htab, t_listnode * node, u32 needfree)
+int hashtable_removenode(t_hashtable *htab, t_listnode *node, u32 needfree)
 {
 	int res;
 
-	XDASSERT(htab != NULL, FALSE);
-	XDASSERT(node != NULL, FALSE);
+	XASSERT(htab != NULL, FALSE);
+	XASSERT(node != NULL, FALSE);
 
-	res =
-	    list_removenode(htab->
-			    table[htab->hash_func(node->node) % htab->hashsize],
-			    node, needfree);
+	res = list_removenode(htab->table[htab->hash_func(node->node) % htab->hashsize],
+			      node,
+			      needfree);
 	if (res == TRUE) {
 		htab->size--;
 	}
@@ -168,12 +171,11 @@ int hashtable_removenode(t_hashtable * htab, t_listnode * node, u32 needfree)
  *
  * @return Pointer to the element found or NULL if nothing is found.
  */
-void *hashtable_find(t_hashtable * htab, void *node)
+void *hashtable_find(t_hashtable *htab, void *node)
 {
-	XDASSERT(htab != NULL, NULL);
+	XASSERT(htab != NULL, NULL);
 
-	return (list_find
-		(htab->table[htab->hash_func(node) % htab->hashsize], node));
+	return list_find(htab->table[htab->hash_func(node) % htab->hashsize], node);
 }
 
 /**
@@ -185,13 +187,13 @@ void *hashtable_find(t_hashtable * htab, void *node)
  *
  * @return A pointer to the current element or NULL if the end is reached.
  */
-void *hashtable_getnext(t_hashtable * htab, t_hashiterator * iterator)
+void *hashtable_getnext(t_hashtable *htab, t_hashiterator *iterator)
 {
 	u32 i;
 	void *result;
 
-	XDASSERT(htab != NULL, NULL);
-	XDASSERT(iterator != NULL, NULL);
+	XASSERT(htab != NULL, NULL);
+	XASSERT(iterator != NULL, NULL);
 
 	for (i = iterator->hash; i < htab->hashsize; i++) {
 		iterator->hash = i;
@@ -214,15 +216,13 @@ void *hashtable_getnext(t_hashtable * htab, t_hashiterator * iterator)
  *
  * @return 0 on success, or -1 if an error occurs.
  */
-int hashtable_popnode(t_hashtable * htab, t_listnode * node)
+int hashtable_popnode(t_hashtable *htab, t_listnode *node)
 {
-	XDASSERT(htab != NULL, -1);
-	XDASSERT(node != NULL, -1);
+	XASSERT(htab != NULL, -1);
+	XASSERT(node != NULL, -1);
 
-	if (unlikely
-	    (list_popnode
-	     (htab->table[htab->hash_func(node->node) % htab->hashsize],
-	      node) != 0)) {
+	if (unlikely(list_popnode(htab->table[htab->hash_func(node->node) % htab->hashsize],
+				  node) != 0)) {
 		return -1;
 	}
 	htab->size--;

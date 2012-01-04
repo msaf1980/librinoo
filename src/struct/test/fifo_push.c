@@ -23,14 +23,14 @@ int main()
 
 	fifo = fifo_create();
 	XTEST(fifo != NULL);
-	XTEST(fifo_push(fifo, (void *)42, NULL) == TRUE);
+	XTEST(fifo_push(fifo, (void *) 42, NULL) == 0);
 	XTEST(fifo->head != NULL);
 	XTEST(fifo->tail != NULL);
 	XTEST(fifo->head == fifo->tail);
 	XTEST(fifo->size == 1);
-	XTEST(fifo->head->node == (void *)42);
+	XTEST(fifo->head->node == (void *) 42);
 	fifo2 = fifo_create();
-	XTEST(fifo_push(fifo2, fifo, fifo_destroy) == TRUE);
+	XTEST(fifo_push(fifo2, fifo, fifo_destroy) == 0);
 	fifo_destroy(fifo2);
 	XPASS();
 }

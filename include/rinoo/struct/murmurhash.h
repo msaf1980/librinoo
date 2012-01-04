@@ -8,10 +8,10 @@
  *
  */
 
-#ifndef		RINOO_MURMURHASH_H_
-# define	RINOO_MURMURHASH_H_
+#ifndef		RINOO_STRUCT_MURMURHASH_H_
+# define	RINOO_STRUCT_MURMURHASH_H_
 
 u32	murmurhash(const void *key, u32 len, u32 seed);
 u64	murmurhash64(const void *key, u64 len, u64 seed);
 
-#endif		/* !RINOO_MURMURHASH_H_ */
+#endif		/* !RINOO_STRUCT_MURMURHASH_H_ */

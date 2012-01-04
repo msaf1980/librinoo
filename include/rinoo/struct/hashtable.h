@@ -8,8 +8,8 @@
  *
  */
 
-#ifndef		RINOO_HASHTABLE_H_
-# define	RINOO_HASHTABLE_H_
+#ifndef		RINOO_STRUCT_HASHTABLE_H_
+# define	RINOO_STRUCT_HASHTABLE_H_
 
 typedef struct s_hashtable
 {
@@ -43,4 +43,4 @@ void		*hashtable_find(t_hashtable *htab, void *node);
 void		*hashtable_getnext(t_hashtable *htab, t_hashiterator *iterator);
 int		hashtable_popnode(t_hashtable *htab, t_listnode *node);
 
-#endif		/* !RINOO_HASHTABLE_H_ */
+#endif		/* !RINOO_STRUCT_HASHTABLE_H_ */

@@ -8,7 +8,7 @@
  *
  */
 
-#include	"rinoo/rinoo.h"
+#include "rinoo/rinoo.h"
 
 /**
  * Creates a new fifo list.
@@ -21,8 +21,10 @@ t_fifo *fifo_create()
 	t_fifo *fifo;
 
 	fifo = calloc(1, sizeof(*fifo));
-	XASSERT(fifo != NULL, NULL);
-	return (fifo);
+	if (unlikely(fifo == NULL)) {
+		return NULL;
+	}
+	return fifo;
 }
 
 /**
@@ -38,13 +40,13 @@ void fifo_destroy(void *ptr)
 
 	XASSERTN(ptr != NULL);
 
-	fifo = (t_fifo *) ptr;
-
+	fifo = ptr;
 	cur = fifo->head;
 	while (cur != NULL) {
 		tmp = cur->next;
-		if (cur->free_func != NULL)
+		if (cur->free_func != NULL) {
 			cur->free_func(cur->node);
+		}
 		free(cur);
 		cur = tmp;
 	}
@@ -58,26 +60,30 @@ void fifo_destroy(void *ptr)
  * @param node Pointer to the element to add.
  * @param free_func Pointer to a function which can free the element.
  *
- * @return 1 on success, 0 if an error occurs.
+ * @return 0 on success, -1 if an error occurs.
  */
-int fifo_push(t_fifo * fifo, void *node, void (*free_func) (void *node))
+int fifo_push(t_fifo *fifo, void *node, void (*free_func)(void *node))
 {
 	t_fifonode *new;
 
-	XASSERT(fifo != NULL, FALSE);
-	XASSERT(node != NULL, FALSE);
+	XASSERT(fifo != NULL, -1);
+	XASSERT(node != NULL, -1);
 
 	new = calloc(1, sizeof(*new));
-	XASSERT(new != NULL, FALSE);
+	if (unlikely(new == NULL)) {
+		return -1;
+	}
 	new->node = node;
 	new->free_func = free_func;
-	if (fifo->head == NULL)
+	if (fifo->head == NULL) {
 		fifo->head = new;
-	if (fifo->tail != NULL)
+	}
+	if (fifo->tail != NULL) {
 		fifo->tail->next = new;
+	}
 	fifo->tail = new;
 	fifo->size++;
-	return (TRUE);
+	return 0;
 }
 
 /**
@@ -87,23 +93,25 @@ int fifo_push(t_fifo * fifo, void *node, void (*free_func) (void *node))
  *
  * @return Pointer to the element.
  */
-void *fifo_pop(t_fifo * fifo)
+void *fifo_pop(t_fifo *fifo)
 {
 	t_fifonode *elem;
 	void *node;
 
 	XASSERT(fifo != NULL, NULL);
 
-	if (fifo->head == NULL)
-		return (NULL);
+	if (fifo->head == NULL) {
+		return NULL;
+	}
 	elem = fifo->head;
 	fifo->head = elem->next;
-	if (fifo->head == NULL)
+	if (fifo->head == NULL) {
 		fifo->tail = NULL;
+	}
 	node = elem->node;
 	free(elem);
 	fifo->size--;
-	return (node);
+	return node;
 }
 
 /**
@@ -113,31 +121,12 @@ void *fifo_pop(t_fifo * fifo)
  *
  * @return Pointer to the element.
  */
-void *fifo_get(t_fifo * fifo)
+void *fifo_get(t_fifo *fifo)
 {
 	XASSERT(fifo != NULL, NULL);
 
-	if (fifo->head == NULL)
-		return (NULL);
-	return (fifo->head->node);
-}
-
-/**
- *
- *
- * @param fifo
- * @param display_func
- */
-void fifo_debug(t_fifo * fifo, void (*display_func) (void *node))
-{
-	t_fifonode *node;
-
-	XASSERTN(fifo != NULL);
-	XASSERTN(display_func != NULL);
-
-	node = fifo->head;
-	while (node != NULL) {
-		display_func(node->node);
-		node = node->next;
+	if (fifo->head == NULL) {
+		return NULL;
 	}
+	return fifo->head->node;
 }

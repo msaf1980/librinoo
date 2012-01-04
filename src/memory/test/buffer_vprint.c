@@ -45,7 +45,7 @@ int main()
 	XTEST(buf->buf != NULL);
 	XTEST(memcmp(buf->buf, "42 42 42 42 42", 14) == 0);
 	XTEST(buf->len == 14);
-	XTEST(buf->size == BUFFER_INCREMENT * 2);
+	XTEST(buf->size == RINOO_BUFFER_INCREMENT * 2);
 	buffer_destroy(buf);
 	buf = buffer_create(4);
 	XTEST(buf != NULL);
@@ -56,7 +56,7 @@ int main()
 	XTEST(buf->buf != NULL);
 	XTEST(memcmp(buf->buf, "4242", 4) == 0);
 	XTEST(buf->len == 4);
-	XTEST(buf->size == BUFFER_INCREMENT * 2);
+	XTEST(buf->size == RINOO_BUFFER_INCREMENT * 2);
 	buffer_destroy(buf);
 	XPASS();
 }

@@ -34,16 +34,16 @@ int main()
 	XTEST(buf->buf != NULL);
 	XTEST(memcmp(buf->buf, "bl1bl1bl1bl2bl2bl2", 18) == 0);
 	XTEST(buf->len == 18);
-	XTEST(buf->size == BUFFER_INCREMENT * 2);
+	XTEST(buf->size == RINOO_BUFFER_INCREMENT * 2);
 	XTEST(buffer_erase(buf, 9) == 0);
 	XTEST(buf->buf != NULL);
 	XTEST(memcmp(buf->buf, "bl2bl2bl2", 9) == 0);
 	XTEST(buf->len == 9);
-	XTEST(buf->size == BUFFER_INCREMENT * 2);
+	XTEST(buf->size == RINOO_BUFFER_INCREMENT * 2);
 	XTEST(buffer_erase(buf, 9) == 0);
 	XTEST(buf->buf != NULL);
 	XTEST(buf->len == 0);
-	XTEST(buf->size == BUFFER_INCREMENT * 2);
+	XTEST(buf->size == RINOO_BUFFER_INCREMENT * 2);
 	buffer_destroy(buf);
 	XPASS();
 }

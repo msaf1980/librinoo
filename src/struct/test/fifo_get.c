@@ -25,7 +25,7 @@ int main()
 	testbuf = malloc(42);
 	XTEST(fifo != NULL);
 	XTEST(testbuf != NULL);
-	XTEST(fifo_push(fifo, testbuf, free) == TRUE);
+	XTEST(fifo_push(fifo, testbuf, free) == 0);
 	XTEST(fifo_get(fifo) == testbuf);
 	XTEST(fifo->head != NULL);
 	XTEST(fifo->tail != NULL);
