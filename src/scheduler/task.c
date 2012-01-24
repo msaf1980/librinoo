@@ -14,11 +14,20 @@
 # include <valgrind/valgrind.h>
 #endif
 
+/**
+ * Task driver initialization.
+ * It sets a task driver in a scheduler.
+ *
+ * @param sched Pointer to the scheduler to set
+ *
+ * @return 0 on success, -1 if an error occurs
+ */
 int rinoo_task_driver_init(t_rinoosched *sched)
 {
 	t_rinootask_driver *driver;
 
 	XASSERT(sched != NULL, -1);
+	XASSERT(sched->task_driver == NULL, -1);
 
 	driver = calloc(1, sizeof(*driver));
 	if (driver == NULL) {
@@ -29,6 +38,11 @@ int rinoo_task_driver_init(t_rinoosched *sched)
 	return 0;
 }
 
+/**
+ * Destroy internal task driver from a scheduler.
+ *
+ * @param sched Pointer to the scheduler to use
+ */
 void rinoo_task_driver_destroy(t_rinoosched *sched)
 {
 	XASSERTN(sched != NULL);
@@ -39,6 +53,15 @@ void rinoo_task_driver_destroy(t_rinoosched *sched)
 	}
 }
 
+/**
+ * Internal routine called for each context.
+ * When calling makecontext, parameters passed must be integers.
+ * This function transforms its two parameters into a t_rinootask pointer
+ * and calls the task function.
+ *
+ * @param p1 First part of t_rinootask pointer
+ * @param p2 Second part of t_rinootask pointer
+ */
 static void rinoo_task_process(int p1, int p2)
 {
 	t_rinootask *task;
@@ -52,6 +75,15 @@ static void rinoo_task_process(int p1, int p2)
 	task->func(task->sched, task->arg);
 }
 
+/**
+ * Create a new task.
+ *
+ * @param sched Pointer to a scheduler to use
+ * @param task_func Routine to call for that task
+ * @param arg Argument to be passed to task_func
+ *
+ * @return A pointer to the new task on success, or NULL if an error occurs
+ */
 t_rinootask *rinoo_task(t_rinoosched *sched,
 			t_rinootask_func task_func,
 			void *arg)
@@ -88,6 +120,14 @@ t_rinootask *rinoo_task(t_rinoosched *sched,
 	return new;
 }
 
+/**
+ * Run or resume a task.
+ * This function switches to the task stack by calling swapcontext(3).
+ *
+ * @param task Pointer to the task to run or resume
+ *
+ * @return 0 on success, -1 if an error occurs
+ */
 int rinoo_task_run(t_rinootask *task)
 {
 	int ret;
@@ -103,6 +143,13 @@ int rinoo_task_run(t_rinootask *task)
 	return ret;
 }
 
+/**
+ * Release execution of a task currently running on a scheduler.
+ *
+ * @param sched Pointer to the scheduler to use
+ *
+ * @return 0 on success or errno if an error occurs
+ */
 int rinoo_task_release(t_rinoosched *sched)
 {
 	XASSERT(sched != NULL, -1);
@@ -116,6 +163,11 @@ int rinoo_task_release(t_rinoosched *sched)
 	return errno;
 }
 
+/**
+ * Destroy a task.
+ *
+ * @param task Pointer to the task to destroy
+ */
 void rinoo_task_destroy(t_rinootask *task)
 {
 	XASSERTN(task != NULL);

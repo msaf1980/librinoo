@@ -10,6 +10,12 @@
 
 #include "rinoo/rinoo.h"
 
+/**
+ * Create a new scheduler.
+ *
+ *
+ * @return Pointer to the new scheduler, or NULL if an error occurs
+ */
 t_rinoosched *rinoo_sched()
 {
 	t_rinoosched *sched;
@@ -25,6 +31,11 @@ t_rinoosched *rinoo_sched()
 	return sched;
 }
 
+/**
+ * Destroy a scheduler
+ *
+ * @param sched Pointer to the scheduler to destroy
+ */
 void rinoo_sched_destroy(t_rinoosched *sched)
 {
 	XASSERTN(sched != NULL);
