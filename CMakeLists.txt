@@ -19,6 +19,7 @@ include_directories(include)
 list_source_files(src_files "src/*.c")
 
 add_library(${CMAKE_PROJECT_NAME} SHARED ${src_files})
+add_library(${CMAKE_PROJECT_NAME}_static STATIC ${src_files})
 ## !Library ##
 
 generate_debian_package(

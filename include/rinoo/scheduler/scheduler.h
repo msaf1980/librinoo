@@ -13,12 +13,15 @@
 
 # define	RINOO_SCHEDULER_MAXFDS		1000000
 
-typedef struct			s_rinoosched
-{
-  int				stop;
-}				t_rinoosched;
+struct s_rinootask_driver;
 
-t_rinoosched		*rinoo_sched();
-void			rinoo_sched_destroy(t_rinoosched *sched);
+typedef struct s_rinoosched
+{
+	int				stop;
+	struct s_rinootask_driver	*task_driver;
+} t_rinoosched;
+
+t_rinoosched *rinoo_sched();
+void rinoo_sched_destroy(t_rinoosched *sched);
 
 #endif	        /* !RINOO_SCHEDULER_SCHEDULER_H */
