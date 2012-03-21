@@ -3,7 +3,7 @@
  * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2012
  * @date   Tue Apr 27 10:17:48 2010
  *
- * @brief  Header file for list functions declarations.
+ * @brief  Header file for list function declarations.
  *
  *
  */
@@ -11,48 +11,45 @@
 #ifndef		RINOO_STRUCT_LIST_H_
 # define	RINOO_STRUCT_LIST_H_
 
-typedef enum s_listtype
-  {
-	  LIST_SORTED_HEAD = 0,
-	  LIST_SORTED_TAIL
-  } t_listtype;
+typedef int	(*t_rinoolist_cmp)(void *ptr1, void *ptr2);
+typedef void	(*t_rinoolist_free)(void *ptr);
 
-typedef struct s_listnode
+typedef enum s_rinoolist_type
 {
-	void			*node;
-	void			(*free_func)();
-	struct s_listnode	*prev;
-	struct s_listnode	*next;
-} t_listnode;
+	RINOOLIST_SORTED_HEAD = 0,
+	RINOOLIST_SORTED_TAIL
+} t_rinoolist_type;
 
-typedef struct s_list
+typedef struct s_rinoolist_node
 {
-	u32		size;
-	t_listtype	type;
-	t_listnode	*head;
-	t_listnode	*tail;
-	int		(*cmp_func)(void *node1, void *node2);
-} t_list;
+	void			*ptr;
+	struct s_rinoolist_node	*prev;
+	struct s_rinoolist_node	*next;
+} t_rinoolist_node;
 
-typedef t_listnode	*t_listiterator;
+typedef struct s_rinoolist
+{
+	u32			size;
+	t_rinoolist_type	type;
+	t_rinoolist_node	*head;
+	t_rinoolist_node	*tail;
+	t_rinoolist_cmp		cmp_func;
+	t_rinoolist_free	free_func;
+} t_rinoolist;
 
-t_list		*list_create(t_listtype type,
-			     int (*cmp_func)(void *node1, void *node2));
-void		list_destroy(void *ptr);
-void		list_insertnode(t_list *list,
-				t_listnode *new,
-				t_listnode *prev,
-				t_listnode *next);
-int		list_addnode(t_list *list, t_listnode *new);
-t_listnode	*list_add(t_list *list,
-			  void *node,
-			  void (*free_func)(void *node));
-int		list_removenode(t_list *list, t_listnode *node, u32 needfree);
-int		list_remove(t_list *list, void *node, u32 needfree);
-void		*list_find(t_list *list, void *node);
-void		*list_pophead(t_list *list);
-int		list_popnode(t_list *list, t_listnode *node);
-void		*list_gethead(t_list *list);
-void		*list_getnext(t_list *list, t_listiterator *iterator);
+typedef t_rinoolist_node	*t_rinoolist_iter;
+
+t_rinoolist *rinoolist(t_rinoolist_type type, t_rinoolist_cmp cmp_func, t_rinoolist_free free_func);
+void rinoolist_destroy(void *ptr);
+void rinoolist_insertnode(t_rinoolist *list, t_rinoolist_node *new, t_rinoolist_node *prev, t_rinoolist_node *next);
+int rinoolist_addnode(t_rinoolist *list, t_rinoolist_node *new);
+t_rinoolist_node *rinoolist_add(t_rinoolist *list, void *ptr);
+int rinoolist_removenode(t_rinoolist *list, t_rinoolist_node *node, u32 needfree);
+int rinoolist_remove(t_rinoolist *list, void *ptr, u32 needfree);
+void *rinoolist_find(t_rinoolist *list, void *ptr);
+void *rinoolist_pophead(t_rinoolist *list);
+int rinoolist_popnode(t_rinoolist *list, t_rinoolist_node *node);
+void *rinoolist_gethead(t_rinoolist *list);
+void *rinoolist_getnext(t_rinoolist *list, t_rinoolist_iter *iterator);
 
 #endif		/* !RINOO_STRUCT_LIST_H_ */

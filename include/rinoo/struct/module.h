@@ -13,6 +13,7 @@
 
 # include	"rinoo/struct/fifo.h"
 # include	"rinoo/struct/list.h"
+# include	"rinoo/struct/skiplist.h"
 # include	"rinoo/struct/hashtable.h"
 # include	"rinoo/struct/murmurhash.h"
 

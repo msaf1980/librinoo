@@ -3,7 +3,7 @@
  * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2012
  * @date   Mon Dec 28 00:12:30 2009
  *
- * @brief  Header file for the scheduler module.
+ * @brief  Header file for scheduler module.
  *
  *
  */
@@ -13,5 +13,7 @@
 
 # include	"rinoo/scheduler/scheduler.h"
 # include	"rinoo/scheduler/task.h"
+# include	"rinoo/scheduler/poll.h"
+# include	"rinoo/scheduler/epoll.h"
 
 #endif		/* !RINOO_MODULE_SCHEDULER_H_ */

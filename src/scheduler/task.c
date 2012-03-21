@@ -14,6 +14,22 @@
 # include <valgrind/valgrind.h>
 #endif
 
+static int rinoo_task_cmp(void *ptr1, void *ptr2)
+{
+	t_rinootask *task1;
+	t_rinootask *task2;
+
+	task1 = ptr1;
+	task2 = ptr2;
+	if (task1 == task2) {
+		return 0;
+	}
+	if (timercmp(&task1->tv, &task2->tv, <=)) {
+		return -1;
+	}
+	return 1;
+}
+
 /**
  * Task driver initialization.
  * It sets a task driver in a scheduler.
@@ -34,6 +50,11 @@ int rinoo_task_driver_init(t_rinoosched *sched)
 		return -1;
 	}
 	driver->cur_task = &driver->main_task;
+	driver->task_list = rinooskip(rinoo_task_cmp, NULL);
+	if (driver->task_list == NULL) {
+		rinoo_task_driver_destroy(sched);
+		return -1;
+	}
 	sched->task_driver = driver;
 	return 0;
 }
@@ -48,9 +69,32 @@ void rinoo_task_driver_destroy(t_rinoosched *sched)
 	XASSERTN(sched != NULL);
 
 	if (sched->task_driver != NULL) {
+		if (sched->task_driver->task_list != NULL) {
+			rinooskip_destroy(sched->task_driver->task_list);
+		}
 		free(sched->task_driver);
 		sched->task_driver = NULL;
 	}
+}
+
+u32 rinoo_task_driver_run(t_rinoosched *sched)
+{
+	t_rinootask *cur;
+	struct timeval tv;
+
+	XASSERT(sched != NULL, 1000);
+	XASSERT(sched->task_driver != NULL, 1000);
+
+	while ((cur = rinooskip_head(sched->task_driver->task_list)) != NULL &&
+	       timercmp(&cur->tv, &sched->clock, <=)) {
+		cur = rinooskip_pop(sched->task_driver->task_list);
+		rinoo_task_run(cur);
+	}
+	if (cur != NULL) {
+		timersub(&cur->tv, &sched->clock, &tv);
+		return (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
+	}
+	return 1000;
 }
 
 /**
@@ -73,6 +117,8 @@ static void rinoo_task_process(int p1, int p2)
 	XASSERTN(task != NULL);
 	XASSERTN(task->func != NULL);
 	task->func(task->sched, task->arg);
+	/* That means we can destroy the task */
+	task->func = NULL;
 }
 
 /**
@@ -120,6 +166,21 @@ t_rinootask *rinoo_task(t_rinoosched *sched,
 	return new;
 }
 
+int rinoo_task_schedule(t_rinootask *task, struct timeval *tv)
+{
+	XASSERT(task != NULL, -1);
+	XASSERT(task->sched != NULL, -1);
+	XASSERT(task->sched->task_driver != NULL, -1);
+
+	if (tv != NULL) {
+		task->tv = *tv;
+	}
+	if (rinooskip_add(task->sched->task_driver->task_list, task) != 0) {
+		return -1;
+	}
+	return 0;
+}
+
 /**
  * Run or resume a task.
  * This function switches to the task stack by calling swapcontext(3).
@@ -139,7 +200,9 @@ int rinoo_task_run(t_rinootask *task)
 	task->sched->task_driver->cur_task = task;
 	ret = swapcontext(&old->context, &task->context);
 	task->sched->task_driver->cur_task = old;
-	rinoo_task_destroy(task);
+	if (task->func == NULL) {
+		rinoo_task_destroy(task);
+	}
 	return ret;
 }
 

@@ -50,4 +50,7 @@
 /* SCHEDULER */
 # include	"rinoo/scheduler/module.h"
 
+/* NET */
+# include	"rinoo/net/module.h"
+
 #endif		/* !RINOO_H_ */

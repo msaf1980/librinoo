@@ -23,76 +23,76 @@ int cmp_func(void *node1, void *node2)
  */
 int main()
 {
-	t_list *list;
-	t_list *list2;
-	t_list *list3;
+	t_rinoolist *list;
+	t_rinoolist *list2;
+	t_rinoolist *list3;
 
-	/* LIST_SORTED_HEAD test */
-	list = list_create(LIST_SORTED_HEAD, cmp_func);
+	/* RINOOLIST_SORTED_HEAD test */
+	list = rinoolist(RINOOLIST_SORTED_HEAD, cmp_func, NULL);
 	XTEST(list != NULL);
-	XTEST(list_add(list, INT_TO_PTR(42), NULL) != NULL);
+	XTEST(rinoolist_add(list, INT_TO_PTR(42)) != NULL);
 	XTEST(list->head != NULL);
 	XTEST(list->tail != NULL);
 	XTEST(list->head == list->tail);
 	XTEST(list->size == 1);
-	XTEST(list->head->node == INT_TO_PTR(42));
-	XTEST(list_add(list, INT_TO_PTR(43), NULL) != NULL);
+	XTEST(list->head->ptr == INT_TO_PTR(42));
+	XTEST(rinoolist_add(list, INT_TO_PTR(43)) != NULL);
 	XTEST(list->head != NULL);
 	XTEST(list->tail != NULL);
 	XTEST(list->head != list->tail);
 	XTEST(list->size == 2);
-	XTEST(list->head->node == INT_TO_PTR(42));
-	XTEST(list->tail->node == INT_TO_PTR(43));
-	XTEST(list_add(list, INT_TO_PTR(44), NULL) != NULL);
+	XTEST(list->head->ptr == INT_TO_PTR(42));
+	XTEST(list->tail->ptr == INT_TO_PTR(43));
+	XTEST(rinoolist_add(list, INT_TO_PTR(44)) != NULL);
 	XTEST(list->head != NULL);
 	XTEST(list->tail != NULL);
 	XTEST(list->head != list->tail);
 	XTEST(list->size == 3);
-	XTEST(list->head->node == INT_TO_PTR(42));
-	XTEST(list->tail->node == INT_TO_PTR(44));
-	XTEST(list_add(list, INT_TO_PTR(45), NULL) != NULL);
+	XTEST(list->head->ptr == INT_TO_PTR(42));
+	XTEST(list->tail->ptr == INT_TO_PTR(44));
+	XTEST(rinoolist_add(list, INT_TO_PTR(45)) != NULL);
 	XTEST(list->head != NULL);
 	XTEST(list->tail != NULL);
 	XTEST(list->head != list->tail);
 	XTEST(list->size == 4);
-	XTEST(list->head->node == INT_TO_PTR(42));
-	XTEST(list->tail->node == INT_TO_PTR(45));
+	XTEST(list->head->ptr == INT_TO_PTR(42));
+	XTEST(list->tail->ptr == INT_TO_PTR(45));
 
-	/* LIST_SORTED_TAIL test */
-	list2 = list_create(LIST_SORTED_TAIL, cmp_func);
+	/* RINOOLIST_SORTED_TAIL test */
+	list2 = rinoolist(RINOOLIST_SORTED_TAIL, cmp_func, NULL);
 	XTEST(list2 != NULL);
-	XTEST(list_add(list2, INT_TO_PTR(42), NULL) != NULL);
+	XTEST(rinoolist_add(list2, INT_TO_PTR(42)) != NULL);
 	XTEST(list2->head != NULL);
 	XTEST(list2->tail != NULL);
 	XTEST(list2->head == list2->tail);
 	XTEST(list2->size == 1);
-	XTEST(list2->head->node == INT_TO_PTR(42));
-	XTEST(list_add(list2, INT_TO_PTR(43), NULL) != NULL);
+	XTEST(list2->head->ptr == INT_TO_PTR(42));
+	XTEST(rinoolist_add(list2, INT_TO_PTR(43)) != NULL);
 	XTEST(list2->head != NULL);
 	XTEST(list2->tail != NULL);
 	XTEST(list2->head != list2->tail);
 	XTEST(list2->size == 2);
-	XTEST(list2->head->node == INT_TO_PTR(42));
-	XTEST(list2->tail->node == INT_TO_PTR(43));
-	XTEST(list_add(list2, INT_TO_PTR(44), NULL) != NULL);
+	XTEST(list2->head->ptr == INT_TO_PTR(42));
+	XTEST(list2->tail->ptr == INT_TO_PTR(43));
+	XTEST(rinoolist_add(list2, INT_TO_PTR(44)) != NULL);
 	XTEST(list2->head != NULL);
 	XTEST(list2->tail != NULL);
 	XTEST(list2->head != list2->tail);
 	XTEST(list2->size == 3);
-	XTEST(list2->head->node == INT_TO_PTR(42));
-	XTEST(list2->tail->node == INT_TO_PTR(44));
-	XTEST(list_add(list2, INT_TO_PTR(45), NULL) != NULL);
+	XTEST(list2->head->ptr == INT_TO_PTR(42));
+	XTEST(list2->tail->ptr == INT_TO_PTR(44));
+	XTEST(rinoolist_add(list2, INT_TO_PTR(45)) != NULL);
 	XTEST(list2->head != NULL);
 	XTEST(list2->tail != NULL);
 	XTEST(list2->head != list2->tail);
 	XTEST(list2->size == 4);
-	XTEST(list2->head->node == INT_TO_PTR(42));
-	XTEST(list2->tail->node == INT_TO_PTR(45));
+	XTEST(list2->head->ptr == INT_TO_PTR(42));
+	XTEST(list2->tail->ptr == INT_TO_PTR(45));
 
 	/* Destroys lists */
-	list3 = list_create(LIST_SORTED_HEAD, cmp_func);
-	XTEST(list_add(list3, list, list_destroy) != NULL);
-	XTEST(list_add(list3, list2, list_destroy) != NULL);
-	list_destroy(list3);
+	list3 = rinoolist(RINOOLIST_SORTED_HEAD, cmp_func, rinoolist_destroy);
+	XTEST(rinoolist_add(list3, list) != NULL);
+	XTEST(rinoolist_add(list3, list2) != NULL);
+	rinoolist_destroy(list3);
 	XPASS();
 }

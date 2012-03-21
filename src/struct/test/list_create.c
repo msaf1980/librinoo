@@ -23,23 +23,25 @@ int cmp_func(void *unused(node1), void *unused(node2))
  */
 int main()
 {
-	t_list *list;
+	t_rinoolist *list;
 
-	list = list_create(LIST_SORTED_HEAD, cmp_func);
+	list = rinoolist(RINOOLIST_SORTED_HEAD, cmp_func, NULL);
 	XTEST(list != NULL);
-	XTEST(list->type == LIST_SORTED_HEAD);
+	XTEST(list->type == RINOOLIST_SORTED_HEAD);
 	XTEST(list->head == NULL);
 	XTEST(list->tail == NULL);
 	XTEST(list->cmp_func == cmp_func);
+	XTEST(list->free_func == NULL);
 	XTEST(list->size == 0);
-	list_destroy(list);
-	list = list_create(LIST_SORTED_TAIL, cmp_func);
+	rinoolist_destroy(list);
+	list = rinoolist(RINOOLIST_SORTED_TAIL, cmp_func, NULL);
 	XTEST(list != NULL);
-	XTEST(list->type == LIST_SORTED_TAIL);
+	XTEST(list->type == RINOOLIST_SORTED_TAIL);
 	XTEST(list->head == NULL);
 	XTEST(list->tail == NULL);
 	XTEST(list->cmp_func == cmp_func);
+	XTEST(list->free_func == NULL);
 	XTEST(list->size == 0);
-	list_destroy(list);
+	rinoolist_destroy(list);
 	XPASS();
 }

@@ -12,19 +12,18 @@
 
 typedef struct s_testnode {
 	int value;
-	char tofree;
 	char freed;
 } t_testnode;
 
 static t_testnode tnodes[] = {
-	{42, 0, 0},
-	{46, 0, 0},
-	{43, 0, 0},
-	{48, 1, 0},
-	{45, 1, 0},
-	{44, 1, 0},
-	{47, 0, 0},
-	{0, 0, 0}
+	{42, 0},
+	{46, 0},
+	{43, 0},
+	{48, 0},
+	{45, 0},
+	{44, 0},
+	{47, 0},
+	{0, 0}
 };
 
 int cmp_func(void *node1, void *node2)
@@ -43,7 +42,6 @@ void free_func(void *node)
 	value = PTR_TO_INT(node);
 	for (i = 0; tnodes[i].value > 0; i++) {
 		if (tnodes[i].value == value) {
-			XTEST(tnodes[i].tofree == 1);
 			tnodes[i].freed = 1;
 			return;
 		}
@@ -60,33 +58,29 @@ void free_func(void *node)
 int main()
 {
 	int i;
-	t_list *list;
+	t_rinoolist *list;
 
-	/* LIST_SORTED_HEAD test */
-	list = list_create(LIST_SORTED_HEAD, cmp_func);
+	/* RINOOLIST_SORTED_HEAD test */
+	list = rinoolist(RINOOLIST_SORTED_HEAD, cmp_func, free_func);
 	XTEST(list != NULL);
 	for (i = 0; tnodes[i].value > 0; i++) {
-		XTEST(list_add(list,
-			       INT_TO_PTR(tnodes[i].value),
-			       (tnodes[i].tofree ? free_func : NULL)) != NULL);
+		XTEST(rinoolist_add(list, INT_TO_PTR(tnodes[i].value)) != NULL);
 	}
-	list_destroy(list);
+	rinoolist_destroy(list);
 	for (i = 0; tnodes[i].value > 0; i++) {
-		XTEST(tnodes[i].tofree == tnodes[i].freed);
+		XTEST(tnodes[i].freed == 1);
 		tnodes[i].freed = 0;
 	}
 
-	/* LIST_SORTED_TAIL test */
-	list = list_create(LIST_SORTED_TAIL, cmp_func);
+	/* RINOOLIST_SORTED_TAIL test */
+	list = rinoolist(RINOOLIST_SORTED_TAIL, cmp_func, NULL);
 	XTEST(list != NULL);
 	for (i = 0; tnodes[i].value > 0; i++) {
-		XTEST(list_add(list,
-			       INT_TO_PTR(tnodes[i].value),
-			       (tnodes[i].tofree ? free_func : NULL)) != NULL);
+		XTEST(rinoolist_add(list, INT_TO_PTR(tnodes[i].value)) != NULL);
 	}
-	list_destroy(list);
+	rinoolist_destroy(list);
 	for (i = 0; tnodes[i].value > 0; i++) {
-		XTEST(tnodes[i].tofree == tnodes[i].freed);
+		XTEST(tnodes[i].freed == 0);
 		tnodes[i].freed = 0;
 	}
 	XPASS();

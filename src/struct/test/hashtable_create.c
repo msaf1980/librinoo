@@ -31,31 +31,29 @@ int hash_cmp(void *node1, void *node2)
 int main()
 {
 	u32 i;
-	t_hashtable *hashtable;
+	t_rinoohash *hashtable;
 
-	hashtable =
-	    hashtable_create(LIST_SORTED_HEAD, HASH_SIZE, hash_func, hash_cmp);
+	hashtable = rinoohash(RINOOLIST_SORTED_HEAD, HASH_SIZE, hash_func, hash_cmp, NULL);
 	XTEST(hashtable != NULL);
 	XTEST(hashtable->hashsize == HASH_SIZE);
 	XTEST(hashtable->hash_func == hash_func);
 	XTEST(hashtable->table != NULL);
 	for (i = 0; i < HASH_SIZE; i++) {
 		XTEST(hashtable->table[i] != NULL);
-		XTEST(hashtable->table[i]->type == LIST_SORTED_HEAD);
+		XTEST(hashtable->table[i]->type == RINOOLIST_SORTED_HEAD);
 	}
 	XTEST(hashtable->size == 0);
-	hashtable_destroy(hashtable);
-	hashtable =
-	    hashtable_create(LIST_SORTED_TAIL, HASH_SIZE, hash_func, hash_cmp);
+	rinoohash_destroy(hashtable);
+	hashtable = rinoohash(RINOOLIST_SORTED_TAIL, HASH_SIZE, hash_func, hash_cmp, NULL);
 	XTEST(hashtable != NULL);
 	XTEST(hashtable->hashsize == HASH_SIZE);
 	XTEST(hashtable->hash_func == hash_func);
 	XTEST(hashtable->table != NULL);
 	for (i = 0; i < HASH_SIZE; i++) {
 		XTEST(hashtable->table[i] != NULL);
-		XTEST(hashtable->table[i]->type == LIST_SORTED_TAIL);
+		XTEST(hashtable->table[i]->type == RINOOLIST_SORTED_TAIL);
 	}
 	XTEST(hashtable->size == 0);
-	hashtable_destroy(hashtable);
+	rinoohash_destroy(hashtable);
 	XPASS();
 }

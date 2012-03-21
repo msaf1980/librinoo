@@ -16,16 +16,15 @@
  * @param listtype Type of list to use.
  * @param hashsize Array size of the hash table.
  * @param hash_func Pointer to a hash function.
+ * @param cmp_func Pointer to a compare function.
+ * @param free_func Pointer to a free function.
  *
  * @return Pointer to the new hash table.
  */
-t_hashtable *hashtable_create(t_listtype listtype,
-			      u32 hashsize,
-			      u32 (*hash_func)(void *node),
-			      int (*cmp_func)(void *node1, void *node2))
+t_rinoohash *rinoohash(t_rinoolist_type listtype, u32 hashsize, t_rinoohash_func hash_func, t_rinoolist_cmp cmp_func, t_rinoolist_free free_func)
 {
 	u32 i;
-	t_hashtable *new;
+	t_rinoohash *new;
 
 	XASSERT(hashsize > 0, NULL);
 	XASSERT(hash_func != NULL, NULL);
@@ -44,7 +43,7 @@ t_hashtable *hashtable_create(t_listtype listtype,
 		return NULL;
 	}
 	for (i = 0; i < hashsize; i++) {
-		new->table[i] = list_create(listtype, cmp_func);
+		new->table[i] = rinoolist(listtype, cmp_func, free_func);
 	}
 	return new;
 }
@@ -54,16 +53,16 @@ t_hashtable *hashtable_create(t_listtype listtype,
  *
  * @param ptr Pointer to the hashtable to destroy.
  */
-void hashtable_destroy(void *ptr)
+void rinoohash_destroy(void *ptr)
 {
 	u32 i;
-	t_hashtable *htab;
+	t_rinoohash *htab;
 
 	XASSERTN(ptr != NULL);
 
 	htab = ptr;
 	for (i = 0; i < htab->hashsize; i++) {
-		list_destroy(htab->table[i]);
+		rinoolist_destroy(htab->table[i]);
 	}
 	free(htab->table);
 	free(htab);
@@ -77,12 +76,11 @@ void hashtable_destroy(void *ptr)
  *
  * @return 0 on success, -1 if an error occurs.
  */
-int hashtable_addnode(t_hashtable *htab, t_listnode *node)
+int rinoohash_addnode(t_rinoohash *htab, t_rinoolist_node *node)
 {
 	XASSERT(htab != NULL, FALSE);
 
-	if (unlikely(list_addnode(htab->table[htab->hash_func(node->node) % htab->hashsize],
-				  node) != 0)) {
+	if (unlikely(rinoolist_addnode(htab->table[htab->hash_func(node->ptr) % htab->hashsize], node) != 0)) {
 		return -1;
 	}
 	htab->size++;
@@ -93,20 +91,17 @@ int hashtable_addnode(t_hashtable *htab, t_listnode *node)
  * Adds an element to a hash table.
  *
  * @param htab Pointer to the hash table where to add the element.
- * @param node Pointer to the element to add.
- * @param free_func Pointer to a function which can free the element.
+ * @param ptr Pointer to the element to add.
  *
  * @return A pointer to the new list node.
  */
-t_listnode *hashtable_add(t_hashtable *htab, void *node, void (*free_func)(void *node))
+t_rinoolist_node *rinoohash_add(t_rinoohash *htab, void *ptr)
 {
-	t_listnode *listnode;
+	t_rinoolist_node *listnode;
 
 	XASSERT(htab != NULL, FALSE);
 
-	listnode = list_add(htab->table[htab->hash_func(node) % htab->hashsize],
-			    node,
-			    free_func);
+	listnode = rinoolist_add(htab->table[htab->hash_func(ptr) % htab->hashsize], ptr);
 	if (unlikely(listnode == NULL)) {
 		return NULL;
 	}
@@ -118,20 +113,18 @@ t_listnode *hashtable_add(t_hashtable *htab, void *node, void (*free_func)(void 
  * Deletes an element from a hash table.
  *
  * @param htab Pointer to the hash table to use.
- * @param node Pointer to the element to remove.
+ * @param ptr Pointer to the element to remove.
  * @param needfree Boolean which indicates if the node needs to be freed.
  *
  * @return 1 on success, 0 if an error occurs.
  */
-int hashtable_remove(t_hashtable *htab, void *node, u32 needfree)
+int rinoohash_remove(t_rinoohash *htab, void *ptr, u32 needfree)
 {
 	int res;
 
 	XASSERT(htab != NULL, FALSE);
 
-	res = list_remove(htab->table[htab->hash_func(node) % htab->hashsize],
-			  node,
-			  needfree);
+	res = rinoolist_remove(htab->table[htab->hash_func(ptr) % htab->hashsize], ptr, needfree);
 	if (res == TRUE) {
 		htab->size--;
 	}
@@ -147,16 +140,14 @@ int hashtable_remove(t_hashtable *htab, void *node, u32 needfree)
  *
  * @return 1 on success, 0 if an error occurs.
  */
-int hashtable_removenode(t_hashtable *htab, t_listnode *node, u32 needfree)
+int rinoohash_removenode(t_rinoohash *htab, t_rinoolist_node *node, u32 needfree)
 {
 	int res;
 
 	XASSERT(htab != NULL, FALSE);
 	XASSERT(node != NULL, FALSE);
 
-	res = list_removenode(htab->table[htab->hash_func(node->node) % htab->hashsize],
-			      node,
-			      needfree);
+	res = rinoolist_removenode(htab->table[htab->hash_func(node->ptr) % htab->hashsize], node, needfree);
 	if (res == TRUE) {
 		htab->size--;
 	}
@@ -167,15 +158,15 @@ int hashtable_removenode(t_hashtable *htab, t_listnode *node, u32 needfree)
  * Finds an element in a hash table.
  *
  * @param htab Pointer to the hash table to use.
- * @param node Pointer to an element to look for.
+ * @param ptr Pointer to an element to look for.
  *
  * @return Pointer to the element found or NULL if nothing is found.
  */
-void *hashtable_find(t_hashtable *htab, void *node)
+void *rinoohash_find(t_rinoohash *htab, void *ptr)
 {
 	XASSERT(htab != NULL, NULL);
 
-	return list_find(htab->table[htab->hash_func(node) % htab->hashsize], node);
+	return rinoolist_find(htab->table[htab->hash_func(ptr) % htab->hashsize], ptr);
 }
 
 /**
@@ -187,7 +178,7 @@ void *hashtable_find(t_hashtable *htab, void *node)
  *
  * @return A pointer to the current element or NULL if the end is reached.
  */
-void *hashtable_getnext(t_hashtable *htab, t_hashiterator *iterator)
+void *rinoohash_getnext(t_rinoohash *htab, t_rinoohash_iter *iterator)
 {
 	u32 i;
 	void *result;
@@ -197,7 +188,7 @@ void *hashtable_getnext(t_hashtable *htab, t_hashiterator *iterator)
 
 	for (i = iterator->hash; i < htab->hashsize; i++) {
 		iterator->hash = i;
-		result = list_getnext(htab->table[i], &iterator->list_iterator);
+		result = rinoolist_getnext(htab->table[i], &iterator->list_iterator);
 		if (result != NULL) {
 			return result;
 		}
@@ -216,13 +207,12 @@ void *hashtable_getnext(t_hashtable *htab, t_hashiterator *iterator)
  *
  * @return 0 on success, or -1 if an error occurs.
  */
-int hashtable_popnode(t_hashtable *htab, t_listnode *node)
+int rinoohash_popnode(t_rinoohash *htab, t_rinoolist_node *node)
 {
 	XASSERT(htab != NULL, -1);
 	XASSERT(node != NULL, -1);
 
-	if (unlikely(list_popnode(htab->table[htab->hash_func(node->node) % htab->hashsize],
-				  node) != 0)) {
+	if (unlikely(rinoolist_popnode(htab->table[htab->hash_func(node->ptr) % htab->hashsize], node) != 0)) {
 		return -1;
 	}
 	htab->size--;

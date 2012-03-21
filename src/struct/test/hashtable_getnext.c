@@ -30,31 +30,30 @@ int hash_cmp(void *node1, void *node2)
  */
 int main()
 {
-	t_hashtable *hashtable;
-	t_hashiterator iterator = { 0, 0 };
+	t_rinoohash *hashtable;
+	t_rinoohash_iter iterator = { 0, 0 };
 
-	hashtable =
-	    hashtable_create(LIST_SORTED_HEAD, HASH_SIZE, hash_func, hash_cmp);
+	hashtable = rinoohash(RINOOLIST_SORTED_HEAD, HASH_SIZE, hash_func, hash_cmp, NULL);
 	XTEST(hashtable != NULL);
 	XTEST(hashtable->hashsize == HASH_SIZE);
 	XTEST(hashtable->hash_func == hash_func);
 	XTEST(hashtable->table != NULL);
 	XTEST(hashtable->size == 0);
-	XTEST(hashtable_add(hashtable, INT_TO_PTR(42), NULL) != NULL);
-	XTEST(hashtable_add(hashtable, INT_TO_PTR(43), NULL) != NULL);
-	XTEST(hashtable_add(hashtable, INT_TO_PTR(52), NULL) != NULL);
-	XTEST(hashtable_add(hashtable, INT_TO_PTR(53), NULL) != NULL);
-	XTEST(hashtable_add(hashtable, INT_TO_PTR(62), NULL) != NULL);
-	XTEST(hashtable_add(hashtable, INT_TO_PTR(63), NULL) != NULL);
+	XTEST(rinoohash_add(hashtable, INT_TO_PTR(42)) != NULL);
+	XTEST(rinoohash_add(hashtable, INT_TO_PTR(43)) != NULL);
+	XTEST(rinoohash_add(hashtable, INT_TO_PTR(52)) != NULL);
+	XTEST(rinoohash_add(hashtable, INT_TO_PTR(53)) != NULL);
+	XTEST(rinoohash_add(hashtable, INT_TO_PTR(62)) != NULL);
+	XTEST(rinoohash_add(hashtable, INT_TO_PTR(63)) != NULL);
 	XTEST(hashtable->size == 6);
 	/* Element are inserted in the beginning, have to check for newest first */
-	XTEST(hashtable_getnext(hashtable, &iterator) == INT_TO_PTR(42));
-	XTEST(hashtable_getnext(hashtable, &iterator) == INT_TO_PTR(43));
-	XTEST(hashtable_getnext(hashtable, &iterator) == INT_TO_PTR(52));
-	XTEST(hashtable_getnext(hashtable, &iterator) == INT_TO_PTR(53));
-	XTEST(hashtable_getnext(hashtable, &iterator) == INT_TO_PTR(62));
-	XTEST(hashtable_getnext(hashtable, &iterator) == INT_TO_PTR(63));
-	XTEST(hashtable_getnext(hashtable, &iterator) == NULL);
-	hashtable_destroy(hashtable);
+	XTEST(rinoohash_getnext(hashtable, &iterator) == INT_TO_PTR(42));
+	XTEST(rinoohash_getnext(hashtable, &iterator) == INT_TO_PTR(43));
+	XTEST(rinoohash_getnext(hashtable, &iterator) == INT_TO_PTR(52));
+	XTEST(rinoohash_getnext(hashtable, &iterator) == INT_TO_PTR(53));
+	XTEST(rinoohash_getnext(hashtable, &iterator) == INT_TO_PTR(62));
+	XTEST(rinoohash_getnext(hashtable, &iterator) == INT_TO_PTR(63));
+	XTEST(rinoohash_getnext(hashtable, &iterator) == NULL);
+	rinoohash_destroy(hashtable);
 	XPASS();
 }

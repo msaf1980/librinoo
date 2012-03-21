@@ -10,11 +10,9 @@
 
 #include	"rinoo/rinoo.h"
 
-int cmp_func(void *node1, void *node2)
+int cmp_func(void *unused(node1), void *unused(node2))
 {
-	(void)node1;
-	(void)node2;
-	return (1);
+	return 1;
 }
 
 /**
@@ -25,40 +23,40 @@ int cmp_func(void *node1, void *node2)
  */
 int main()
 {
-	t_list *list;
+	t_rinoolist *list;
 
-	list = list_create(LIST_SORTED_HEAD, cmp_func);
+	list = rinoolist(RINOOLIST_SORTED_HEAD, cmp_func, NULL);
 	XTEST(list != NULL);
-	XTEST(list_add(list, INT_TO_PTR(42), NULL) != NULL);
-	XTEST(list_add(list, INT_TO_PTR(43), NULL) != NULL);
-	XTEST(list_add(list, INT_TO_PTR(44), NULL) != NULL);
-	XTEST(list_add(list, INT_TO_PTR(45), NULL) != NULL);
+	XTEST(rinoolist_add(list, INT_TO_PTR(42)) != NULL);
+	XTEST(rinoolist_add(list, INT_TO_PTR(43)) != NULL);
+	XTEST(rinoolist_add(list, INT_TO_PTR(44)) != NULL);
+	XTEST(rinoolist_add(list, INT_TO_PTR(45)) != NULL);
 	XTEST(list->head != NULL);
 	XTEST(list->tail != NULL);
 	XTEST(list->size == 4);
-	XTEST(list->head->node == INT_TO_PTR(42));
-	XTEST(list->tail->node == INT_TO_PTR(45));
-	XTEST(list_pophead(list) == INT_TO_PTR(42));
+	XTEST(list->head->ptr == INT_TO_PTR(42));
+	XTEST(list->tail->ptr == INT_TO_PTR(45));
+	XTEST(rinoolist_pophead(list) == INT_TO_PTR(42));
 	XTEST(list->head != NULL);
-	XTEST(list->head->node == INT_TO_PTR(43));
+	XTEST(list->head->ptr == INT_TO_PTR(43));
 	XTEST(list->tail != NULL);
-	XTEST(list->tail->node == INT_TO_PTR(45));
+	XTEST(list->tail->ptr == INT_TO_PTR(45));
 	XTEST(list->size == 3);
-	XTEST(list_pophead(list) == INT_TO_PTR(43));
+	XTEST(rinoolist_pophead(list) == INT_TO_PTR(43));
 	XTEST(list->head != NULL);
-	XTEST(list->head->node == INT_TO_PTR(44));
+	XTEST(list->head->ptr == INT_TO_PTR(44));
 	XTEST(list->tail != NULL);
-	XTEST(list->tail->node == INT_TO_PTR(45));
+	XTEST(list->tail->ptr == INT_TO_PTR(45));
 	XTEST(list->size == 2);
-	XTEST(list_pophead(list) == INT_TO_PTR(44));
+	XTEST(rinoolist_pophead(list) == INT_TO_PTR(44));
 	XTEST(list->head != NULL);
 	XTEST(list->head == list->tail);
-	XTEST(list->head->node == INT_TO_PTR(45));
+	XTEST(list->head->ptr == INT_TO_PTR(45));
 	XTEST(list->size == 1);
-	XTEST(list_pophead(list) == INT_TO_PTR(45));
+	XTEST(rinoolist_pophead(list) == INT_TO_PTR(45));
 	XTEST(list->head == NULL);
 	XTEST(list->tail == NULL);
 	XTEST(list->size == 0);
-	list_destroy(list);
+	rinoolist_destroy(list);
 	XPASS();
 }

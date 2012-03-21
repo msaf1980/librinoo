@@ -15,12 +15,13 @@
  *
  * @param type Type of the list to create.
  * @param cmp_func Pointer to a compare function.
+ * @param free_func Pointer to a free function.
  *
  * @return A pointer to the new list, or NULL if an error occurs.
  */
-t_list *list_create(t_listtype type, int (*cmp_func)(void *node1, void *node2))
+t_rinoolist *rinoolist(t_rinoolist_type type, t_rinoolist_cmp cmp_func, t_rinoolist_free free_func)
 {
-	t_list *list;
+	t_rinoolist *list;
 
 	XASSERT(cmp_func != NULL, NULL);
 
@@ -30,6 +31,7 @@ t_list *list_create(t_listtype type, int (*cmp_func)(void *node1, void *node2))
 	}
 	list->type = type;
 	list->cmp_func = cmp_func;
+	list->free_func = free_func;
 	return list;
 }
 
@@ -38,21 +40,21 @@ t_list *list_create(t_listtype type, int (*cmp_func)(void *node1, void *node2))
  *
  * @param ptr Pointer to the list to destroy.
  */
-void list_destroy(void *ptr)
+void rinoolist_destroy(void *ptr)
 {
-	t_list *list;
-	t_listnode *cur;
-	t_listnode *tmp;
+	t_rinoolist *list;
+	t_rinoolist_node *cur;
+	t_rinoolist_node *tmp;
 
 	XASSERTN(ptr != NULL);
 
-	list = (t_list *) ptr;
+	list = (t_rinoolist *) ptr;
 
 	cur = list->head;
 	while (cur != NULL) {
 		tmp = cur->next;
-		if (cur->free_func != NULL) {
-			cur->free_func(cur->node);
+		if (list->free_func != NULL) {
+			list->free_func(cur->ptr);
 		}
 		free(cur);
 		cur = tmp;
@@ -68,7 +70,7 @@ void list_destroy(void *ptr)
  * @param prev Pointer to the previous element (NULL if head).
  * @param next Pointer to the next element (NULL if tail).
  */
-void list_insertnode(t_list *list, t_listnode *new, t_listnode *prev, t_listnode *next)
+void rinoolist_insertnode(t_rinoolist *list, t_rinoolist_node *new, t_rinoolist_node *prev, t_rinoolist_node *next)
 {
 	XASSERTN(list != NULL);
 	XASSERTN(new != NULL);
@@ -96,32 +98,32 @@ void list_insertnode(t_list *list, t_listnode *new, t_listnode *prev, t_listnode
  *
  * @return 0 on success, -1 if an error occurs.
  */
-int list_addnode(t_list *list, t_listnode *new)
+int rinoolist_addnode(t_rinoolist *list, t_rinoolist_node *new)
 {
 	XASSERT(list != NULL, -1);
 	XASSERT(new != NULL, -1);
 
 	switch (list->type) {
-	case LIST_SORTED_HEAD:
+	case RINOOLIST_SORTED_HEAD:
 		new->next = list->head;
 		new->prev = NULL;
 		while (new->next != NULL &&
-		       list->cmp_func(new->node, new->next->node) > 0) {
+		       list->cmp_func(new->ptr, new->next->ptr) > 0) {
 			new->prev = new->next;
 			new->next = new->next->next;
 		}
 		break;
-	case LIST_SORTED_TAIL:
+	case RINOOLIST_SORTED_TAIL:
 		new->next = NULL;
 		new->prev = list->tail;
 		while (new->prev != NULL &&
-		       list->cmp_func(new->node, new->prev->node) < 0) {
+		       list->cmp_func(new->ptr, new->prev->ptr) < 0) {
 			new->next = new->prev;
 			new->prev = new->prev->prev;
 		}
 		break;
 	}
-	list_insertnode(list, new, new->prev, new->next);
+	rinoolist_insertnode(list, new, new->prev, new->next);
 	return 0;
 }
 
@@ -129,14 +131,13 @@ int list_addnode(t_list *list, t_listnode *new)
  * Adds an element to a list.
  *
  * @param list Pointer to the list where to add the element.
- * @param node Pointer to the element to add.
- * @param free_func Pointer to a function which can free the element.
+ * @param ptr Pointer to the element to add.
  *
  * @return A pointer to the new list node, or NULL if an error occurs.
  */
-t_listnode *list_add(t_list *list, void *node, void (*free_func)(void *node))
+t_rinoolist_node *rinoolist_add(t_rinoolist *list, void *ptr)
 {
-	t_listnode *new;
+	t_rinoolist_node *new;
 
 	XASSERT(list != NULL, NULL);
 
@@ -144,9 +145,8 @@ t_listnode *list_add(t_list *list, void *node, void (*free_func)(void *node))
 	if (unlikely(new == NULL)) {
 		return NULL;
 	}
-	new->node = node;
-	new->free_func = free_func;
-	if (unlikely(list_addnode(list, new) != 0)) {
+	new->ptr = ptr;
+	if (unlikely(rinoolist_addnode(list, new) != 0)) {
 		free(new);
 		return NULL;
 	}
@@ -162,7 +162,7 @@ t_listnode *list_add(t_list *list, void *node, void (*free_func)(void *node))
  *
  * @return 0 on success, -1 if an error occurs.
  */
-int list_removenode(t_list *list, t_listnode *node, u32 needfree)
+int rinoolist_removenode(t_rinoolist *list, t_rinoolist_node *node, u32 needfree)
 {
 	XASSERT(list != NULL, -1);
 	XASSERT(node != NULL, -1);
@@ -177,8 +177,8 @@ int list_removenode(t_list *list, t_listnode *node, u32 needfree)
 	} else {
 		node->next->prev = node->prev;
 	}
-	if (node->free_func != NULL && needfree == TRUE) {
-		node->free_func(node->node);
+	if (list->free_func != NULL && needfree == TRUE) {
+		list->free_func(node->ptr);
 	}
 	free(node);
 	list->size--;
@@ -189,23 +189,23 @@ int list_removenode(t_list *list, t_listnode *node, u32 needfree)
  * Deletes an element from a list.
  *
  * @param list Pointer to the list to use.
- * @param node Pointer to the element to remove.
+ * @param ptr Pointer to the element to remove.
  * @param needfree Boolean which indicates if the free_func has to be called.
  *
  * @return 0 on success, -1 if an error occurs.
  */
-int list_remove(t_list *list, void *node, u32 needfree)
+int rinoolist_remove(t_rinoolist *list, void *ptr, u32 needfree)
 {
-	t_listnode *cur;
+	t_rinoolist_node *cur;
 
 	XASSERT(list != NULL, -1);
 
 	cur = list->head;
-	while (cur != NULL && list->cmp_func(cur->node, node) != 0) {
+	while (cur != NULL && list->cmp_func(cur->ptr, ptr) != 0) {
 		cur = cur->next;
 	}
 	if (cur != NULL) {
-		list_removenode(list, cur, needfree);
+		rinoolist_removenode(list, cur, needfree);
 		return 0;
 	}
 	return -1;
@@ -215,22 +215,22 @@ int list_remove(t_list *list, void *node, u32 needfree)
  * Finds an element in a list.
  *
  * @param list Pointer to the list to use.
- * @param node Pointer to an element to look for.
+ * @param ptr Pointer to an element to look for.
  *
  * @return Pointer to the element found or NULL if nothing is found.
  */
-void *list_find(t_list *list, void *node)
+void *rinoolist_find(t_rinoolist *list, void *ptr)
 {
-	t_listnode *cur;
+	t_rinoolist_node *cur;
 
 	XASSERT(list != NULL, NULL);
 
 	cur = list->head;
-	while (cur != NULL && list->cmp_func(cur->node, node) != 0) {
+	while (cur != NULL && list->cmp_func(cur->ptr, ptr) != 0) {
 		cur = cur->next;
 	}
 	if (cur != NULL) {
-		return cur->node;
+		return cur->ptr;
 	}
 	return NULL;
 }
@@ -242,10 +242,10 @@ void *list_find(t_list *list, void *node)
  *
  * @return Pointer to the element or NULL if the list is empty.
  */
-void *list_pophead(t_list *list)
+void *rinoolist_pophead(t_rinoolist *list)
 {
-	void *node;
-	t_listnode *head;
+	void *ptr;
+	t_rinoolist_node *head;
 
 	XASSERT(list != NULL, NULL);
 
@@ -259,10 +259,10 @@ void *list_pophead(t_list *list)
 	} else {
 		list->head->prev = NULL;
 	}
-	node = head->node;
+	ptr = head->ptr;
 	free(head);
 	list->size--;
-	return node;
+	return ptr;
 }
 
 /**
@@ -273,7 +273,7 @@ void *list_pophead(t_list *list)
  *
  * @return 0 on success, or -1 if an error occurs.
  */
-int list_popnode(t_list *list, t_listnode *node)
+int rinoolist_popnode(t_rinoolist *list, t_rinoolist_node *node)
 {
 	XASSERT(list != NULL, -1);
 	XASSERT(node != NULL, -1);
@@ -301,14 +301,14 @@ int list_popnode(t_list *list, t_listnode *node)
  *
  * @return Pointer to the element found or NULL if the list is empty.
  */
-void *list_gethead(t_list *list)
+void *rinoolist_gethead(t_rinoolist *list)
 {
 	XASSERT(list != NULL, NULL);
 
 	if (list->head == NULL) {
 		return NULL;
 	}
-	return list->head->node;
+	return list->head->ptr;
 }
 
 /**
@@ -321,7 +321,7 @@ void *list_gethead(t_list *list)
  *
  * @return A pointer to the current element or NULL if the end is reached.
  */
-void *list_getnext(t_list *list, t_listiterator *iterator)
+void *rinoolist_getnext(t_rinoolist *list, t_rinoolist_iter *iterator)
 {
 	XASSERT(list != NULL, NULL);
 	XASSERT(iterator != NULL, NULL);
@@ -334,5 +334,5 @@ void *list_getnext(t_list *list, t_listiterator *iterator)
 	if (unlikely(*iterator == NULL)) {
 		return NULL;
 	}
-	return (*iterator)->node;
+	return (*iterator)->ptr;
 }

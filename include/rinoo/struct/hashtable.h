@@ -11,36 +11,31 @@
 #ifndef		RINOO_STRUCT_HASHTABLE_H_
 # define	RINOO_STRUCT_HASHTABLE_H_
 
-typedef struct s_hashtable
+typedef u32	(*t_rinoohash_func)(void *ptr);
+
+typedef struct s_rinoohash
 {
-	u32		size;
-	u32		hashsize;
-	t_listtype	listtype;
-	t_list		**table;
-	u32		(*hash_func)(void *node);
-} t_hashtable;
+	u32			size;
+	u32			hashsize;
+	t_rinoolist_type	listtype;
+	t_rinoolist		**table;
+	t_rinoohash_func	hash_func;
+} t_rinoohash;
 
-typedef struct s_hashiterator
+typedef struct s_rinoohash_iter
 {
-	u32		hash;
-	t_listiterator	list_iterator;
-} t_hashiterator;
+	u32			hash;
+	t_rinoolist_iter	list_iterator;
+} t_rinoohash_iter;
 
-t_hashtable	*hashtable_create(t_listtype listtype,
-				  u32 hashsize,
-				  u32 (*hash_func)(void *node),
-				  int (*cmp_func)(void *node1, void *node2));
-void		hashtable_destroy(void *ptr);
-int		hashtable_addnode(t_hashtable *htab, t_listnode *node);
-t_listnode	*hashtable_add(t_hashtable *htab,
-			      void *node,
-			      void (*free_func)(void *node));
-int		hashtable_remove(t_hashtable *htab, void *node, u32 needfree);
-int		hashtable_removenode(t_hashtable *htab,
-				     t_listnode *node,
-				     u32 needfree);
-void		*hashtable_find(t_hashtable *htab, void *node);
-void		*hashtable_getnext(t_hashtable *htab, t_hashiterator *iterator);
-int		hashtable_popnode(t_hashtable *htab, t_listnode *node);
+t_rinoohash *rinoohash(t_rinoolist_type listtype, u32 hashsize, t_rinoohash_func hash_func, t_rinoolist_cmp cmp_func, t_rinoolist_free free_func);
+void rinoohash_destroy(void *ptr);
+int rinoohash_addnode(t_rinoohash *htab, t_rinoolist_node *node);
+t_rinoolist_node *rinoohash_add(t_rinoohash *htab, void *ptr);
+int rinoohash_remove(t_rinoohash *htab, void *node, u32 needfree);
+int rinoohash_removenode(t_rinoohash *htab, t_rinoolist_node *node, u32 needfree);
+void *rinoohash_find(t_rinoohash *htab, void *ptr);
+void *rinoohash_getnext(t_rinoohash *htab, t_rinoohash_iter *iterator);
+int rinoohash_popnode(t_rinoohash *htab, t_rinoolist_node *node);
 
-#endif		/* !RINOO_STRUCT_HASHTABLE_H_ */
+#endif		/* !RINOO_STRUCT_RINOOHASH_H_ */
