@@ -39,11 +39,6 @@ static t_rinoosocket *rinoo_socket_init(t_rinoosched *sched, int fd, t_rinoosock
 		free(sock);
 		return NULL;
 	}
-	sock->task = rinoo_task(sched, rinoo_socket_run, sock);
-	if (unlikely(sock->task == NULL)) {
-		free(sock);
-		return NULL;
-	}
 	return sock;
 }
 
@@ -102,8 +97,13 @@ int rinoo_socket_schedule(t_rinoosocket *socket, u32 ms)
 
 	XASSERT(socket != NULL, -1);
 	XASSERT(socket->sched != NULL, -1);
-	XASSERT(socket->task != NULL, -1);
 
+	if (socket->task == NULL) {
+		socket->task = rinoo_task(socket->sched, rinoo_socket_run, socket);
+		if (unlikely(socket->task == NULL)) {
+			return -1;
+		}
+	}
 	if (ms == 0) {
 		return rinoo_task_schedule(socket->task, NULL);
 	}
@@ -144,6 +144,14 @@ int rinoo_socket_resume(t_rinoosocket *socket)
 {
 	int ret;
 
+	XASSERT(socket != NULL, -1);
+
+	if (socket->task == NULL) {
+		socket->task = rinoo_task(socket->sched, rinoo_socket_run, socket);
+		if (unlikely(socket->task == NULL)) {
+			return -1;
+		}
+	}
 	ret = rinoo_task_run(socket->task);
 	if (ret == 0 && socket->run == NULL) {
 		rinoo_socket_destroy(socket);
@@ -300,7 +308,7 @@ t_rinoosocket *rinoo_socket_accept(t_rinoosocket *socket, struct sockaddr *addr,
 		return NULL;
 	}
 	new = rinoo_socket_init(socket->sched, fd, run_func);
-	if (new == NULL) {
+	if (unlikely(new == NULL)) {
 		close(fd);
 		return NULL;
 	}

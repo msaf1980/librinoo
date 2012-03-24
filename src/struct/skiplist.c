@@ -55,13 +55,12 @@ int rinooskip_add(t_rinooskip *list, void *ptr)
 	t_rinooskip_node *newnode;
 	t_rinooskip_node *curnode;
 	t_rinooskip_node *update[RINOO_SKIPLIST_MAXLEVEL];
-	int j = 0;
+
 	curnode = &list->head;
 	for (i = list->level; i >= 0; i--) {
 		while (curnode->forward[i] != NULL &&
-		       list->cmp_func(curnode->forward[i]->ptr, ptr) > 0) {
+		       list->cmp_func(curnode->forward[i]->ptr, ptr) < 0) {
 			curnode = curnode->forward[i];
-			j++;
 		}
 		update[i] = curnode;
 	}

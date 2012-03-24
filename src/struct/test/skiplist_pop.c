@@ -38,7 +38,7 @@ int main()
 	for (i = 0; i < 1000; i++) {
 		cur = PTR_TO_INT(rinooskip_pop(list));
 		if (i != 0) {
-			XTEST(cur <= last);
+			XTEST(cur >= last);
 		}
 		last = cur;
 	}

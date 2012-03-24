@@ -76,7 +76,7 @@ int main()
 	client = rinoo_tcp(sched, client_func);
 	XTEST(client != NULL);
 	XTEST(rinoo_socket_schedule(server, 0) == 0);
-	XTEST(rinoo_socket_schedule(client, 10) == 0);
+	XTEST(rinoo_socket_schedule(client, 0) == 0);
 	rinoo_sched_loop(sched);
 	rinoo_sched_destroy(sched);
 	XPASS();
