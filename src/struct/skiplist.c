@@ -74,6 +74,7 @@ int rinooskip_add(t_rinooskip *list, void *ptr)
 		free(newnode);
 		return -1;
 	}
+	newnode->level = new_level;
 	newnode->ptr = ptr;
 	for (i = 0; i <= new_level; i++) {
 		if (i <= list->level) {
@@ -118,4 +119,33 @@ void *rinooskip_head(t_rinooskip *list)
 		return NULL;
 	}
 	return node->ptr;
+}
+
+void *rinooskip_remove(t_rinooskip *list, void *ptr)
+{
+	int i;
+	int ret;
+	t_rinooskip_node *curnode;
+	t_rinooskip_node *update[RINOO_SKIPLIST_MAXLEVEL];
+
+	curnode = &list->head;
+	for (i = list->level; i >= 0; i--) {
+		while (curnode->forward[i] != NULL &&
+		       (ret = list->cmp_func(curnode->forward[i]->ptr, ptr)) < 0) {
+			curnode = curnode->forward[i];
+		}
+		update[i] = curnode;
+	}
+	if (curnode == NULL || ret != 0) {
+		return NULL;
+	}
+	for (i = 0; i <= curnode->level; i++) {
+		if (i <= list->level) {
+			newnode->forward[i] = update[i]->forward[i];
+			update[i]->forward[i] = newnode;
+		} else {
+			newnode->forward[i] = NULL;
+			list->head.forward[i] = newnode;
+		}
+	}
 }

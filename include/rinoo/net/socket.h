@@ -18,6 +18,7 @@ typedef void	(*t_rinoosocket_run)(struct s_rinoosocket *socket);
 typedef struct s_rinoosocket
 {
 	int			fd;
+	int			error;
 	t_rinootask		*task;
 	t_rinoosched		*sched;
 	t_rinoosocket_run	run;
@@ -28,11 +29,15 @@ typedef in_addr_t       t_ip;
 
 t_rinoosocket *rinoo_socket(t_rinoosched *sched, int domain, int type, t_rinoosocket_run run_func);
 void rinoo_socket_destroy(t_rinoosocket *socket);
+
+void rinoo_socket_error_set(t_rinoosocket *socket, int error);
+int rinoo_socket_error_get(t_rinoosocket *socket);
 int rinoo_socket_schedule(t_rinoosocket *socket, u32 ms);
 int rinoo_socket_resume(t_rinoosocket *socket);
 int rinoo_socket_release(t_rinoosocket *socket);
 int rinoo_socket_waitin(t_rinoosocket *socket);
 int rinoo_socket_waitout(t_rinoosocket *socket);
+
 int rinoo_socket_connect(t_rinoosocket *socket, const struct sockaddr *addr, socklen_t addrlen);
 int rinoo_socket_bind(t_rinoosocket *socket, const struct sockaddr *addr, socklen_t addrlen);
 int rinoo_socket_listen(t_rinoosocket *socket, const struct sockaddr *addr, socklen_t addrlen, int backlog);

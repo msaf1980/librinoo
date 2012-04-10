@@ -166,7 +166,6 @@ int rinoo_epoll_poll(t_rinoosched *sched, u32 timeout)
 	for (i = 0; i < nbevents; i++) {
 		cursocket = rinoo_sched_get(sched, data->events[i].data.fd);
 		if ((data->events[i].events & EPOLLIN) == EPOLLIN) {
-			errno = 0;
 			rinoo_socket_resume(cursocket);
 		}
 		cursocket = rinoo_sched_get(sched, data->events[i].data.fd);
@@ -176,7 +175,6 @@ int rinoo_epoll_poll(t_rinoosched *sched, u32 timeout)
 		 */
 		if (cursocket != NULL) {
 			if ((data->events[i].events & EPOLLOUT) == EPOLLOUT) {
-				errno = 0;
 				rinoo_socket_resume(cursocket);
 			}
 			cursocket = rinoo_sched_get(sched, data->events[i].data.fd);
@@ -184,7 +182,7 @@ int rinoo_epoll_poll(t_rinoosched *sched, u32 timeout)
 			if (cursocket != NULL &&
 			    ((data->events[i].events & EPOLLERR) == EPOLLERR ||
 			     (data->events[i].events & EPOLLHUP) == EPOLLHUP)) {
-				errno = ECONNRESET;
+				rinoo_socket_error_set(cursocket, ECONNRESET);
 				rinoo_socket_resume(cursocket);
 			}
 		}

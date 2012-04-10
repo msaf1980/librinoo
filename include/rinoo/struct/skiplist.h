@@ -15,6 +15,7 @@
 
 typedef struct s_rinooskip_node
 {
+	int			level;
 	void			*ptr;
 	struct s_rinooskip_node	**forward;
 } t_rinooskip_node;

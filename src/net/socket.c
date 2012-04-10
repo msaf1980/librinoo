@@ -90,6 +90,20 @@ void rinoo_socket_destroy(t_rinoosocket *socket)
 	free(socket);
 }
 
+void rinoo_socket_error_set(t_rinoosocket *socket, int error)
+{
+	XASSERTN(socket != NULL);
+
+	socket->error = error;
+}
+
+int rinoo_socket_error_get(t_rinoosocket *socket)
+{
+	XASSERT(socket != NULL, 0);
+
+	return socket->error;
+}
+
 int rinoo_socket_schedule(t_rinoosocket *socket, u32 ms)
 {
 	struct timeval res;
@@ -186,7 +200,20 @@ int rinoo_socket_waitin(t_rinoosocket *socket)
 	if (unlikely(rinoo_sched_socket(socket, RINOO_SCHED_ADD, RINOO_MODE_IN) != 0)) {
 		return -1;
 	}
-	return rinoo_socket_release(socket);
+	if (rinoo_socket_release(socket) != 0) {
+		return -1;
+	}
+	if (socket->error != 0) {
+		errno = socket->error;
+		return -1;
+	}
+	if ((socket->task->tv.tv_sec != 0 || socket->task->tv.tv_usec != 0) &&
+	    timercmp(&socket->task->tv, &socket->sched->clock, <=)) {
+		socket->error = ETIMEDOUT;
+		errno = ETIMEDOUT;
+		return -1;
+	}
+	return 0;
 }
 
 /**
@@ -201,7 +228,20 @@ int rinoo_socket_waitout(t_rinoosocket *socket)
 	if (unlikely(rinoo_sched_socket(socket, RINOO_SCHED_ADD, RINOO_MODE_OUT) != 0)) {
 		return -1;
 	}
-	return rinoo_socket_release(socket);
+	if (rinoo_socket_release(socket) != 0) {
+		return -1;
+	}
+	if (socket->error != 0) {
+		errno = socket->error;
+		return -1;
+	}
+	if ((socket->task->tv.tv_sec != 0 || socket->task->tv.tv_usec != 0) &&
+	    timercmp(&socket->task->tv, &socket->sched->clock, <=)) {
+		socket->error = ETIMEDOUT;
+		errno = ETIMEDOUT;
+		return -1;
+	}
+	return 0;
 }
 
 /**
