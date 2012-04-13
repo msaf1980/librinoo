@@ -13,10 +13,6 @@
 
 # define	RINOO_SCHEDULER_MAXFDS		1000000
 
-struct s_rinoopoller;		/* defined in poller.h */
-struct s_rinootask_driver;	/* defined in task.h */
-struct s_rinoosocket;		/* defined in net/socket.h */
-
 typedef enum e_rinooshed_action
   {
 	  RINOO_SCHED_ADD = 0,
@@ -32,18 +28,14 @@ typedef enum e_rinoosched_mode
 
 typedef struct s_rinoosched
 {
-	int				stop;
-	struct timeval			clock;
-	struct s_rinoopoll		*poll;
-	struct s_rinootask_driver	*task_driver;
-	struct s_rinoosocket		*sock_pool[RINOO_SCHEDULER_MAXFDS];
+	int			stop;
+	struct timeval		clock;
+	t_rinootask_driver	driver;
 } t_rinoosched;
 
 t_rinoosched *rinoo_sched();
 void rinoo_sched_destroy(t_rinoosched *sched);
 void rinoo_sched_stop(t_rinoosched *sched);
-int rinoo_sched_socket(struct s_rinoosocket *socket, t_rinoosched_action action, t_rinoosched_mode mode);
-struct s_rinoosocket *rinoo_sched_get(t_rinoosched *sched, int fd);
 void rinoo_sched_loop(t_rinoosched *sched);
 
 #endif	        /* !RINOO_SCHEDULER_SCHEDULER_H */

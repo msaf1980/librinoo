@@ -17,7 +17,7 @@ if (MODE STREQUAL "debug")
   message("Build mode: debug")
 else (MODE STREQUAL "debug")
   add_definitions("-g0")
-  add_definitions("-03")
+  add_definitions("-O3")
   message("Build mode: production")
 endif (MODE STREQUAL "debug")
 

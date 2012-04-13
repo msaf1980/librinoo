@@ -13,7 +13,7 @@
 t_rinoosched *sched;
 int checker = 0;
 
-void task3(t_rinoosched *unused(sched), void *unused(arg))
+void task3(t_rinootask *unused(task))
 {
 	printf("%s start\n", __FUNCTION__);
 	checker = 3;
@@ -21,29 +21,33 @@ void task3(t_rinoosched *unused(sched), void *unused(arg))
 	printf("%s end\n", __FUNCTION__);
 }
 
-void task2(t_rinoosched *sched, void *unused(arg))
+void task2(t_rinootask *task)
 {
 	t_rinootask *t3;
 
 	printf("%s start\n", __FUNCTION__);
 	XTEST(checker == 1);
-	t3 = rinoo_task(sched, task3, NULL);
+	t3 = malloc(sizeof(*t3));
+	XTEST(rinoo_task(task->sched, t3, task3) == 0);
 	checker = 2;
 	rinoo_task_run(t3);
 	XTEST(checker == 3);
+	free(t3);
 	printf("%s end\n", __FUNCTION__);
 }
 
-void task1(t_rinoosched *sched, void *unused(arg))
+void task1(t_rinootask *task)
 {
 	t_rinootask *t2;
 
 	printf("%s start\n", __FUNCTION__);
 	XTEST(checker == 0);
-	t2 = rinoo_task(sched, task2, NULL);
+	t2 = malloc(sizeof(*t2));
+	XTEST(rinoo_task(task->sched, t2, task2) == 0);
 	checker = 1;
 	rinoo_task_run(t2);
 	XTEST(checker == 3);
+	free(t2);
 	printf("%s end\n", __FUNCTION__);
 }
 
@@ -59,11 +63,12 @@ int main()
 
 	sched = rinoo_sched();
 	XTEST(sched != NULL);
-	t1 = rinoo_task(sched, task1, NULL);
-	XTEST(t1 != NULL);
+	t1 = malloc(sizeof(*t1));
+	XTEST(rinoo_task(sched, t1, task1) == 0);
 	rinoo_task_schedule(t1, NULL);
 	rinoo_sched_loop(sched);
 	rinoo_sched_destroy(sched);
 	XTEST(checker == 3);
+	free(t1);
 	XPASS();
 }

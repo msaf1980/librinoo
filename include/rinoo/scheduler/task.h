@@ -1,6 +1,6 @@
 /**
  * @file   task.h
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2012
  * @date   Tue Jul  5 17:21:44 2011
  *
  * @brief  Header file for tasks function declarations.
@@ -13,7 +13,12 @@
 
 # define	RINOO_TASK_STACK_SIZE	(16 * 1024)
 
-typedef void (*t_rinootask_func)(t_rinoosched *sched, void *arg);
+/* Defined in scheduler.h */
+struct s_rinoosched;
+/* Defined in this file */
+struct s_rinootask;
+
+typedef void (*t_rinootask_func)(struct s_rinootask *task);
 
 typedef union u_rinootask_arg
 {
@@ -23,31 +28,29 @@ typedef union u_rinootask_arg
 
 typedef struct s_rinootask
 {
-	t_rinoosched		*sched;
+	struct s_rinoosched	*sched;
 	struct timeval		tv;
-	void			*arg;
-	t_rinootask_func	func;
 	ucontext_t		context;
+	t_rinootask_func	function;
+	t_rinoorbtree_node	proc_node;
 	char			stack[RINOO_TASK_STACK_SIZE];
-#ifdef RINOO_DEBUG
-	int			valgrind_id;
-#endif /* !RINOO_DEBUG */
 } t_rinootask;
 
 typedef struct s_rinootask_driver
 {
-	t_rinootask	main_task;
-	t_rinootask	*cur_task;
-	t_rinooskip	*task_list;
+	t_rinootask	main;
+	t_rinootask	*current;
+	t_rinoorbtree	*proc_tree;
 } t_rinootask_driver;
 
-int rinoo_task_driver_init(t_rinoosched *sched);
-void rinoo_task_driver_destroy(t_rinoosched *sched);
-u32 rinoo_task_driver_run(t_rinoosched *sched);
-t_rinootask *rinoo_task(t_rinoosched *sched, t_rinootask_func task_func, void *arg);
-int rinoo_task_schedule(t_rinootask *task, struct timeval *tv);
+int rinoo_task_driver_init(struct s_rinoosched *sched);
+void rinoo_task_driver_destroy(struct s_rinoosched *sched);
+u32 rinoo_task_driver_run(struct s_rinoosched *sched);
+
+int rinoo_task(struct s_rinoosched *sched, t_rinootask *task, t_rinootask_func function);
 void rinoo_task_destroy(t_rinootask *task);
-int rinoo_task_release(t_rinoosched *sched);
+int rinoo_task_release(struct s_rinoosched *sched);
 int rinoo_task_run(t_rinootask *task);
+int rinoo_task_schedule(t_rinootask *task, struct timeval *tv);
 
 #endif		/* RINOO_SCHEDULER_TASK_H_ */

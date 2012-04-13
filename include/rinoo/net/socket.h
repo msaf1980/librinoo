@@ -19,8 +19,7 @@ typedef struct s_rinoosocket
 {
 	int			fd;
 	int			error;
-	t_rinootask		*task;
-	t_rinoosched		*sched;
+	t_rinootask		task;
 	t_rinoosocket_run	run;
 	struct s_rinoosocket	*parent;
 } t_rinoosocket;

@@ -32,7 +32,6 @@ static t_rinoosocket *rinoo_socket_init(t_rinoosched *sched, int fd, t_rinoosock
 
 	sock = calloc(1, sizeof(*sock));
 	sock->fd = fd;
-	sock->sched = sched;
 	sock->run = run_func;
 	enabled = 1;
 	if (unlikely(ioctl(sock->fd, FIONBIO, &enabled) == -1)) {
@@ -110,7 +109,6 @@ int rinoo_socket_schedule(t_rinoosocket *socket, u32 ms)
 	struct timeval toadd;
 
 	XASSERT(socket != NULL, -1);
-	XASSERT(socket->sched != NULL, -1);
 
 	if (socket->task == NULL) {
 		socket->task = rinoo_task(socket->sched, rinoo_socket_run, socket);

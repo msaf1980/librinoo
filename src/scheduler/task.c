@@ -14,13 +14,11 @@
 # include <valgrind/valgrind.h>
 #endif
 
-static int rinoo_task_cmp(void *ptr1, void *ptr2)
+static int rinoo_task_cmp(t_rinoorbtree_node *node1, t_rinoorbtree_node *node2)
 {
-	t_rinootask *task1;
-	t_rinootask *task2;
+	t_rinootask *task1 = container_of(node1, t_rinootask, proc_node);
+	t_rinootask *task2 = container_of(node2, t_rinootask, proc_node);
 
-	task1 = ptr1;
-	task2 = ptr2;
 	if (task1 == task2) {
 		return 0;
 	}
@@ -32,7 +30,7 @@ static int rinoo_task_cmp(void *ptr1, void *ptr2)
 
 /**
  * Task driver initialization.
- * It sets a task driver in a scheduler.
+ * It sets the task driver in a scheduler.
  *
  * @param sched Pointer to the scheduler to set
  *
@@ -40,22 +38,13 @@ static int rinoo_task_cmp(void *ptr1, void *ptr2)
  */
 int rinoo_task_driver_init(t_rinoosched *sched)
 {
-	t_rinootask_driver *driver;
-
 	XASSERT(sched != NULL, -1);
-	XASSERT(sched->task_driver == NULL, -1);
 
-	driver = calloc(1, sizeof(*driver));
-	if (driver == NULL) {
+	sched->driver.proc_tree = rinoorbtree(rinoo_task_cmp, NULL);
+	if (sched->driver.proc_tree == NULL) {
 		return -1;
 	}
-	driver->cur_task = &driver->main_task;
-	driver->task_list = rinooskip(rinoo_task_cmp, NULL);
-	if (driver->task_list == NULL) {
-		rinoo_task_driver_destroy(sched);
-		return -1;
-	}
-	sched->task_driver = driver;
+	sched->driver.current = &sched->driver.main;
 	return 0;
 }
 
@@ -68,31 +57,27 @@ void rinoo_task_driver_destroy(t_rinoosched *sched)
 {
 	XASSERTN(sched != NULL);
 
-	if (sched->task_driver != NULL) {
-		if (sched->task_driver->task_list != NULL) {
-			rinooskip_destroy(sched->task_driver->task_list);
-		}
-		free(sched->task_driver);
-		sched->task_driver = NULL;
-	}
+	rinoorbtree_destroy(sched->driver.proc_tree);
+	sched->driver.proc_tree = NULL;
 }
 
 u32 rinoo_task_driver_run(t_rinoosched *sched)
 {
-	t_rinootask *cur;
+	t_rinootask *task;
 	struct timeval tv;
+	t_rinoorbtree_node *head;
 
 	XASSERT(sched != NULL, 1000);
-	XASSERT(sched->task_driver != NULL, 1000);
 
-	while ((cur = rinooskip_head(sched->task_driver->task_list)) != NULL &&
-	       timercmp(&cur->tv, &sched->clock, <=)) {
-		cur = rinooskip_pop(sched->task_driver->task_list);
-		rinoo_task_run(cur);
-	}
-	if (cur != NULL) {
-		timersub(&cur->tv, &sched->clock, &tv);
-		return (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
+	while ((head = rinoorbtree_head(sched->driver.proc_tree)) != NULL) {
+		task = container_of(head, t_rinootask, proc_node);
+		if (timercmp(&task->tv, &sched->clock, <=)) {
+			rinoorbtree_remove(sched->driver.proc_tree, head);
+			rinoo_task_run(task);
+		} else {
+			timersub(&task->tv, &sched->clock, &tv);
+			return (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
+		}
 	}
 	return 1000;
 }
@@ -115,69 +100,41 @@ static void rinoo_task_process(int p1, int p2)
 	targ.args[1] = p2;
 	task = targ.ptr;
 	XASSERTN(task != NULL);
-	XASSERTN(task->func != NULL);
-	task->func(task->sched, task->arg);
-	/* That means we can destroy the task */
-	task->func = NULL;
+	XASSERTN(task->function != NULL);
+	task->function(task);
+	/* That means the task is over */
+	task->function = NULL;
 }
 
 /**
- * Create a new task.
+ * Initialize a task.
  *
  * @param sched Pointer to a scheduler to use
- * @param task_func Routine to call for that task
- * @param arg Argument to be passed to task_func
+ * @param task Pointer to the task to initialize
+ * @param function Routine to call for that task
  *
- * @return A pointer to the new task on success, or NULL if an error occurs
+ * @return 0 if the task has been successfuly initialize, otherwise -1
  */
-t_rinootask *rinoo_task(t_rinoosched *sched,
-			t_rinootask_func task_func,
-			void *arg)
+int rinoo_task(t_rinoosched *sched, t_rinootask *task, t_rinootask_func function)
 {
-	t_rinootask *new;
 	t_rinootask_arg targ;
 
-	XASSERT(sched != NULL, NULL);
-	XASSERT(sched->task_driver != NULL, NULL);
-	XASSERT(task_func != NULL, NULL);
+	XASSERT(sched != NULL, -1);
+	XASSERT(function != NULL, -1);
 
-	new = calloc(1, sizeof(*new));
-	if (new == NULL) {
-		return NULL;
-	}
-	if (getcontext(&new->context) != 0) {
-		free(new);
-		return NULL;
-	}
-	new->sched = sched;
-	new->func = task_func;
-	new->arg = arg;
-	new->context.uc_stack.ss_sp = new->stack;
-	new->context.uc_stack.ss_size = sizeof(new->stack);
-	new->context.uc_link = &sched->task_driver->cur_task->context;
-
-#ifdef RINOO_DEBUG
-	/* This code avoids valgrind to mix stack switches */
-	new->valgrind_id = VALGRIND_STACK_REGISTER(new->stack, new->stack + sizeof(new->stack));
-#endif /* !RINOO_DEBUG */
-
-	targ.ptr = new;
-	makecontext(&new->context, (void (*)()) rinoo_task_process, 2, targ.args[0], targ.args[1]);
-	return new;
-}
-
-int rinoo_task_schedule(t_rinootask *task, struct timeval *tv)
-{
-	XASSERT(task != NULL, -1);
-	XASSERT(task->sched != NULL, -1);
-	XASSERT(task->sched->task_driver != NULL, -1);
-
-	if (tv != NULL) {
-		task->tv = *tv;
-	}
-	if (rinooskip_add(task->sched->task_driver->task_list, task) != 0) {
+	if (getcontext(&task->context) != 0) {
 		return -1;
 	}
+	task->sched = sched;
+	task->function = function;
+	task->context.uc_stack.ss_sp = task->stack;
+	task->context.uc_stack.ss_size = sizeof(task->stack);
+	task->context.uc_link = &(sched->driver.current->context);
+	memset(&task->tv, 0, sizeof(task->tv));
+	memset(&task->proc_node, 0, sizeof(task->proc_node));
+
+	targ.ptr = task;
+	makecontext(&task->context, (void (*)()) rinoo_task_process, 2, targ.args[0], targ.args[1]);
 	return 0;
 }
 
@@ -187,21 +144,35 @@ int rinoo_task_schedule(t_rinootask *task, struct timeval *tv)
  *
  * @param task Pointer to the task to run or resume
  *
- * @return 0 on success, -1 if an error occurs
+ * @return 1 if the given task has been executed and is over, 0 if it's been released, -1 if an error occurs
  */
 int rinoo_task_run(t_rinootask *task)
 {
 	int ret;
 	t_rinootask *old;
+	t_rinootask_driver *driver;
 
 	XASSERT(task != NULL, -1);
 
-	old = task->sched->task_driver->cur_task;
-	task->sched->task_driver->cur_task = task;
+	driver = &task->sched->driver;
+	old = driver->current;
+	driver->current = task;
+
+#ifdef RINOO_DEBUG
+	/* This code avoids valgrind to mix stack switches */
+	int valgrind_stackid = VALGRIND_STACK_REGISTER(task->stack, task->stack + sizeof(task->stack));
+#endif /* !RINOO_DEBUG */
+
 	ret = swapcontext(&old->context, &task->context);
-	task->sched->task_driver->cur_task = old;
-	if (task->func == NULL) {
-		rinoo_task_destroy(task);
+
+#ifdef RINOO_DEBUG
+	VALGRIND_STACK_DEREGISTER(valgrind_stackid);
+#endif /* !RINOO_DEBUG */
+
+	driver->current = old;
+	if (ret == 0 && task->function == NULL) {
+		/* This task is finished */
+		return 1;
 	}
 	return ret;
 }
@@ -216,28 +187,25 @@ int rinoo_task_run(t_rinootask *task)
 int rinoo_task_release(t_rinoosched *sched)
 {
 	XASSERT(sched != NULL, -1);
-	XASSERT(sched->task_driver != NULL, -1);
 
 	errno = 0;
-	if (swapcontext(&sched->task_driver->cur_task->context,
-			&sched->task_driver->main_task.context) != 0) {
+	if (swapcontext(&sched->driver.current->context,
+			&sched->driver.main.context) != 0) {
 		return -1;
 	}
 	return errno;
 }
 
-/**
- * Destroy a task.
- *
- * @param task Pointer to the task to destroy
- */
-void rinoo_task_destroy(t_rinootask *task)
+int rinoo_task_schedule(t_rinootask *task, struct timeval *tv)
 {
-	XASSERTN(task != NULL);
+	XASSERT(task != NULL, -1);
+	XASSERT(task->sched != NULL, -1);
 
-#ifdef RINOO_DEBUG
-	VALGRIND_STACK_DEREGISTER(task->valgrind_id);
-#endif /* !RINOO_DEBUG */
-
-	free(task);
+	if (tv != NULL) {
+		task->tv = *tv;
+	}
+	if (rinoorbtree_put(task->sched->driver.proc_tree, &task->proc_node) != 0) {
+		return -1;
+	}
+	return 0;
 }
