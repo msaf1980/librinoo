@@ -30,6 +30,7 @@ typedef struct s_rinootask
 {
 	struct s_rinoosched	*sched;
 	struct timeval		tv;
+	int			queued;
 	ucontext_t		context;
 	t_rinootask_func	function;
 	t_rinoorbtree_node	proc_node;
@@ -52,5 +53,6 @@ void rinoo_task_destroy(t_rinootask *task);
 int rinoo_task_release(struct s_rinoosched *sched);
 int rinoo_task_run(t_rinootask *task);
 int rinoo_task_schedule(t_rinootask *task, struct timeval *tv);
+int rinoo_task_unschedule(t_rinootask *task);
 
 #endif		/* RINOO_SCHEDULER_TASK_H_ */

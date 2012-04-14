@@ -43,8 +43,19 @@ t_rinoosched *rinoo_sched()
  */
 void rinoo_sched_destroy(t_rinoosched *sched)
 {
+	int i;
+
 	XASSERTN(sched != NULL);
 
+	/* Destroying all pending sockets. */
+	for (i = 0; i < RINOO_SCHEDULER_MAXFDS; i++)
+	{
+		if (sched->sock_pool[i] != NULL)
+		{
+			rinoo_socket_error_set(sched->sock_pool[i], EINTR);
+			rinoo_socket_resume(sched->sock_pool[i]);
+		}
+	}
 	rinoo_task_driver_destroy(sched);
 	rinoo_epoll_destroy(sched);
 	free(sched);

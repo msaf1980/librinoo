@@ -37,13 +37,18 @@ t_rinoosocket *rinoo_tcp(t_rinoosched *sched, void (*run)(t_rinoosocket *socket)
  */
 int rinoo_tcp_connect(t_rinoosocket *socket, t_ip ip, u32 port, u32 timeout)
 {
+	int ret;
 	struct sockaddr_in addr;
 
-#warning timeout unused
 	addr.sin_port = htons(port);
 	addr.sin_family = AF_INET;
 	addr.sin_addr.s_addr = ip;
-	return rinoo_socket_connect(socket, (struct sockaddr *) &addr, sizeof(addr));
+	rinoo_socket_schedule(socket, timeout);
+	ret = rinoo_socket_connect(socket, (struct sockaddr *) &addr, sizeof(addr));
+	if (ret == 0) {
+		rinoo_socket_unschedule(socket);
+	}
+	return ret;
 }
 
 /**
@@ -71,18 +76,16 @@ int rinoo_tcp_listen(t_rinoosocket *socket, t_ip ip, u32 port)
  *
  * @param socket Pointer to the socket which is listening to
  * @param run Pointer to a function which will run the new socket
- * @param timeout Timeout to set to the new socket
  * @param fromip Pointer to a t_ip where to store the from_ip
  * @param fromport Pointer to a u32 where to store the from_port
  *
  * @return A pointer to the new socket on success or NULL if an error occurs
  */
-t_rinoosocket *rinoo_tcp_accept(t_rinoosocket *socket, void (*run)(t_rinoosocket *socket), u32 timeout, t_ip *fromip, u32 *fromport)
+t_rinoosocket *rinoo_tcp_accept(t_rinoosocket *socket, void (*run)(t_rinoosocket *socket), t_ip *fromip, u32 *fromport)
 {
 	t_rinoosocket	*new;
 	struct sockaddr_in addr;
 
-#warning timeout unused
 	new = rinoo_socket_accept(socket, (struct sockaddr *) &addr, (socklen_t *)(int[]){(sizeof(struct sockaddr))}, run);
 	if (fromip != NULL) {
 		*fromip = addr.sin_addr.s_addr;

@@ -1,13 +1,13 @@
 /**
- * @file   rinoo_socket_write.c
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
+ * @file   rinoo_socket_timeout.c
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2012
  * @date   Sun Jan  3 15:34:47 2010
  *
- * @brief  Test file for read/write functions.
+ * @brief  Test file for socket timeouts.
  *
  *
  */
-#include "rinoo/rinoo.h"
+#include	"rinoo/rinoo.h"
 
 t_rinoosched *sched;
 
@@ -15,15 +15,11 @@ void process_client(t_rinoosocket *s)
 {
 	char b;
 
-	rinoo_log("server - client accepted");
-	rinoo_log("server - sending 'abcdef'");
-	XTEST(rinoo_socket_write(s, "abcdef", 6) == 6);
-	rinoo_log("server - receiving 'b'");
-	XTEST(rinoo_socket_read(s, &b, 1) == 1);
-	XTEST(b == 'b');
-	rinoo_log("server - receiving nothing");
-	XTEST(rinoo_socket_read(s, &b, 1) == 0);
+	rinoo_log("server - triggering timeout");
+	rinoo_socket_timeout(s, 1000);
+	XTEST(rinoo_socket_read(s, &b, 1) == -1);
 	rinoo_sched_stop(sched);
+	rinoo_socket_release(s);
 }
 
 void server_func(t_rinoosocket *s)
@@ -33,31 +29,20 @@ void server_func(t_rinoosocket *s)
 	t_rinoosocket *new;
 
 	XTEST(rinoo_tcp_listen(s, 0, 4242) == 0);
-	rinoo_log("server listening...");
 	new = rinoo_tcp_accept(s, process_client, &fromip, &fromport);
-	rinoo_log("server - accepting client (%s:%d)",
-		  inet_ntoa(*(struct in_addr *) &fromip),
-		  fromport);
+	rinoo_log("server - accepting client (%s:%d)",  inet_ntoa(*(struct in_addr *) &fromip), fromport);
 	XTEST(new != NULL);
 }
 
 void client_func(t_rinoosocket *s)
 {
 	char a;
-	char cur;
 
-	if (rinoo_tcp_connect(s, 0, 4242, 1000) != 0) {
-		perror("tcp_connect");
-		XFAIL();
-	}
+	XTEST(rinoo_tcp_connect(s, 0, 4242, 1000) == 0);
 	rinoo_log("client - connected");
-	for (cur = 'a'; cur <= 'f'; cur++) {
-		rinoo_log("client - receiving '%c'", cur);
-		XTEST(rinoo_socket_read(s, &a, 1) == 1);
-		XTEST(a == cur);
-	}
-	rinoo_log("client - sending 'b'");
-	XTEST(rinoo_socket_write(s, "b", 1) == 1);
+	rinoo_log("client - waiting timeout");
+	XTEST(rinoo_socket_read(s, &a, 1) == -1);
+	rinoo_log("client - %s", strerror(rinoo_socket_error_get(s)));
 }
 
 /**

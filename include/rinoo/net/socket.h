@@ -28,6 +28,8 @@ void rinoo_socket_destroy(t_rinoosocket *socket);
 void rinoo_socket_error_set(t_rinoosocket *socket, int error);
 int rinoo_socket_error_get(t_rinoosocket *socket);
 int rinoo_socket_schedule(t_rinoosocket *socket, u32 ms);
+int rinoo_socket_unschedule(t_rinoosocket *socket);
+int rinoo_socket_timeout(t_rinoosocket *socket, u32 ms);
 int rinoo_socket_resume(t_rinoosocket *socket);
 int rinoo_socket_release(t_rinoosocket *socket);
 int rinoo_socket_waitin(t_rinoosocket *socket);

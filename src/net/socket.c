@@ -85,6 +85,7 @@ void rinoo_socket_destroy(t_rinoosocket *socket)
 {
 	XASSERTN(socket != NULL);
 
+	rinoo_task_unschedule(&socket->task);
 	rinoo_sched_socket(socket, RINOO_SCHED_REMOVE, RINOO_MODE_NONE);
 	close(socket->fd);
 	free(socket);
@@ -120,6 +121,18 @@ int rinoo_socket_schedule(t_rinoosocket *socket, u32 ms)
 	return rinoo_task_schedule(&socket->task, &res);
 }
 
+int rinoo_socket_unschedule(t_rinoosocket *socket)
+{
+	XASSERT(socket != NULL, -1);
+
+	return rinoo_task_unschedule(&socket->task);
+}
+
+int rinoo_socket_timeout(t_rinoosocket *socket, u32 ms)
+{
+	return rinoo_socket_schedule(socket, ms);
+}
+
 /**
  * Main socket run function. It is called at socket treatment startup.
  * This function should be called internally only by rinoo_task_run.
@@ -148,7 +161,9 @@ int rinoo_socket_resume(t_rinoosocket *socket)
 
 	XASSERT(socket != NULL, -1);
 
+	rinoo_log("resume_start: %p\n", socket);
 	ret = rinoo_task_run(&socket->task);
+	rinoo_log("resume_end: %p - %d\n", socket, ret);
 	if (ret == 1) {
 		rinoo_socket_destroy(socket);
 		return 0;
@@ -168,6 +183,7 @@ int rinoo_socket_release(t_rinoosocket *socket)
 	XASSERT(socket != NULL, -1);
 	XASSERT(socket->task.sched->driver.current == &socket->task, -1);
 
+	rinoo_socket_error_set(socket, ETIMEDOUT);
 	return rinoo_task_release(socket->task.sched);
 }
 
@@ -212,12 +228,6 @@ int rinoo_socket_waitout(t_rinoosocket *socket)
 		errno = socket->error;
 		return -1;
 	}
-	/* if ((socket->task.tv.tv_sec != 0 || socket->task.tv.tv_usec != 0) && */
-	/*     timercmp(&socket->task.tv, &socket->task.sched->clock, <=)) { */
-	/* 	socket->error = ETIMEDOUT; */
-	/* 	errno = ETIMEDOUT; */
-	/* 	return -1; */
-	/* } */
 	return 0;
 }
 
