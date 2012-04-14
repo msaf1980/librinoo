@@ -28,6 +28,11 @@ t_rinoosched *rinoo_sched()
 		free(sched);
 		return NULL;
 	}
+	if (rinoo_epoll_init(sched) != 0) {
+		rinoo_sched_destroy(sched);
+		return NULL;
+	}
+	gettimeofday(&sched->clock, NULL);
 	return sched;
 }
 
@@ -41,7 +46,64 @@ void rinoo_sched_destroy(t_rinoosched *sched)
 	XASSERTN(sched != NULL);
 
 	rinoo_task_driver_destroy(sched);
+	rinoo_epoll_destroy(sched);
 	free(sched);
+}
+
+/**
+ * Controls socket mode registration in the scheduler.
+ *
+ * @param socket Pointer to the socket to change in the scheduler.
+ * @param action Action to perform: enable/disable socket event.
+ * @param mode Mode to enable (IN/OUT).
+ *
+ * @return 0 on success, or -1 if an error occurs.
+ */
+int rinoo_sched_socket(t_rinoosocket *socket, t_rinoosched_action action, t_rinoosched_mode mode)
+{
+	XASSERT(socket != NULL, -1);
+	XASSERT(socket->task.sched != NULL, -1);
+	XASSERT(socket->fd < RINOO_SCHEDULER_MAXFDS, -1);
+
+	switch (action)
+	{
+	case RINOO_SCHED_ADD:
+		if (socket->task.sched->sock_pool[socket->fd] != socket) {
+			if (unlikely(rinoo_epoll_insert(socket->task.sched, socket, mode) != 0)) {
+				return -1;
+			}
+			socket->task.sched->sock_pool[socket->fd] = socket;
+		} else {
+			if (unlikely(rinoo_epoll_addmode(socket->task.sched, socket, mode) != 0)) {
+				return -1;
+			}
+		}
+		break;
+	case RINOO_SCHED_REMOVE:
+		if (rinoo_epoll_remove(socket->task.sched, socket) != 0)
+		{
+			return -1;
+		}
+		socket->task.sched->sock_pool[socket->fd] = NULL;
+		break;
+	}
+	return 0;
+}
+
+/**
+ * Returns the socket corresponding to a file descriptor.
+ *
+ * @param sched Pointer to the scheduler to use.
+ * @param fd File descriptor (< RINOO_SCHEDULER_MAXFDS).
+ *
+ * @return A pointer to the corresponding socket if found, else NULL.
+ */
+t_rinoosocket *rinoo_sched_get(t_rinoosched *sched, int fd)
+{
+	XASSERT(sched != NULL, NULL);
+	XASSERT(fd >= 0 && fd < RINOO_SCHEDULER_MAXFDS, NULL);
+
+	return sched->sock_pool[fd];
 }
 
 /**
@@ -71,7 +133,7 @@ void rinoo_sched_loop(t_rinoosched *sched)
 		gettimeofday(&sched->clock, NULL);
 		timeout = rinoo_task_driver_run(sched);
 		if (sched->stop == 0) {
-			// rinoo_epoll_poll(sched, timeout);
+			rinoo_epoll_poll(sched, timeout);
 		}
 	}
 }

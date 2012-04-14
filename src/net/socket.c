@@ -10,7 +10,7 @@
 
 #include	"rinoo/rinoo.h"
 
-static void rinoo_socket_run(t_rinoosched *sched, void *arg);
+static void rinoo_socket_run(t_rinootask *task);
 
 /**
  * Generic socket creation.
@@ -22,19 +22,23 @@ static void rinoo_socket_run(t_rinoosched *sched, void *arg);
  *
  * @return A pointer to the new socket or NULL if an error occurs
  */
-static t_rinoosocket *rinoo_socket_init(t_rinoosched *sched, int fd, t_rinoosocket_run run_func)
+static t_rinoosocket *rinoo_socket_init(t_rinoosched *sched, int fd, void (*run)(t_rinoosocket *socket))
 {
 	int enabled;
 	t_rinoosocket *sock;
 
 	XASSERT(sched != NULL, NULL);
-	XASSERT(run_func != NULL, NULL);
+	XASSERT(run != NULL, NULL);
 
 	sock = calloc(1, sizeof(*sock));
 	sock->fd = fd;
-	sock->run = run_func;
+	sock->run = run;
 	enabled = 1;
 	if (unlikely(ioctl(sock->fd, FIONBIO, &enabled) == -1)) {
+		free(sock);
+		return NULL;
+	}
+	if (unlikely(rinoo_task(sched, &sock->task, rinoo_socket_run) != 0)) {
 		free(sock);
 		return NULL;
 	}
@@ -51,19 +55,19 @@ static t_rinoosocket *rinoo_socket_init(t_rinoosched *sched, int fd, t_rinoosock
  *
  * @return A pointer to the new socket or NULL if an error occurs
  */
-t_rinoosocket *rinoo_socket(t_rinoosched *sched, int domain, int type, t_rinoosocket_run run_func)
+t_rinoosocket *rinoo_socket(t_rinoosched *sched, int domain, int type, void (*run)(t_rinoosocket *socket))
 {
 	int fd;
 	t_rinoosocket *new;
 
 	XASSERT(sched != NULL, NULL);
-	XASSERT(run_func != NULL, NULL);
+	XASSERT(run != NULL, NULL);
 
 	fd = socket(domain, type, 0);
 	if (unlikely(fd == -1)) {
 		return NULL;
 	}
-	new = rinoo_socket_init(sched, fd, run_func);
+	new = rinoo_socket_init(sched, fd, run);
 	if (unlikely(new == NULL)) {
 		close(fd);
 		return NULL;
@@ -81,9 +85,6 @@ void rinoo_socket_destroy(t_rinoosocket *socket)
 {
 	XASSERTN(socket != NULL);
 
-	if (socket->run != NULL) {
-		rinoo_task_destroy(socket->task);
-	}
 	rinoo_sched_socket(socket, RINOO_SCHED_REMOVE, RINOO_MODE_NONE);
 	close(socket->fd);
 	free(socket);
@@ -110,19 +111,13 @@ int rinoo_socket_schedule(t_rinoosocket *socket, u32 ms)
 
 	XASSERT(socket != NULL, -1);
 
-	if (socket->task == NULL) {
-		socket->task = rinoo_task(socket->sched, rinoo_socket_run, socket);
-		if (unlikely(socket->task == NULL)) {
-			return -1;
-		}
-	}
 	if (ms == 0) {
-		return rinoo_task_schedule(socket->task, NULL);
+		return rinoo_task_schedule(&socket->task, NULL);
 	}
 	toadd.tv_sec = ms / 1000;
 	toadd.tv_usec = (ms % 1000) * 1000;
-	timeradd(&socket->sched->clock, &toadd, &res);
-	return rinoo_task_schedule(socket->task, &res);
+	timeradd(&socket->task.sched->clock, &toadd, &res);
+	return rinoo_task_schedule(&socket->task, &res);
 }
 
 /**
@@ -132,17 +127,12 @@ int rinoo_socket_schedule(t_rinoosocket *socket, u32 ms)
  * @param sched Pointer to the scheduler dealing with this task
  * @param arg Pointer to the socket to run
  */
-static void rinoo_socket_run(t_rinoosched *sched, void *arg)
+static void rinoo_socket_run(t_rinootask *task)
 {
 	t_rinoosocket *socket;
 
-	XASSERTN(sched != NULL);
-	XASSERTN(arg != NULL);
-
-	socket = arg;
+	socket = container_of(task, t_rinoosocket, task);
 	socket->run(socket);
-	/* That means we can destroy the socket */
-	socket->run = NULL;
 }
 
 /**
@@ -158,15 +148,10 @@ int rinoo_socket_resume(t_rinoosocket *socket)
 
 	XASSERT(socket != NULL, -1);
 
-	if (socket->task == NULL) {
-		socket->task = rinoo_task(socket->sched, rinoo_socket_run, socket);
-		if (unlikely(socket->task == NULL)) {
-			return -1;
-		}
-	}
-	ret = rinoo_task_run(socket->task);
-	if (ret == 0 && socket->run == NULL) {
+	ret = rinoo_task_run(&socket->task);
+	if (ret == 1) {
 		rinoo_socket_destroy(socket);
+		return 0;
 	}
 	return ret;
 }
@@ -181,9 +166,9 @@ int rinoo_socket_resume(t_rinoosocket *socket)
 int rinoo_socket_release(t_rinoosocket *socket)
 {
 	XASSERT(socket != NULL, -1);
-	XASSERT(socket->sched->task_driver->cur_task == socket->task, -1);
+	XASSERT(socket->task.sched->driver.current == &socket->task, -1);
 
-	return rinoo_task_release(socket->sched);
+	return rinoo_task_release(socket->task.sched);
 }
 
 /**
@@ -203,12 +188,6 @@ int rinoo_socket_waitin(t_rinoosocket *socket)
 	}
 	if (socket->error != 0) {
 		errno = socket->error;
-		return -1;
-	}
-	if ((socket->task->tv.tv_sec != 0 || socket->task->tv.tv_usec != 0) &&
-	    timercmp(&socket->task->tv, &socket->sched->clock, <=)) {
-		socket->error = ETIMEDOUT;
-		errno = ETIMEDOUT;
 		return -1;
 	}
 	return 0;
@@ -233,12 +212,12 @@ int rinoo_socket_waitout(t_rinoosocket *socket)
 		errno = socket->error;
 		return -1;
 	}
-	if ((socket->task->tv.tv_sec != 0 || socket->task->tv.tv_usec != 0) &&
-	    timercmp(&socket->task->tv, &socket->sched->clock, <=)) {
-		socket->error = ETIMEDOUT;
-		errno = ETIMEDOUT;
-		return -1;
-	}
+	/* if ((socket->task.tv.tv_sec != 0 || socket->task.tv.tv_usec != 0) && */
+	/*     timercmp(&socket->task.tv, &socket->task.sched->clock, <=)) { */
+	/* 	socket->error = ETIMEDOUT; */
+	/* 	errno = ETIMEDOUT; */
+	/* 	return -1; */
+	/* } */
 	return 0;
 }
 
@@ -329,11 +308,11 @@ int rinoo_socket_listen(t_rinoosocket *socket, const struct sockaddr *addr, sock
  * @param socket Pointer to the socket which is listening to
  * @param addr Address to the peer socket (see man accept)
  * @param addrlen Sockaddr structure size (see man accept)
- * @param run_func Pointer to the function which will run the socket
+ * @param run Pointer to the function which will run the socket
  *
  * @return A pointer to the new client socket or NULL if an error occurs
  */
-t_rinoosocket *rinoo_socket_accept(t_rinoosocket *socket, struct sockaddr *addr, socklen_t *addrlen, t_rinoosocket_run run_func)
+t_rinoosocket *rinoo_socket_accept(t_rinoosocket *socket, struct sockaddr *addr, socklen_t *addrlen, void (*run)(t_rinoosocket *socket))
 {
 	int fd;
 	t_rinoosocket *new;
@@ -345,7 +324,7 @@ t_rinoosocket *rinoo_socket_accept(t_rinoosocket *socket, struct sockaddr *addr,
 	if (fd == -1) {
 		return NULL;
 	}
-	new = rinoo_socket_init(socket->sched, fd, run_func);
+	new = rinoo_socket_init(socket->task.sched, fd, run);
 	if (unlikely(new == NULL)) {
 		close(fd);
 		return NULL;

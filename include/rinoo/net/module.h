@@ -12,5 +12,6 @@
 # define	RINOO_MODULE_NET_H_
 
 # include	"rinoo/net/socket.h"
+# include	"rinoo/net/tcp.h"
 
 #endif		/* !RINOO_MODULE_NET_H_ */

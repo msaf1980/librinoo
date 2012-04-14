@@ -117,8 +117,6 @@ static void rinoo_task_process(int p1, int p2)
  */
 int rinoo_task(t_rinoosched *sched, t_rinootask *task, t_rinootask_func function)
 {
-	t_rinootask_arg targ;
-
 	XASSERT(sched != NULL, -1);
 	XASSERT(function != NULL, -1);
 
@@ -129,12 +127,9 @@ int rinoo_task(t_rinoosched *sched, t_rinootask *task, t_rinootask_func function
 	task->function = function;
 	task->context.uc_stack.ss_sp = task->stack;
 	task->context.uc_stack.ss_size = sizeof(task->stack);
-	task->context.uc_link = &(sched->driver.current->context);
+	task->context.uc_link = NULL;
 	memset(&task->tv, 0, sizeof(task->tv));
 	memset(&task->proc_node, 0, sizeof(task->proc_node));
-
-	targ.ptr = task;
-	makecontext(&task->context, (void (*)()) rinoo_task_process, 2, targ.args[0], targ.args[1]);
 	return 0;
 }
 
@@ -154,6 +149,11 @@ int rinoo_task_run(t_rinootask *task)
 
 	XASSERT(task != NULL, -1);
 
+	if (task->context.uc_link == NULL) {
+		t_rinootask_arg targ = {.ptr = task};
+		task->context.uc_link = &(task->sched->driver.current->context);
+		makecontext(&task->context, (void (*)()) rinoo_task_process, 2, targ.args[0], targ.args[1]);
+	}
 	driver = &task->sched->driver;
 	old = driver->current;
 	driver->current = task;

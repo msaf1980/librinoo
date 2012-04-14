@@ -12,6 +12,7 @@
 # define	RINOO_MODULE_SCHEDULER_H_
 
 # include	"rinoo/scheduler/task.h"
+# include	"rinoo/scheduler/epoll.h"
 # include	"rinoo/scheduler/scheduler.h"
 
 #endif		/* !RINOO_MODULE_SCHEDULER_H_ */
