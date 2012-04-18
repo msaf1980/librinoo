@@ -54,17 +54,18 @@ typedef struct s_rinoorbtree
 	u64			size;
 	t_rinoorbtree_node	*root;
 	t_rinoorbtree_node	*head;
-	int			(*cmp_func)(t_rinoorbtree_node *node1,
-					    t_rinoorbtree_node *node2);
-	void			(*del_func)(t_rinoorbtree_node *node);
+	int			(*compare)(t_rinoorbtree_node *node1, t_rinoorbtree_node *node2);
+	void			(*delete)(t_rinoorbtree_node *node);
 } t_rinoorbtree;
 
-t_rinoorbtree *rinoorbtree(int (*cmp_func)(t_rinoorbtree_node *node1,
-					   t_rinoorbtree_node *node2),
-			   void (*del_func)(t_rinoorbtree_node *node));
-void rinoorbtree_destroy(t_rinoorbtree *tree);
+int rinoorbtree(t_rinoorbtree *tree,
+		int (*compare)(t_rinoorbtree_node *node1, t_rinoorbtree_node *node2),
+		void (*delete)(t_rinoorbtree_node *node));
+void rinoorbtree_flush(t_rinoorbtree *tree);
 int rinoorbtree_put(t_rinoorbtree *tree, t_rinoorbtree_node *node);
 void rinoorbtree_remove(t_rinoorbtree *tree, t_rinoorbtree_node *node);
 t_rinoorbtree_node *rinoorbtree_head(t_rinoorbtree *tree);
+t_rinoorbtree_node *rinoorbtree_next(t_rinoorbtree_node *node);
+t_rinoorbtree_node *rinoorbtree_find(t_rinoorbtree *tree, t_rinoorbtree_node *node);
 
 #endif		/* !RINOO_STRUCT_RBTREE_H_ */

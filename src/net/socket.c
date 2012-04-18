@@ -12,6 +12,12 @@
 
 static void rinoo_socket_run(t_rinootask *task);
 
+
+static void rinoo_socket_autodestroy(t_rinootask *task)
+{
+	rinoo_socket_destroy(container_of(task, t_rinoosocket, task));
+}
+
 /**
  * Generic socket creation.
  * This function should be used internally only.
@@ -38,13 +44,12 @@ static t_rinoosocket *rinoo_socket_init(t_rinoosched *sched, int fd, void (*run)
 		free(sock);
 		return NULL;
 	}
-	if (unlikely(rinoo_task(sched, &sock->task, rinoo_socket_run) != 0)) {
+	if (unlikely(rinoo_task(sched, &sock->task, rinoo_socket_run, rinoo_socket_autodestroy) != 0)) {
 		free(sock);
 		return NULL;
 	}
 	return sock;
 }
-
 /**
  * Socket creation function. It is a replacement of the socket(2) syscall in this library.
  *
@@ -161,11 +166,8 @@ int rinoo_socket_resume(t_rinoosocket *socket)
 
 	XASSERT(socket != NULL, -1);
 
-	rinoo_log("resume_start: %p\n", socket);
 	ret = rinoo_task_run(&socket->task);
-	rinoo_log("resume_end: %p - %d\n", socket, ret);
 	if (ret == 1) {
-		rinoo_socket_destroy(socket);
 		return 0;
 	}
 	return ret;

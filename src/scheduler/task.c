@@ -40,8 +40,7 @@ int rinoo_task_driver_init(t_rinoosched *sched)
 {
 	XASSERT(sched != NULL, -1);
 
-	sched->driver.proc_tree = rinoorbtree(rinoo_task_cmp, NULL);
-	if (sched->driver.proc_tree == NULL) {
+	if (rinoorbtree(&sched->driver.proc_tree, rinoo_task_cmp, NULL) != 0) {
 		return -1;
 	}
 	sched->driver.current = &sched->driver.main;
@@ -57,8 +56,7 @@ void rinoo_task_driver_destroy(t_rinoosched *sched)
 {
 	XASSERTN(sched != NULL);
 
-	rinoorbtree_destroy(sched->driver.proc_tree);
-	sched->driver.proc_tree = NULL;
+	rinoorbtree_flush(&sched->driver.proc_tree);
 }
 
 u32 rinoo_task_driver_run(t_rinoosched *sched)
@@ -69,7 +67,7 @@ u32 rinoo_task_driver_run(t_rinoosched *sched)
 
 	XASSERT(sched != NULL, 1000);
 
-	while ((head = rinoorbtree_head(sched->driver.proc_tree)) != NULL) {
+	while ((head = rinoorbtree_head(&sched->driver.proc_tree)) != NULL) {
 		task = container_of(head, t_rinootask, proc_node);
 		if (timercmp(&task->tv, &sched->clock, <=)) {
 			rinoo_task_unschedule(task);
@@ -115,7 +113,10 @@ static void rinoo_task_process(int p1, int p2)
  *
  * @return 0 if the task has been successfuly initialize, otherwise -1
  */
-int rinoo_task(t_rinoosched *sched, t_rinootask *task, t_rinootask_func function)
+int rinoo_task(t_rinoosched *sched,
+	       t_rinootask *task,
+	       void (*function)(t_rinootask *task),
+	       void (*delete)(t_rinootask *task))
 {
 	XASSERT(sched != NULL, -1);
 	XASSERT(function != NULL, -1);
@@ -126,6 +127,7 @@ int rinoo_task(t_rinoosched *sched, t_rinootask *task, t_rinootask_func function
 	task->sched = sched;
 	task->queued = FALSE;
 	task->function = function;
+	task->delete = delete;
 	task->context.uc_stack.ss_sp = task->stack;
 	task->context.uc_stack.ss_size = sizeof(task->stack);
 	task->context.uc_link = NULL;
@@ -174,6 +176,9 @@ int rinoo_task_run(t_rinootask *task)
 	if (ret == 0 && task->function == NULL) {
 		/* This task is finished */
 		rinoo_task_unschedule(task);
+		if (task->delete != NULL) {
+			task->delete(task);
+		}
 		return 1;
 	}
 	return ret;
@@ -204,7 +209,7 @@ int rinoo_task_schedule(t_rinootask *task, struct timeval *tv)
 	XASSERT(task->sched != NULL, -1);
 
 	if (task->queued == TRUE) {
-		rinoorbtree_remove(task->sched->driver.proc_tree, &task->proc_node);
+		rinoorbtree_remove(&task->sched->driver.proc_tree, &task->proc_node);
 		task->queued = FALSE;
 	}
 	if (tv != NULL) {
@@ -212,7 +217,7 @@ int rinoo_task_schedule(t_rinootask *task, struct timeval *tv)
 	} else {
 		memset(&task->tv, 0, sizeof(task->tv));
 	}
-	if (rinoorbtree_put(task->sched->driver.proc_tree, &task->proc_node) != 0) {
+	if (rinoorbtree_put(&task->sched->driver.proc_tree, &task->proc_node) != 0) {
 		return -1;
 	}
 	task->queued = TRUE;
@@ -225,7 +230,7 @@ int rinoo_task_unschedule(t_rinootask *task)
 	XASSERT(task->sched != NULL, -1);
 
 	if (task->queued == TRUE) {
-		rinoorbtree_remove(task->sched->driver.proc_tree, &task->proc_node);
+		rinoorbtree_remove(&task->sched->driver.proc_tree, &task->proc_node);
 		memset(&task->tv, 0, sizeof(task->tv));
 		task->queued = FALSE;
 	}

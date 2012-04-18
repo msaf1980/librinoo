@@ -29,22 +29,23 @@ typedef struct s_buffer
 # define	buffer_static(buffer, ptr, length)	do { buffer.buf = (char *) (ptr); buffer.len = (length); buffer.size = buffer.len; buffer.alloc = 0; } while (0)
 # define	strtobuffer(buffer, str)		do { buffer.buf = (char *) (str); buffer.len = strlen((str)); buffer.size = buffer.len; buffer.alloc = 0; } while (0)
 
-t_buffer		*buffer_create(u32 init_size);
-void			buffer_destroy(t_buffer *ptr);
-int			buffer_extend(t_buffer *buf, size_t size);
-int			buffer_vprint(t_buffer *buf, const char *format, va_list ap);
-int			buffer_print(t_buffer *buf, const char *format, ...);
-int			buffer_add(t_buffer *buf, const char *data, size_t size);
-int			buffer_addstr(t_buffer *buf, const char *str);
-int			buffer_addnull(t_buffer *buf);
-int			buffer_erase(t_buffer *buf, u32 len);
-t_buffer		*buffer_dup(t_buffer *buf);
-int			buffer_strcmp(t_buffer *buf, const char *str);
-int			buffer_strncmp(t_buffer *buf, const char *str, size_t len);
-long int		buffer_tolong(t_buffer *buf, size_t *len, int base);
-unsigned long int	buffer_toulong(t_buffer *buf, size_t *len, int base);
-float			buffer_tofloat(t_buffer *buf, size_t *len);
-double			buffer_todouble(t_buffer *buf, size_t *len);
-char			*buffer_tostr(t_buffer *buf);
+t_buffer *buffer_create(u32 init_size);
+void buffer_destroy(t_buffer *ptr);
+int buffer_extend(t_buffer *buf, size_t size);
+int buffer_vprint(t_buffer *buf, const char *format, va_list ap);
+int buffer_print(t_buffer *buf, const char *format, ...);
+int buffer_add(t_buffer *buf, const char *data, size_t size);
+int buffer_addstr(t_buffer *buf, const char *str);
+int buffer_addnull(t_buffer *buf);
+int buffer_erase(t_buffer *buf, u32 len);
+t_buffer *buffer_dup(t_buffer *buf);
+int buffer_cmp(t_buffer *buf1, t_buffer *buf2);
+int buffer_strcmp(t_buffer *buf, const char *str);
+int buffer_strncmp(t_buffer *buf, const char *str, size_t len);
+long int buffer_tolong(t_buffer *buf, size_t *len, int base);
+unsigned long int buffer_toulong(t_buffer *buf, size_t *len, int base);
+float buffer_tofloat(t_buffer *buf, size_t *len);
+double buffer_todouble(t_buffer *buf, size_t *len);
+char *buffer_tostr(t_buffer *buf);
 
-#endif		/* !RINOO_MEMORY_BUFFER_H_ */
+#endif /* !RINOO_MEMORY_BUFFER_H_ */

@@ -18,6 +18,7 @@
 # include	<stdio.h>
 # include	<fcntl.h>
 # include	<errno.h>
+# include	<dirent.h>
 # include	<signal.h>
 # include	<unistd.h>
 # include	<stdlib.h>
@@ -27,8 +28,10 @@
 # include	<stdarg.h>
 # include	<limits.h>
 # include	<ucontext.h>
-# include	<sys/types.h>
+# include	<sys/mman.h>
+# include	<sys/stat.h>
 # include	<sys/time.h>
+# include	<sys/types.h>
 # include	<sys/ioctl.h>
 # include	<sys/socket.h>
 # include	<netinet/in.h>
@@ -53,5 +56,8 @@
 
 /* NET */
 # include	"rinoo/net/module.h"
+
+/* PROTO */
+# include	"rinoo/proto/module.h"
 
 #endif		/* !RINOO_H_ */

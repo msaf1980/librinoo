@@ -207,31 +207,28 @@ static void rinoorbtree_remove_color(t_rinoorbtree *tree, t_rinoorbtree_node *pa
 	}
 }
 
-t_rinoorbtree *rinoorbtree(int (*cmp_func)(t_rinoorbtree_node *node1,
-					   t_rinoorbtree_node *node2),
-			   void (*del_func)(t_rinoorbtree_node *node))
+int rinoorbtree(t_rinoorbtree *tree,
+		int (*compare)(t_rinoorbtree_node *node1, t_rinoorbtree_node *node2),
+		void (*delete)(t_rinoorbtree_node *node))
 {
-	t_rinoorbtree *tree;
+	XASSERT(tree != NULL, -1);
+	XASSERT(compare != NULL, -1);
 
-	XASSERT(cmp_func != NULL, NULL);
-
-	tree = calloc(1, sizeof(*tree));
-	if (tree == NULL) {
-		return NULL;
-	}
-	tree->cmp_func = cmp_func;
-	tree->del_func = del_func;
-	return tree;
+	tree->root = NULL;
+	tree->head = NULL;
+	tree->compare = compare;
+	tree->delete = delete;
+	return 0;
 }
 
-void rinoorbtree_destroy(t_rinoorbtree *tree)
+void rinoorbtree_flush(t_rinoorbtree *tree)
 {
 	t_rinoorbtree_node *old;
 	t_rinoorbtree_node *current;
 
 	XASSERTN(tree != NULL);
 
-	if (tree->root != NULL && tree->del_func != NULL) {
+	if (tree->root != NULL && tree->delete != NULL) {
 		current = tree->head;
 		while (current != NULL) {
 			if (current->right != NULL) {
@@ -243,21 +240,23 @@ void rinoorbtree_destroy(t_rinoorbtree *tree)
 				if (current->parent != NULL && (current == current->parent->left)) {
 					old = current;
 					current = current->parent;
-					tree->del_func(old);
+					tree->delete(old);
 				} else {
 					while (current->parent != NULL && (current == current->parent->right)) {
 						old = current;
 						current = current->parent;
-						tree->del_func(old);
+						tree->delete(old);
 					}
 					old = current;
 					current = current->parent;
-					tree->del_func(old);
+					tree->delete(old);
 				}
 			}
 		}
 	}
-	free(tree);
+	tree->size = 0;
+	tree->root = NULL;
+	tree->head = NULL;
 }
 
 int rinoorbtree_put(t_rinoorbtree *tree, t_rinoorbtree_node *node)
@@ -276,7 +275,7 @@ int rinoorbtree_put(t_rinoorbtree *tree, t_rinoorbtree_node *node)
 	current = tree->root;
 	while (current != NULL) {
 		parent = current;
-		cmp = tree->cmp_func(node, parent);
+		cmp = tree->compare(node, parent);
 		if (cmp < 0) {
 			current = current->left;
 		} else if (likely(cmp > 0)) {
@@ -316,6 +315,9 @@ void rinoorbtree_remove(t_rinoorbtree *tree, t_rinoorbtree_node *node)
 	t_rinoorbtree_node *child;
 	t_rinoorbtree_node *parent;
 	t_rinoorbtree_color color;
+
+	XASSERTN(tree != NULL);
+	XASSERTN(node != NULL);
 
 	old = node;
 	if (node->left == NULL) {
@@ -384,13 +386,58 @@ color:
 		rinoorbtree_remove_color(tree, parent, child);
 	}
 
-	if (tree->del_func != NULL) {
-		tree->del_func(old);
+	if (tree->delete != NULL) {
+		tree->delete(old);
 	}
 	tree->size--;
 }
 
 t_rinoorbtree_node *rinoorbtree_head(t_rinoorbtree *tree)
 {
+	XASSERT(tree != NULL, NULL);
+
 	return tree->head;
+}
+
+t_rinoorbtree_node *rinoorbtree_next(t_rinoorbtree_node *node)
+{
+	if (node->right != NULL) {
+		node = node->right;
+		while (node->left != NULL) {
+			node = node->left;
+		}
+	} else {
+		if (node->parent != NULL && (node == node->parent->left)) {
+			node = node->parent;
+		} else {
+			while (node->parent != NULL && (node == node->parent->right)) {
+				node = node->parent;
+			}
+			node = node->parent;
+		}
+	}
+
+	return node;
+}
+
+t_rinoorbtree_node *rinoorbtree_find(t_rinoorbtree *tree, t_rinoorbtree_node *node)
+{
+	int cmp;
+	t_rinoorbtree_node *tmp;
+
+	XASSERT(tree != NULL, NULL);
+	XASSERT(node != NULL, NULL);
+
+	for (tmp = tree->root; tmp != NULL;) {
+		cmp = tree->compare(node, tmp);
+		if (cmp < 0) {
+			tmp = tmp->left;
+		} else if (cmp > 0) {
+			tmp = tmp->right;
+		} else {
+			return tmp;
+		}
+	}
+
+	return NULL;
 }

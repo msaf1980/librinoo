@@ -46,8 +46,10 @@ void buffer_destroy(t_buffer *buf)
 	XASSERTN(buf != NULL);
 	XASSERTN(buf->buf != NULL);
 
-	buf->alloc = 0;
-	free(buf->buf);
+	if (buf->alloc != 0) {
+		buf->alloc = 0;
+		free(buf->buf);
+	}
 	buf->buf = NULL;
 	free(buf);
 }
@@ -251,6 +253,30 @@ t_buffer *buffer_dup(t_buffer *buf)
 	memcpy(newbuf->buf, buf->buf, buf->len);
 	newbuf->alloc = 1;
 	return newbuf;
+}
+
+/**
+ * Compares two buffers
+ *
+ * @param buf1 Pointer to a buffer.
+ * @param buf2 Pointer to a buffer.
+ *
+ * @return An integer less than, equal to, or greater than zero if buf1 is found, respectively, to be less than, to match, or be greater than buf2
+ */
+int buffer_cmp(t_buffer *buf1, t_buffer *buf2)
+{
+	int ret;
+
+	ret = buffer_len(buf1) - buffer_len(buf2);
+	if (ret != 0) {
+		return ret;
+	}
+	ret = memcmp(buffer_ptr(buf1), buffer_ptr(buf2), buffer_len(buf1));
+	if (ret != 0) {
+		return ret;
+	}
+	return 0;
+
 }
 
 /**

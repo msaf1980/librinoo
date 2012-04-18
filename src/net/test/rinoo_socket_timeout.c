@@ -19,7 +19,6 @@ void process_client(t_rinoosocket *s)
 	rinoo_socket_timeout(s, 1000);
 	XTEST(rinoo_socket_read(s, &b, 1) == -1);
 	rinoo_sched_stop(sched);
-	rinoo_socket_release(s);
 }
 
 void server_func(t_rinoosocket *s)

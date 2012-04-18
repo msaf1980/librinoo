@@ -32,19 +32,19 @@ int main()
 	int min;
 	tmytest *head;
 	tmytest tab[RINOO_HEADTEST_NB_ELEM];
-	t_rinoorbtree *tree;
+	t_rinoorbtree tree;
 
-	tree = rinoorbtree(cmp_func, NULL);
+	XTEST(rinoorbtree(&tree, cmp_func, NULL) == 0);
 	for (i = 0; i < RINOO_HEADTEST_NB_ELEM; i++) {
 		tab[i].val = random();
 		if (i == 0 || min > tab[i].val) {
 			min = tab[i].val;
 		}
-		XTEST(rinoorbtree_put(tree, &tab[i].node) == 0);
-		XTEST(tree->head != NULL);
-		head = container_of(tree->head, tmytest, node);
+		XTEST(rinoorbtree_put(&tree, &tab[i].node) == 0);
+		XTEST(tree.head != NULL);
+		head = container_of(tree.head, tmytest, node);
 		XTEST(head->val == min);
 	}
-	rinoorbtree_destroy(tree);
+	rinoorbtree_flush(&tree);
 	XPASS();
 }

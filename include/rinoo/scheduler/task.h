@@ -15,10 +15,6 @@
 
 /* Defined in scheduler.h */
 struct s_rinoosched;
-/* Defined in this file */
-struct s_rinootask;
-
-typedef void (*t_rinootask_func)(struct s_rinootask *task);
 
 typedef union u_rinootask_arg
 {
@@ -32,7 +28,8 @@ typedef struct s_rinootask
 	struct timeval		tv;
 	int			queued;
 	ucontext_t		context;
-	t_rinootask_func	function;
+	void			(*function)(struct s_rinootask *task);
+	void			(*delete)(struct s_rinootask *task);
 	t_rinoorbtree_node	proc_node;
 	char			stack[RINOO_TASK_STACK_SIZE];
 } t_rinootask;
@@ -41,14 +38,17 @@ typedef struct s_rinootask_driver
 {
 	t_rinootask	main;
 	t_rinootask	*current;
-	t_rinoorbtree	*proc_tree;
+	t_rinoorbtree	proc_tree;
 } t_rinootask_driver;
 
 int rinoo_task_driver_init(struct s_rinoosched *sched);
 void rinoo_task_driver_destroy(struct s_rinoosched *sched);
 u32 rinoo_task_driver_run(struct s_rinoosched *sched);
 
-int rinoo_task(struct s_rinoosched *sched, t_rinootask *task, t_rinootask_func function);
+int rinoo_task(struct s_rinoosched *sched,
+	       t_rinootask *task,
+	       void (*function)(t_rinootask *task),
+	       void (*delete)(t_rinootask *task));
 void rinoo_task_destroy(t_rinootask *task);
 int rinoo_task_release(struct s_rinoosched *sched);
 int rinoo_task_run(t_rinootask *task);
