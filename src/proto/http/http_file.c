@@ -10,7 +10,7 @@
 
 #include	"rinoo/rinoo.h"
 
-int rinoohttp_send_dir(t_rinoohttp_response *response, const char *path)
+int rinoohttp_send_dir(t_rinoohttp *http, const char *path)
 {
 	int ret;
 	int flag;
@@ -21,6 +21,7 @@ int rinoohttp_send_dir(t_rinoohttp_response *response, const char *path)
 	struct stat stats;
 	struct dirent *curentry;
 
+	XASSERT(http != NULL, -1);
 	XASSERT(path != NULL, -1);
 
 	if (stat(path, &stats) != 0) {
@@ -36,6 +37,7 @@ int rinoohttp_send_dir(t_rinoohttp_response *response, const char *path)
 	result = buffer_create(1024);
 	if (result == NULL) {
 		closedir(dir);
+		errno = ENOMEM;
 		return -1;
 	}
 	buffer_print(result,
@@ -91,13 +93,13 @@ int rinoohttp_send_dir(t_rinoohttp_response *response, const char *path)
 		     "</html>\n");
 	closedir(dir);
 
-	response->code = 200;
-	ret = rinoohttp_response_send(response, result);
+	http->response.code = 200;
+	ret = rinoohttp_response_send(http, result);
 	buffer_destroy(result);
 	return ret;
 }
 
-int rinoohttp_send_file(t_rinoohttp_response *response, const char *path)
+int rinoohttp_send_file(t_rinoohttp *http, const char *path)
 {
 	int ret;
 	int fd;
@@ -105,14 +107,14 @@ int rinoohttp_send_file(t_rinoohttp_response *response, const char *path)
 	t_buffer dummy;
 	struct stat stats;
 
-	XASSERT(response != NULL, -1);
+	XASSERT(http != NULL, -1);
 	XASSERT(path != NULL, -1);
 
 	if (stat(path, &stats) != 0) {
 		return -1;
 	}
 	if (S_ISDIR(stats.st_mode)) {
-		return rinoohttp_send_dir(response, path);
+		return rinoohttp_send_dir(http, path);
 	}
 	if (S_ISREG(stats.st_mode) == 0) {
 		return -1;
@@ -123,12 +125,14 @@ int rinoohttp_send_file(t_rinoohttp_response *response, const char *path)
 	}
 	ptr = mmap(NULL, stats.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
 	if (ptr == MAP_FAILED) {
+		ret = errno;
 		close(fd);
+		errno = ret;
 		return -1;
 	}
-	response->code = 200;
+	http->response.code = 200;
 	buffer_static(dummy, ptr, stats.st_size);
-	ret = rinoohttp_response_send(response, &dummy);
+	ret = rinoohttp_response_send(http, &dummy);
 	munmap(ptr, stats.st_size);
 	close(fd);
 	return ret;
