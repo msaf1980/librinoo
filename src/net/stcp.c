@@ -14,9 +14,13 @@ t_rinoossl *rinoossl()
 {
 	RSA *rsa;
 	X509 *x509;
+	SSL_CTX *ctx;
 	EVP_PKEY *pkey;
 	X509_NAME *name;
 	t_rinoossl *ssl;
+
+	/* SSL_library_init is not reentrant! */
+	SSL_library_init();
 
 	pkey = EVP_PKEY_new();
 	if (pkey == NULL) {
@@ -68,8 +72,24 @@ t_rinoossl *rinoossl()
 		EVP_PKEY_free(pkey);
 		return NULL;
 	}
+	ctx = SSL_CTX_new(SSLv23_method());
+	if (ctx == NULL) {
+		X509_free(x509);
+		EVP_PKEY_free(pkey);
+		free(ssl);
+		return NULL;
+	}
 	ssl->x509 = x509;
 	ssl->pkey = pkey;
+	ssl->ctx = ctx;
+	if (SSL_CTX_use_certificate(ctx, x509) == 0) {
+		rinoossl_destroy(ssl);
+		return NULL;
+	}
+	if (SSL_CTX_use_PrivateKey(ctx, pkey) == 0) {
+		rinoossl_destroy(ssl);
+		return NULL;
+	}
 	return ssl;
 }
 
@@ -78,6 +98,7 @@ void rinoossl_destroy(t_rinoossl *ssl)
 	if (ssl != NULL) {
 		X509_free(ssl->x509);
 		EVP_PKEY_free(ssl->pkey);
+		SSL_CTX_free(ssl->ctx);
 		free(ssl);
 	}
 }

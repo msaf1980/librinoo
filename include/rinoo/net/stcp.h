@@ -15,6 +15,10 @@ typedef struct s_rinoossl
 {
 	X509 *x509;
 	EVP_PKEY *pkey;
+	SSL_CTX *ctx;
 } t_rinoossl;
+
+t_rinoossl *rinoossl();
+void rinoossl_destroy(t_rinoossl *ssl);
 
 #endif		/* !RINOO_NET_STCP_H_ */
