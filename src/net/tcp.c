@@ -8,7 +8,6 @@
  *
  */
 
-
 #include	"rinoo/rinoo.h"
 
 /**

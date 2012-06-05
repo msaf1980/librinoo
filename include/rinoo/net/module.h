@@ -13,5 +13,6 @@
 
 # include	"rinoo/net/socket.h"
 # include	"rinoo/net/tcp.h"
+# include	"rinoo/net/stcp.h"
 
 #endif		/* !RINOO_MODULE_NET_H_ */

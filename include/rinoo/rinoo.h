@@ -38,6 +38,9 @@
 # include	<arpa/inet.h>
 # include	<arpa/nameser.h>
 # include	<resolv.h>
+# include	<openssl/pem.h>
+# include	<openssl/conf.h>
+# include	<openssl/x509v3.h>
 
 /* GLOBAL */
 # include	"rinoo/global/module.h"

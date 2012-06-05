@@ -18,4 +18,4 @@ int rinoo_tcp_connect(t_rinoosocket *socket, t_ip ip, u32 port, u32 timeout);
 int rinoo_tcp_listen(t_rinoosocket *socket, t_ip ip, u32 port);
 t_rinoosocket *rinoo_tcp_accept(t_rinoosocket *socket,  void (*run)(t_rinoosocket *socket), t_ip *fromip, u32 *fromport);
 
-#endif		/* RINOO_NET_TCP_H_ */
+#endif		/* !RINOO_NET_TCP_H_ */
