@@ -10,14 +10,27 @@
 
 #include	"rinoo/rinoo.h"
 
-t_rinoossl *rinoossl()
+static void rinoo_ssl_autodestroy(t_rinoosocket *socket)
+{
+	rinoo_ssl_destroy(container_of(socket, t_rinoossl, socket));
+}
+
+static void rinoo_ssl_run(t_rinoosocket *socket)
+{
+	t_rinoossl *ssl;
+
+	ssl = container_of(socket, t_rinoossl, socket);
+	ssl->run(ssl);
+}
+
+t_rinoossl_ctx *rinoo_ssl_context()
 {
 	RSA *rsa;
 	X509 *x509;
 	SSL_CTX *ctx;
 	EVP_PKEY *pkey;
 	X509_NAME *name;
-	t_rinoossl *ssl;
+	t_rinoossl_ctx *ssl;
 
 	/* SSL_library_init is not reentrant! */
 	SSL_library_init();
@@ -83,22 +96,75 @@ t_rinoossl *rinoossl()
 	ssl->pkey = pkey;
 	ssl->ctx = ctx;
 	if (SSL_CTX_use_certificate(ctx, x509) == 0) {
-		rinoossl_destroy(ssl);
+		rinoo_ssl_context_destroy(ssl);
 		return NULL;
 	}
 	if (SSL_CTX_use_PrivateKey(ctx, pkey) == 0) {
-		rinoossl_destroy(ssl);
+		rinoo_ssl_context_destroy(ssl);
 		return NULL;
 	}
 	return ssl;
 }
 
-void rinoossl_destroy(t_rinoossl *ssl)
+void rinoo_ssl_context_destroy(t_rinoossl_ctx *ctx)
 {
-	if (ssl != NULL) {
-		X509_free(ssl->x509);
-		EVP_PKEY_free(ssl->pkey);
-		SSL_CTX_free(ssl->ctx);
-		free(ssl);
+	if (ctx != NULL) {
+		X509_free(ctx->x509);
+		EVP_PKEY_free(ctx->pkey);
+		SSL_CTX_free(ctx->ctx);
+		free(ctx);
 	}
+}
+
+t_rinoossl *rinoo_ssl(t_rinoosched *sched, t_rinoossl_ctx *ctx, void (*run)(t_rinoossl *ssl))
+{
+	t_rinoossl *ssl;
+
+	XASSERT(sched != NULL && ctx != NULL, NULL);
+
+	ssl = malloc(sizeof(*ssl));
+	if (ssl == NULL) {
+		return NULL;
+	}
+	ssl->ctx = ctx;
+	ssl->run = run;
+	if (unlikely(rinoo_socket_set(sched, &ssl->socket, AF_INET, SOCK_STREAM, rinoo_ssl_run, rinoo_ssl_autodestroy) != 0)) {
+		free(ssl);
+		return NULL;
+	}
+	return ssl;
+}
+
+void rinoo_ssl_destroy(t_rinoossl *ssl)
+{
+	rinoo_socket_close(&ssl->socket);
+	free(ssl);
+}
+
+int rinoo_ssl_connect(t_rinoossl *ssl, t_ip ip, u32 port, u32 timeout)
+{
+	int ret;
+	BIO *sbio;
+
+	if (unlikely(rinoo_tcp_connect(&ssl->socket, ip, port, timeout) != 0)) {
+		return -1;
+	}
+	ssl->ssl = SSL_new(ssl->ctx->ctx);
+	if (unlikely(ssl->ssl == NULL)) {
+		return -1;
+	}
+	sbio = BIO_new_socket(ssl->socket.fd, BIO_NOCLOSE);
+	if (unlikely(sbio == NULL)) {
+		return -1;
+	}
+	SSL_set_bio(ssl->ssl, sbio, sbio);
+	ret = SSL_connect(ssl->ssl);
+	if (ret == 0) {
+		return -1;
+	}
+	if (ret == 1) {
+		return 0;
+	}
+
+	return 0;
 }

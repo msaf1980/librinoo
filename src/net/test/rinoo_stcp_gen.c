@@ -17,10 +17,10 @@
  */
 int main()
 {
-	t_rinoossl *ssl;
+	t_rinoossl_ctx *ssl;
 
-	ssl = rinoossl();
+	ssl = rinoo_ssl_context();
 	XTEST(ssl != NULL);
-	rinoossl_destroy(ssl);
+	rinoo_ssl_context_destroy(ssl);
 	XPASS();
 }

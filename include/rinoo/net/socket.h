@@ -16,13 +16,16 @@ typedef struct s_rinoosocket
 	int			fd;
 	int			error;
 	void			(*run)(struct s_rinoosocket *socket);
+	void			(*autodestroy)(struct s_rinoosocket *socket);
 	t_rinootask		task;
 	struct s_rinoosocket	*parent;
 } t_rinoosocket;
 
 typedef in_addr_t       t_ip;
 
+int rinoo_socket_set(t_rinoosched *sched, t_rinoosocket *sock, int domain, int type, void (*run)(t_rinoosocket *socket), void (*autodestroy)(t_rinoosocket *socket));
 t_rinoosocket *rinoo_socket(t_rinoosched *sched, int domain, int type, void (*run)(t_rinoosocket *socket));
+void rinoo_socket_close(t_rinoosocket *socket);
 void rinoo_socket_destroy(t_rinoosocket *socket);
 
 void rinoo_socket_error_set(t_rinoosocket *socket, int error);
