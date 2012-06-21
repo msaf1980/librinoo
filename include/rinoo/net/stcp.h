@@ -30,5 +30,12 @@ t_rinoossl_ctx *rinoo_ssl_context();
 void rinoo_ssl_context_destroy(t_rinoossl_ctx *ctx);
 t_rinoossl *rinoo_ssl(t_rinoosched *sched, t_rinoossl_ctx *ctx, void (*run)(t_rinoossl *ssl));
 void rinoo_ssl_destroy(t_rinoossl *ssl);
+int rinoo_ssl_connect(t_rinoossl *ssl, t_ip ip, u32 port, u32 timeout);
+int rinoo_ssl_listen(t_rinoossl *ssl, t_ip ip, u32 port);
+t_rinoossl *rinoo_ssl_accept(t_rinoossl *ssl, void (*run)(t_rinoossl *ssl), t_ip *fromip, u32 *fromport);
+ssize_t rinoo_ssl_read(t_rinoossl *ssl, void *buf, size_t count);
+ssize_t	rinoo_ssl_write(t_rinoossl *ssl, const void *buf, size_t count);
+ssize_t rinoo_ssl_readb(t_rinoossl *ssl, t_buffer *buffer);
+ssize_t rinoo_ssl_writeb(t_rinoossl *ssl, t_buffer *buffer);
 
 #endif		/* !RINOO_NET_STCP_H_ */

@@ -23,6 +23,11 @@ typedef struct s_rinoosocket
 
 typedef in_addr_t       t_ip;
 
+int rinoo_socket_init(t_rinoosched *sched,
+		      t_rinoosocket *socket,
+		      int fd,
+		      void (*run)(t_rinoosocket *socket),
+		      void (*autodestroy)(t_rinoosocket *socket));
 int rinoo_socket_set(t_rinoosched *sched, t_rinoosocket *sock, int domain, int type, void (*run)(t_rinoosocket *socket), void (*autodestroy)(t_rinoosocket *socket));
 t_rinoosocket *rinoo_socket(t_rinoosched *sched, int domain, int type, void (*run)(t_rinoosocket *socket));
 void rinoo_socket_close(t_rinoosocket *socket);
