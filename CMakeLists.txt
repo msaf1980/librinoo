@@ -28,6 +28,5 @@ generate_debian_package(
   "Reginald LIPS"
   "RiNOO is a library for asynchronous socket management"
 )
-install(TARGETS ${CMAKE_PROJECT_NAME} LIBRARY DESTINATION lib)
+install(TARGETS ${CMAKE_PROJECT_NAME} ${CMAKE_PROJECT_NAME}_static LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
 install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/rinoo" DESTINATION include)
-install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/backtrace.gdb" DESTINATION include/rinoo)

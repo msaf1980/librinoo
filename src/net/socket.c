@@ -315,6 +315,7 @@ int rinoo_socket_connect(t_rinoosocket *socket, const struct sockaddr *addr, soc
 
 	XASSERT(socket != NULL, -1);
 
+	errno = 0;
 	if (connect(socket->fd, addr, addrlen) == 0) {
 		return 0;
 	}
