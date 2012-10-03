@@ -52,7 +52,7 @@ void rinoo_sched_destroy(t_rinoosched *sched)
 	{
 		if (sched->sock_pool[i] != NULL)
 		{
-			rinoo_socket_error_set(sched->sock_pool[i], EINTR);
+			rinoo_socket_error_set(sched->sock_pool[i], ESHUTDOWN);
 			rinoo_socket_resume(sched->sock_pool[i]);
 		}
 	}

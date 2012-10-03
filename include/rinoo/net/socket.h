@@ -19,6 +19,7 @@ typedef struct s_rinoosocket
 	void			(*autodestroy)(struct s_rinoosocket *socket);
 	t_rinootask		task;
 	struct s_rinoosocket	*parent;
+	void			*context;
 } t_rinoosocket;
 
 typedef in_addr_t       t_ip;

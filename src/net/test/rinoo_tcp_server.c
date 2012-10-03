@@ -1,0 +1,69 @@
+/**
+ * @file   rinoo_tcp_server.c
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
+ * @date   Wed Oct  3 14:03:03 2012
+ *
+ * @brief  Test file for tcp server creation.
+ *
+ *
+ */
+
+#include "rinoo/rinoo.h"
+
+t_rinoosched *sched;
+
+void process_client(t_rinoosocket *s)
+{
+	char b;
+
+	rinoo_log("server - client accepted");
+	rinoo_log("server - sending 'abcdef'");
+	XTEST(rinoo_socket_write(s, "abcdef", 6) == 6);
+	rinoo_log("server - receiving 'b'");
+	XTEST(rinoo_socket_read(s, &b, 1) == 1);
+	XTEST(b == 'b');
+	rinoo_log("server - receiving nothing");
+	XTEST(rinoo_socket_read(s, &b, 1) == 0);
+	rinoo_sched_stop(sched);
+}
+
+void client_func(t_rinoosocket *s)
+{
+	char a;
+	char cur;
+
+	if (rinoo_tcp_connect(s, 0, 4242, 1000) != 0) {
+		perror("tcp_connect");
+		XFAIL();
+	}
+	rinoo_log("client - connected");
+	for (cur = 'a'; cur <= 'f'; cur++) {
+		rinoo_log("client - receiving '%c'", cur);
+		XTEST(rinoo_socket_read(s, &a, 1) == 1);
+		XTEST(a == cur);
+	}
+	rinoo_log("client - sending 'b'");
+	XTEST(rinoo_socket_write(s, "b", 1) == 1);
+}
+
+/**
+ * This test will check if a scheduler is well initialized.
+ *
+ * @return 0 if test passed
+ */
+int main()
+{
+	t_rinoosocket *server;
+	t_rinoosocket *client;
+
+	sched = rinoo_sched();
+	XTEST(sched != NULL);
+	server = rinoo_tcp_server(sched, 0, 4242, process_client);
+	XTEST(server != NULL);
+	client = rinoo_tcp(sched, client_func);
+	XTEST(client != NULL);
+	XTEST(rinoo_socket_schedule(client, 1) == 0);
+	rinoo_sched_loop(sched);
+	rinoo_sched_destroy(sched);
+	XPASS();
+}
