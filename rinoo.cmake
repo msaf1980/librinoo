@@ -3,6 +3,9 @@ include(CheckFunctionExists)
 include(CheckLibraryExists)
 include(CheckSymbolExists)
 
+enable_language(ASM)
+set(CMAKE_ASM_CREATE_SHARED_LIBRARY ${CMAKE_C_CREATE_SHARED_LIBRARY})
+
 #cmake_force_c_compiler(clang 0)
 
 add_definitions("-W")

@@ -27,7 +27,7 @@ typedef struct s_rinootask
 	struct s_rinoosched	*sched;
 	struct timeval		tv;
 	int			queued;
-	ucontext_t		context;
+	t_fcontext		context;
 	void			(*function)(struct s_rinootask *task);
 	void			(*delete)(struct s_rinootask *task);
 	t_rinoorbtree_node	proc_node;

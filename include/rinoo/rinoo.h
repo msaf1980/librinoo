@@ -27,7 +27,6 @@
 # include	<string.h>
 # include	<stdarg.h>
 # include	<limits.h>
-# include	<ucontext.h>
 # include	<sys/mman.h>
 # include	<sys/stat.h>
 # include	<sys/time.h>

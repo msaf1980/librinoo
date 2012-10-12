@@ -89,14 +89,10 @@ u32 rinoo_task_driver_run(t_rinoosched *sched)
  * @param p1 First part of t_rinootask pointer
  * @param p2 Second part of t_rinootask pointer
  */
-static void rinoo_task_process(int p1, int p2)
+static void rinoo_task_process(void *arg)
 {
-	t_rinootask *task;
-	t_rinootask_arg targ;
+	t_rinootask *task = arg;
 
-	targ.args[0] = p1;
-	targ.args[1] = p2;
-	task = targ.ptr;
 	XASSERTN(task != NULL);
 	XASSERTN(task->function != NULL);
 	task->function(task);
@@ -121,20 +117,133 @@ int rinoo_task(t_rinoosched *sched,
 	XASSERT(sched != NULL, -1);
 	XASSERT(function != NULL, -1);
 
-	if (getcontext(&task->context) != 0) {
+	if (rinoo_context_get(&task->context) != 0) {
 		return -1;
 	}
 	task->sched = sched;
 	task->queued = FALSE;
 	task->function = function;
 	task->delete = delete;
-	task->context.uc_stack.ss_sp = task->stack;
-	task->context.uc_stack.ss_size = sizeof(task->stack);
-	task->context.uc_link = NULL;
+	task->context.stack.sp = task->stack;
+	task->context.stack.size = sizeof(task->stack);
+	task->context.link = NULL;
 	memset(&task->tv, 0, sizeof(task->tv));
 	memset(&task->proc_node, 0, sizeof(task->proc_node));
 	return 0;
 }
+
+/* int myswap(ucontext_t *oucp, ucontext_t *ucp) */
+/* { */
+/* 	asm("mov    %%rbp, %%rsp\t\n" */
+/* 	    "pop    %%rbp\t\n" */
+/* 	    "mov    %%rbx,0x80(%0)\t\n" */
+/* 	    "mov    %%rbp,0x78(%0)\t\n" */
+/* 	    "mov    %%r12,0x48(%0)\t\n" */
+/* 	    "mov    %%r13,0x50(%0)\t\n" */
+/* 	    "mov    %%r14,0x58(%0)\t\n" */
+/* 	    "mov    %%r15,0x60(%0)\t\n" */
+/* 	    "mov    %%rdi,0x68(%0)\t\n" */
+/* 	    "mov    %%rsi,0x70(%0)\t\n" */
+/* 	    "mov    %%rdx,0x88(%0)\t\n" */
+/* 	    "mov    %%rcx,0x98(%0)\t\n" */
+/* 	    "mov    %%r8,0x28(%0)\t\n" */
+/* 	    "mov    %%r9,0x30(%0)\t\n" */
+/* 	    "mov    (%%rsp),%%rcx\t\n" */
+/* 	    "mov    %%rcx,0xa8(%0)\t\n" */
+/* 	    "lea    0x8(%%rsp),%%rcx\t\n" */
+/* 	    "mov    %%rcx,0xa0(%0)\t\n" */
+
+/* 	    "lea    0x1a8(%0),%%rcx\t\n" */
+/* 	    "mov    %%rcx,0xe0(%0)\t\n" */
+/* 	    /\* "fnstenv (%rcx)\t\n" *\/ */
+/* 	    /\* "stmxcsr 0x1c0(%rdi)\t\n" *\/ */
+/* 	    /\* "mov    %rsi,%r12\t\n" *\/ */
+/* 	    /\* "lea    0x128(%rdi),%rdx\t\n" *\/ */
+/* 	    /\* "lea    0x128(%rsi),%rsi\t\n" *\/ */
+/* 	    /\* "mov    $0x2,%edi\t\n" *\/ */
+/* 	    /\* "mov    $0x8,%r10d\t\n" *\/ */
+/* 	    /\* "mov    $0xe,%eax\t\n" *\/ */
+/* 	    /\* "syscall\t\n" *\/ */
+/* 	    /\* "cmp    $0xfffffffffffff001,%rax\t\n" *\/ */
+/* 	    /\* "jae    46490 <swapcontext+0xf0>\t\n" *\/ */
+/* 	    /\* "mov    %r12,%rsi\t\n" *\/ */
+/* 	    /\* "mov    0xe0(%rsi),%rcx\t\n" *\/ */
+/* 	    /\* "fldenv (%rcx)\t\n" *\/ */
+/* 	    /\* "ldmxcsr 0x1c0(%rsi)\t\n" *\/ */
+/* 	    "mov    0xa0(%1),%%rsp\t\n" */
+/* 	    "mov    0x80(%1),%%rbx\t\n" */
+/* 	    "mov    0x78(%1),%%rbp\t\n" */
+/* 	    "mov    0x48(%1),%%r12\t\n" */
+/* 	    "mov    0x50(%1),%%r13\t\n" */
+/* 	    "mov    0x58(%1),%%r14\t\n" */
+/* 	    "mov    0x60(%1),%%r15\t\n" */
+/* 	    "mov    0xa8(%1),%%rcx\t\n" */
+/* 	    "push   %%rcx\t\n" */
+/* 	    "mov    0x68(%1),%%rdi\t\n" */
+/* 	    "mov    0x88(%1),%%rdx\t\n" */
+/* 	    "mov    0x98(%1),%%rcx\t\n" */
+/* 	    "mov    0x28(%1),%%r8\t\n" */
+/* 	    "mov    0x30(%1),%%r9\t\n" */
+/* 	    "mov    0x70(%1),%%rsi\t\n" */
+/* 	    "xor    %%eax,%%eax\t\n" */
+/* 	    "retq\t\n" */
+/* 	    : */
+/* 	    :"D" (oucp), "S" (ucp) */
+/* 	    :"memory" */
+/* 	    /\* "mov    0x371989(%rip),%rcx\t\n" *\/ */
+/* 	    /\* "xor    %edx,%edx\t\n" *\/ */
+/* 	    /\* "sub    %rax,%rdx\t\n" *\/ */
+/* 	    /\* "mov    %edx,%fs:(%rcx)\t\n" *\/ */
+/* 	    /\* "or     $0xffffffffffffffff,%rax\t\n" *\/ */
+/* 	    /\* "jmp    4648f <swapcontext+0xef>" *\/ */
+/* 		); */
+/* 	return 0; */
+/* } */
+
+/* int myswap3(ucontext_t *oucp, ucontext_t *ucp) */
+/* { */
+/* 	asm("mov    %%rbp, %%rsp	\n\ */
+/* 	    pop    %%rbp		\n\ */
+/* 	    mov    %%rbx,0x80(%0)	\n\ */
+/* 	    mov    %%rbp,0x78(%0)	\n\ */
+/* 	    mov    %%r12,0x48(%0)	\n\ */
+/* 	    mov    %%r13,0x50(%0)	\n\ */
+/* 	    mov    %%r14,0x58(%0)	\n\ */
+/* 	    mov    %%r15,0x60(%0)	\n\ */
+/* 	    mov    %%rdi,0x68(%0)	\n\ */
+/* 	    mov    %%rsi,0x70(%0)	\n\ */
+/* 	    mov    %%rdx,0x88(%0)	\n\ */
+/* 	    mov    %%rcx,0x98(%0)	\n\ */
+/* 	    mov    %%r8,0x28(%0)	\n\ */
+/* 	    mov    %%r9,0x30(%0)	\n\ */
+/* 	    mov    (%%rsp),%%rcx	\n\ */
+/* 	    mov    %%rcx,0xa8(%0)	\n\ */
+/* 	    lea    0x8(%%rsp),%%rcx	\n\ */
+/* 	    mov    %%rcx,0xa0(%0)	\n\ */
+/* 	    lea    0x1a8(%0),%%rcx	\n\ */
+/* 	    mov    %%rcx,0xe0(%0)	\n\ */
+/* 	    mov    0xa0(%1),%%rsp	\n\ */
+/* 	    mov    0x80(%1),%%rbx	\n\ */
+/* 	    mov    0x78(%1),%%rbp	\n\ */
+/* 	    mov    0x48(%1),%%r12	\n\ */
+/* 	    mov    0x50(%1),%%r13	\n\ */
+/* 	    mov    0x58(%1),%%r14	\n\ */
+/* 	    mov    0x60(%1),%%r15	\n\ */
+/* 	    mov    0xa8(%1),%%rcx	\n\ */
+/* 	    push   %%rcx		\n\ */
+/* 	    mov    0x68(%1),%%rdi	\n\ */
+/* 	    mov    0x88(%1),%%rdx	\n\ */
+/* 	    mov    0x98(%1),%%rcx	\n\ */
+/* 	    mov    0x28(%1),%%r8	\n\ */
+/* 	    mov    0x30(%1),%%r9	\n\ */
+/* 	    mov    0x70(%1),%%rsi	\n\ */
+/* 	    xor    %%eax,%%eax		\n\ */
+/* 	    retq" */
+/* 	    : */
+/* 	    :"D" (oucp), "S" (ucp) */
+/* 	    :"memory"); */
+/* 	return 0; */
+/* } */
 
 /**
  * Run or resume a task.
@@ -152,10 +261,9 @@ int rinoo_task_run(t_rinootask *task)
 
 	XASSERT(task != NULL, -1);
 
-	if (task->context.uc_link == NULL) {
-		t_rinootask_arg targ = {.ptr = task};
-		task->context.uc_link = &(task->sched->driver.current->context);
-		makecontext(&task->context, (void (*)()) rinoo_task_process, 2, targ.args[0], targ.args[1]);
+	if (task->context.link == NULL) {
+		task->context.link = &(task->sched->driver.current->context);
+		rinoo_context(&task->context, rinoo_task_process, task);
 	}
 	driver = &task->sched->driver;
 	old = driver->current;
@@ -166,7 +274,7 @@ int rinoo_task_run(t_rinootask *task)
 	int valgrind_stackid = VALGRIND_STACK_REGISTER(task->stack, task->stack + sizeof(task->stack));
 #endif /* !RINOO_DEBUG */
 
-	ret = swapcontext(&old->context, &task->context);
+	ret = rinoo_context_swap(&old->context, &task->context);
 
 #ifdef RINOO_DEBUG
 	VALGRIND_STACK_DEREGISTER(valgrind_stackid);
@@ -196,8 +304,8 @@ int rinoo_task_release(t_rinoosched *sched)
 	XASSERT(sched != NULL, -1);
 
 	errno = 0;
-	if (swapcontext(&sched->driver.current->context,
-			&sched->driver.main.context) != 0) {
+	if (rinoo_context_swap(&sched->driver.current->context,
+			       &sched->driver.main.context) != 0) {
 		return -1;
 	}
 	return errno;

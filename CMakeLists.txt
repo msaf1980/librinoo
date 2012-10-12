@@ -2,7 +2,6 @@ cmake_minimum_required(VERSION 2.8)
 project(rinoo)
 
 include(rinoo.cmake)
-
 set_version(2 0 0)
 
 ## Dependencies ##
@@ -16,8 +15,7 @@ check_dependency_sym(res_init "resolv.h")
 ## !Dependencies ##
 
 include_directories(include)
-list_source_files(src_files "src/*.c")
-
+list_source_files(src_files "src/*.[cS]")
 add_library(${CMAKE_PROJECT_NAME} SHARED ${src_files})
 add_library(${CMAKE_PROJECT_NAME}_static STATIC ${src_files})
 ## !Library ##
