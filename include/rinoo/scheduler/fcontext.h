@@ -45,7 +45,7 @@ typedef struct s_fcontext
 	t_fstack stack;
 } t_fcontext;
 
-int rinoo_context(t_fcontext *ctx, void (*func)(void *ptr), void *arg);
+void rinoo_context(t_fcontext *ctx, void (*func)(void *ptr), void *arg);
 void rinoo_context_jump(void);
 int rinoo_context_get(t_fcontext *ctx);
 int rinoo_context_set(t_fcontext *ctx);
