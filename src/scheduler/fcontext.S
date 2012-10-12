@@ -96,3 +96,40 @@ rinoo_context_swap:
 	movq	0x50(%rsi), %rsi
 	xorl	%eax, %eax
 	ret
+
+.globl rinoo_context
+	.type rinoo_context, @function
+
+rinoo_context:
+	movq	0x88(%rdi), %rax
+	addq	0x90(%rdi), %rax
+	movq	rinoo_context_jump@GOTPCREL(%rip), %r8
+	subq	$0x8, %rax
+	andq	$-0x10, %rax
+	movq	%r8, -0x8(%rax)
+	movq	(%rdi), %r8
+	leaq	-0x8(%rax), %rcx
+	movq	%r8, (%rax)
+	movq	%rax, 0x60(%rdi)
+	xorl	%eax, %eax
+	movq	%rsi, 0x80(%rdi)
+	movq	%rdx, 0x48(%rdi)
+	movq	%rcx, 0x78(%rdi)
+	ret
+
+/* C code */
+/* int rinoo_context(t_fcontext *ctx, void (*func)(void *ptr), void *arg) */
+/* { */
+/* 	unsigned long int *sp; */
+
+/* 	sp = (unsigned long int *)(ctx->stack.sp + ctx->stack.size); */
+/* 	sp--; */
+/* 	sp = (unsigned long int *) ((((uintptr_t) sp) & -16L) - 8); */
+/* 	sp[0] = (unsigned long int) &rinoo_context_jump; */
+/* 	sp[1] = (unsigned long int) ctx->link; */
+/* 	ctx->reg[FREG_RIP] = (long int) func; */
+/* 	ctx->reg[FREG_RDI] = (long int) arg; */
+/* 	ctx->reg[FREG_RBX] = (long int) &sp[1]; */
+/* 	ctx->reg[FREG_RSP] = (long int) sp; */
+/* 	return 0; */
+/* } */
