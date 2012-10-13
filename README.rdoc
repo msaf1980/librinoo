@@ -6,7 +6,7 @@ client/server applications with high scalability.
 
 ===== Example
 
-<tt>
+[<tt>
 #include "rinoo/rinoo.h"
 
 t_rinoosched *sched;
@@ -64,4 +64,4 @@ int main(int argc, char **argv)
 	rinoo_sched_destroy(sched);
 	return 0;
 }
-</tt>
+</tt>]
