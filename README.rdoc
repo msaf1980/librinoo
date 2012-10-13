@@ -1,0 +1,67 @@
+= RiNOO
+
+RiNOO is a library for asynchronous socket management. It includes an event
+based scheduler and a high level socket API in order to easily create
+client/server applications with high scalability.
+
+===== Example
+
+<tt>
+#include "rinoo/rinoo.h"
+
+t_rinoosched *sched;
+
+void http_client(t_rinoosocket *socket)
+{
+	t_buffer *buf = NULL;
+
+	/* Connect to localhost, 1s timeout. */
+	if (rinoo_tcp_connect(socket, 0, 80, 1000) != 0) {
+		rinoo_log("Couldn't connect to localhost");
+		goto http_client_end;
+	}
+	rinoo_log("Client connected!");
+	buf = buffer_create(1024);
+	buffer_print(buf,
+		     "GET / HTTP/1.1\r\n"
+		     "Host: localhost\r\n\r\n"
+		     "Connection: close\r\n\r\n");
+	if (rinoo_socket_writeb(socket, buf) < 0) {
+		rinoo_log("Couldn't send request");
+		goto http_client_end;
+	}
+	buffer_erase(buf, buffer_len(buf));
+	if (rinoo_socket_readb(socket, buf) <= 0) {
+		rinoo_log("Couldn't read response");
+		goto http_client_end;
+	}
+	rinoo_log("Received: %.*s", buffer_len(buf), buffer_ptr(buf));
+http_client_end:
+	if (buf != NULL) {
+		buffer_destroy(buf);
+	}
+	rinoo_sched_stop(sched);
+}
+
+int main(int argc, char **argv)
+{
+	t_rinoosocket *client;
+
+	sched = rinoo_sched();
+	if (sched == NULL) {
+		return -1;
+	}
+	client = rinoo_tcp(sched, http_client);
+	if (client == NULL) {
+		rinoo_sched_destroy(sched);
+		return -1;
+	}
+	if (rinoo_socket_schedule(client, 0) != 0) {
+		rinoo_sched_destroy(sched);
+		return -1;
+	}
+	rinoo_sched_loop(sched);
+	rinoo_sched_destroy(sched);
+	return 0;
+}
+</tt>
