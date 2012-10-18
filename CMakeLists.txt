@@ -7,9 +7,6 @@ set_version(2 0 0)
 ## Dependencies ##
 check_dependency_func(epoll_create)
 check_dependency_func(epoll_ctl)
-check_dependency_func(makecontext)
-check_dependency_func(getcontext)
-check_dependency_func(swapcontext)
 
 check_dependency_sym(res_init "resolv.h")
 ## !Dependencies ##
