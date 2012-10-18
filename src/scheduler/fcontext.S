@@ -1,7 +1,28 @@
-.globl rinoo_context_get
-	.type rinoo_context_get, @function
+/*
+ * Copyright (c) 2012 Reginald Lips
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions: The above copyright notice and this
+ * permission notice shall be included in all copies or substantial
+ * portions of the Software.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
-rinoo_context_get:
+.globl fcontext_get
+	.type fcontext_get, @function
+
+fcontext_get:
 	movq	%r8, 0x8(%rdi)
 	movq	%r9, 0x10(%rdi)
 	movq	%r12, 0x28(%rdi)
@@ -16,15 +37,15 @@ rinoo_context_get:
 	movq	%rcx, 0x70(%rdi)
 	movq	(%rsp), %rcx
 	movq	%rcx, 0x80(%rdi)
-	leaq	8(%rsp), %rcx
+	leaq	0x8(%rsp), %rcx
 	movq	%rcx, 0x78(%rdi)
 	xorl	%eax, %eax
 	ret
 
-.globl rinoo_context_set
-	.type rinoo_context_set, @function
+.globl fcontext_set
+	.type fcontext_set, @function
 
-rinoo_context_set:
+fcontext_set:
 	movq	0x28(%rdi), %r12
 	movq	0x30(%rdi), %r13
 	movq	0x38(%rdi), %r14
@@ -36,31 +57,31 @@ rinoo_context_set:
 	pushq	%rcx
 	movq	0x8(%rdi), %r8
 	movq	0x10(%rdi), %r9
-	movq	0x48(%rdi), %rdi
 	movq	0x50(%rdi), %rsi
 	movq	0x68(%rdi), %rdx
 	movq	0x70(%rdi), %rcx
+	movq	0x48(%rdi), %rdi
 	xorl    %eax, %eax
 	ret
 
-.globl rinoo_context_jump
-	.type rinoo_context_jump, @function
+.globl fcontext_jump
+	.type fcontext_jump, @function
 
-rinoo_context_jump:
+fcontext_jump:
 	movq	%rbx, %rsp
 	popq	%rdi
 	testq	%rdi, %rdi
 	je	2f
-	call	rinoo_context_set@PLT
+	call	fcontext_set@PLT
 
 2:	movq    %rax,%rdi
 	call    exit@PLT
 	hlt
 
-.globl rinoo_context_swap
-	.type rinoo_context_swap, @function
+.globl fcontext_swap
+	.type fcontext_swap, @function
 
-rinoo_context_swap:
+fcontext_swap:
 	movq	%r8, 0x8(%rdi)
 	movq	%r9, 0x10(%rdi)
 	movq	%r12, 0x28(%rdi)
@@ -89,19 +110,19 @@ rinoo_context_swap:
 	movq	0x8(%rsi), %r8
 	movq	0x10(%rsi), %r9
 	movq	0x48(%rsi), %rdi
-	movq	0x50(%rsi), %rsi
 	movq	0x68(%rsi), %rdx
 	movq	0x70(%rsi), %rcx
+	movq	0x50(%rsi), %rsi
 	xorl	%eax, %eax
 	ret
 
-.globl rinoo_context
-	.type rinoo_context, @function
+.globl fcontext
+	.type fcontext, @function
 
-rinoo_context:
+fcontext:
 	movq	0x88(%rdi), %rax
 	addq	0x90(%rdi), %rax
-	movq	rinoo_context_jump@GOTPCREL(%rip), %r8
+	movq	fcontext_jump@GOTPCREL(%rip), %r8
 	subq	$0x8, %rax
 	andq	$-0x10, %rax
 	movq	%r8, -0x8(%rax)

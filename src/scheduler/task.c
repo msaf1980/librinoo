@@ -82,9 +82,6 @@ u32 rinoo_task_driver_run(t_rinoosched *sched)
 
 /**
  * Internal routine called for each context.
- * When calling makecontext, parameters passed must be integers.
- * This function transforms its two parameters into a t_rinootask pointer
- * and calls the task function.
  *
  * @param p1 First part of t_rinootask pointer
  * @param p2 Second part of t_rinootask pointer
@@ -117,7 +114,7 @@ int rinoo_task(t_rinoosched *sched,
 	XASSERT(sched != NULL, -1);
 	XASSERT(function != NULL, -1);
 
-	if (rinoo_context_get(&task->context) != 0) {
+	if (fcontext_get(&task->context) != 0) {
 		return -1;
 	}
 	task->sched = sched;
@@ -134,7 +131,7 @@ int rinoo_task(t_rinoosched *sched,
 
 /**
  * Run or resume a task.
- * This function switches to the task stack by calling swapcontext(3).
+ * This function switches to the task stack by calling fcontext_swap.
  *
  * @param task Pointer to the task to run or resume
  *
@@ -150,7 +147,7 @@ int rinoo_task_run(t_rinootask *task)
 
 	if (task->context.link == NULL) {
 		task->context.link = &(task->sched->driver.current->context);
-		rinoo_context(&task->context, rinoo_task_process, task);
+		fcontext(&task->context, rinoo_task_process, task);
 	}
 	driver = &task->sched->driver;
 	old = driver->current;
@@ -161,7 +158,7 @@ int rinoo_task_run(t_rinootask *task)
 	int valgrind_stackid = VALGRIND_STACK_REGISTER(task->stack, task->stack + sizeof(task->stack));
 #endif /* !RINOO_DEBUG */
 
-	ret = rinoo_context_swap(&old->context, &task->context);
+	ret = fcontext_swap(&old->context, &task->context);
 
 #ifdef RINOO_DEBUG
 	VALGRIND_STACK_DEREGISTER(valgrind_stackid);
@@ -191,8 +188,7 @@ int rinoo_task_release(t_rinoosched *sched)
 	XASSERT(sched != NULL, -1);
 
 	errno = 0;
-	if (rinoo_context_swap(&sched->driver.current->context,
-			       &sched->driver.main.context) != 0) {
+	if (fcontext_swap(&sched->driver.current->context, &sched->driver.main.context) != 0) {
 		return -1;
 	}
 	return errno;

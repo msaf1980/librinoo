@@ -5,14 +5,33 @@
  *
  * @brief  Header file for fast context.
  *
- *
  */
 
-#ifndef		RINOO_SCHEDULER_FCONTEXT_H_
-# define	RINOO_SCHEDULER_FCONTEXT_H_
+/*
+ * Copyright (c) 2012 Reginald Lips
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions: The above copyright notice and this
+ * permission notice shall be included in all copies or substantial
+ * portions of the Software.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+ * LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+ * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
-enum
-{
+#ifndef		FCONTEXT_H_
+# define	FCONTEXT_H_
+
+enum {
 	FREG_R8 = 0,
 	FREG_R9,
 	FREG_R10,
@@ -32,23 +51,21 @@ enum
 	NB_FREG
 };
 
-typedef struct s_fstack
-{
+typedef struct s_fstack {
 	void *sp;
 	size_t size;
 } t_fstack;
 
-typedef struct s_fcontext
-{
+typedef struct s_fcontext {
 	struct s_fcontext *link;
 	long int reg[NB_FREG];
 	t_fstack stack;
 } t_fcontext;
 
-void rinoo_context(t_fcontext *ctx, void (*func)(void *ptr), void *arg);
-void rinoo_context_jump(void);
-int rinoo_context_get(t_fcontext *ctx);
-int rinoo_context_set(t_fcontext *ctx);
-int rinoo_context_swap(t_fcontext *octx, t_fcontext *nctx);
+void fcontext(t_fcontext *ctx, void (*func)(void *ptr), void *arg);
+void fcontext_jump(void);
+int fcontext_get(t_fcontext *ctx);
+int fcontext_set(t_fcontext *ctx);
+int fcontext_swap(t_fcontext *octx, t_fcontext *nctx);
 
-#endif		/* !RINOO_SCHEDULER_FCONTEXT_H_ */
+#endif		/* !FCONTEXT_H_ */
