@@ -18,28 +18,29 @@
  */
 int main()
 {
-	t_buffer *buf;
+	t_buffer *buffer;
 
-	buf = buffer_create(10);
-	XTEST(buf != NULL);
-	XTEST(buf->buf != NULL);
-	XTEST(buf->len == 0);
-	XTEST(buf->size == 10);
-	XTEST(buffer_extend(buf, 0) == 0);
-	XTEST(buf != NULL);
-	XTEST(buf->buf != NULL);
-	XTEST(buf->len == 0);
-	XTEST(buf->size == 10);
-	XTEST(buffer_extend(buf, 42) == 0);
-	XTEST(buf != NULL);
-	XTEST(buf->buf != NULL);
-	XTEST(buf->len == 0);
-	XTEST(buf->size == RINOO_BUFFER_INCREMENT * 2);
-	XTEST(buffer_extend(buf, RINOO_BUFFER_INCREMENT * 2 + 42) == 0);
-	XTEST(buf != NULL);
-	XTEST(buf->buf != NULL);
-	XTEST(buf->len == 0);
-	XTEST(buf->size == (RINOO_BUFFER_INCREMENT * 2 + 42) * 2);
-	buffer_destroy(buf);
+	buffer = buffer_create(NULL);
+	XTEST(buffer != NULL);
+	XTEST(buffer->ptr != NULL);
+	XTEST(buffer->size == 0);
+	XTEST(buffer->msize == RINOO_BUFFER_HELPER_INISIZE);
+	XTEST(buffer->class != NULL);
+	XTEST(buffer_extend(buffer, 0) == 0);
+	XTEST(buffer != NULL);
+	XTEST(buffer->ptr != NULL);
+	XTEST(buffer->size == 0);
+	XTEST(buffer->msize == RINOO_BUFFER_HELPER_INISIZE);
+	XTEST(buffer_extend(buffer, RINOO_BUFFER_HELPER_INISIZE + 42) == 0);
+	XTEST(buffer != NULL);
+	XTEST(buffer->ptr != NULL);
+	XTEST(buffer->size == 0);
+	XTEST(buffer->msize == buffer->class->growthsize(buffer, RINOO_BUFFER_HELPER_INISIZE + 42));
+	XTEST(buffer_extend(buffer, RINOO_BUFFER_HELPER_INISIZE * 2 + 42) == 0);
+	XTEST(buffer != NULL);
+	XTEST(buffer->ptr != NULL);
+	XTEST(buffer->size == 0);
+	XTEST(buffer->msize == buffer->class->growthsize(buffer, RINOO_BUFFER_HELPER_INISIZE * 2 + 42));
+	buffer_destroy(buffer);
 	XPASS();
 }

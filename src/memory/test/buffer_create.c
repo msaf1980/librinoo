@@ -18,13 +18,14 @@
  */
 int main()
 {
-	t_buffer *buf;
+	t_buffer *buffer;
 
-	buf = buffer_create(10);
-	XTEST(buf != NULL);
-	XTEST(buf->buf != NULL);
-	XTEST(buf->len == 0);
-	XTEST(buf->size == 10);
-	buffer_destroy(buf);
+	buffer = buffer_create(NULL);
+	XTEST(buffer != NULL);
+	XTEST(buffer->ptr != NULL);
+	XTEST(buffer->size == 0);
+	XTEST(buffer->msize == RINOO_BUFFER_HELPER_INISIZE);
+	XTEST(buffer->class != NULL);
+	buffer_destroy(buffer);
 	XPASS();
 }

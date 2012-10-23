@@ -478,9 +478,9 @@ ssize_t rinoo_socket_readb(t_rinoosocket *socket, t_buffer *buffer)
 		return -1;
 	}
 	res = read(socket->fd,
-		   buffer_ptr(buffer) + buffer_len(buffer),
-		   buffer_size(buffer) - buffer_len(buffer));
-	buffer_setlen(buffer, buffer_len(buffer) + res);
+		   buffer_ptr(buffer) + buffer_size(buffer),
+		   buffer_msize(buffer) - buffer_size(buffer));
+	buffer_setsize(buffer, buffer_size(buffer) + res);
 	return res;
 }
 
@@ -500,12 +500,12 @@ ssize_t rinoo_socket_writeb(t_rinoosocket *socket, t_buffer *buffer)
 	ssize_t res;
 
 	total = 0;
-	len = buffer_len(buffer);
+	len = buffer_size(buffer);
 	while (len > 0) {
 		if (rinoo_socket_waitout(socket) != 0) {
 			return -1;
 		}
-		res = write(socket->fd, buffer_ptr(buffer) + buffer_len(buffer) - len, len);
+		res = write(socket->fd, buffer_ptr(buffer) + buffer_size(buffer) - len, len);
 		if (res < 0) {
 			return -1;
 		}

@@ -14,11 +14,11 @@ int rinoohttp_init(t_rinoosocket *socket, t_rinoohttp *http)
 {
 	memset(http, 0, sizeof(*http));
 	http->socket = socket;
-	http->request.buffer = buffer_create(1024);
+	http->request.buffer = buffer_create(NULL);
 	if (http->request.buffer == NULL) {
 		return -1;
 	}
-	http->response.buffer = buffer_create(1024);
+	http->response.buffer = buffer_create(NULL);
 	if (http->response.buffer == NULL) {
 		buffer_destroy(http->request.buffer);
 		return -1;
@@ -52,8 +52,8 @@ void rinoohttp_destroy(t_rinoohttp *http)
 
 void rinoohttp_reset(t_rinoohttp *http)
 {
-	buffer_erase(http->request.buffer, buffer_len(http->request.buffer));
-	buffer_erase(http->response.buffer, buffer_len(http->response.buffer));
+	buffer_erase(http->request.buffer, buffer_size(http->request.buffer));
+	buffer_erase(http->response.buffer, buffer_size(http->response.buffer));
 	rinoohttp_headers_flush(&http->request.headers);
 	rinoohttp_headers_flush(&http->response.headers);
 }
@@ -65,7 +65,7 @@ void rinoohttp_process_client(t_rinoosocket *s)
 
 	rinoohttp_init(s, &http);
 	while (rinoohttp_request_get(&http) != 0) {
-		snprintf(path, 512, "%.*s", (int) buffer_len(&http.request.uri), buffer_ptr(&http.request.uri));
+		snprintf(path, 512, "%.*s", (int) buffer_size(&http.request.uri), (char *) buffer_ptr(&http.request.uri));
 		rinoohttp_header_set(&http.response.headers, "Connection", "Keep-alive");
 		if (rinoohttp_send_file(&http, path) != 0) {
 			switch (errno) {

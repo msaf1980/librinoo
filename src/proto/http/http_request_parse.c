@@ -1,5 +1,5 @@
 
-#line 1 "http_request_parse.rl"
+#line 1 "./http_request_parse.rl"
 /**
  * @file   http_request_parse.rl
  * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2012
@@ -13,7 +13,7 @@
 #include "rinoo/rinoo.h"
 
 
-#line 17 "http_request_parse.c"
+#line 17 "./http_request_parse.c"
 static const char _httpreq_reader_actions[] = {
 	0, 1, 0, 1, 1, 1, 4, 1, 
 	5, 1, 6, 1, 7, 1, 8, 1, 
@@ -150,7 +150,7 @@ static const int httpreq_reader_error = 0;
 static const int httpreq_reader_en_main = 1;
 
 
-#line 61 "http_request_parse.rl"
+#line 61 "./http_request_parse.rl"
 
 
 
@@ -158,7 +158,7 @@ int rinoohttp_request_parse(t_rinoohttp *http)
 {
 	int cs = 0;
 	char *p = buffer_ptr(http->request.buffer);
-	char *pe = buffer_ptr(http->request.buffer) + buffer_len(http->request.buffer);
+	char *pe = (char *) buffer_ptr(http->request.buffer) + buffer_size(http->request.buffer);
 	char *eof = NULL;
 	char *uri_start = NULL;
 	char *uri_end = NULL;
@@ -171,14 +171,14 @@ int rinoohttp_request_parse(t_rinoohttp *http)
 	char tmp;
 
 	
-#line 175 "http_request_parse.c"
+#line 175 "./http_request_parse.c"
 	{
 	cs = httpreq_reader_start;
 	}
 
-#line 81 "http_request_parse.rl"
+#line 81 "./http_request_parse.rl"
 	
-#line 182 "http_request_parse.c"
+#line 182 "./http_request_parse.c"
 	{
 	int _klen;
 	unsigned int _trans;
@@ -209,7 +209,7 @@ _resume:
 			else if ( (*p) > *_mid )
 				_lower = _mid + 1;
 			else {
-				_trans += (_mid - _keys);
+				_trans += (unsigned int)(_mid - _keys);
 				goto _match;
 			}
 		}
@@ -232,7 +232,7 @@ _resume:
 			else if ( (*p) > _mid[1] )
 				_lower = _mid + 2;
 			else {
-				_trans += ((_mid - _keys)>>1);
+				_trans += (unsigned int)((_mid - _keys)>>1);
 				goto _match;
 			}
 		}
@@ -253,35 +253,35 @@ _match:
 		switch ( *_acts++ )
 		{
 	case 0:
-#line 17 "http_request_parse.rl"
+#line 17 "./http_request_parse.rl"
 	{ uri_start = p; }
 	break;
 	case 1:
-#line 18 "http_request_parse.rl"
+#line 18 "./http_request_parse.rl"
 	{ uri_end = p; }
 	break;
 	case 2:
-#line 19 "http_request_parse.rl"
+#line 19 "./http_request_parse.rl"
 	{ cl_start = p; }
 	break;
 	case 3:
-#line 20 "http_request_parse.rl"
+#line 20 "./http_request_parse.rl"
 	{ cl_end = p; }
 	break;
 	case 4:
-#line 21 "http_request_parse.rl"
+#line 21 "./http_request_parse.rl"
 	{ hd_start = p; }
 	break;
 	case 5:
-#line 22 "http_request_parse.rl"
+#line 22 "./http_request_parse.rl"
 	{ hd_end = p; }
 	break;
 	case 6:
-#line 23 "http_request_parse.rl"
+#line 23 "./http_request_parse.rl"
 	{ hdv_start = p; }
 	break;
 	case 7:
-#line 24 "http_request_parse.rl"
+#line 24 "./http_request_parse.rl"
 	{
 	  hdv_end = p;
 	  if (hd_start != NULL && hd_end != NULL && hdv_start != NULL) {
@@ -293,9 +293,9 @@ _match:
   }
 	break;
 	case 8:
-#line 33 "http_request_parse.rl"
+#line 33 "./http_request_parse.rl"
 	{
-    buffer_static(http->request.uri, uri_start, uri_end - uri_start);
+    buffer_static(&http->request.uri, uri_start, uri_end - uri_start);
     if (cl_start != NULL && cl_end != NULL)
       {
 	tmp = *cl_end;
@@ -303,31 +303,31 @@ _match:
 	http->request.content_length = atoi(cl_start);
 	*cl_end = tmp;
       }
-    http->request.length = p - buffer_ptr(http->request.buffer) + 1;
+    http->request.length = p - ((char *) buffer_ptr(http->request.buffer)) + 1;
     return 1;
   }
 	break;
 	case 9:
-#line 45 "http_request_parse.rl"
+#line 45 "./http_request_parse.rl"
 	{ return -1; }
 	break;
 	case 10:
-#line 48 "http_request_parse.rl"
+#line 48 "./http_request_parse.rl"
 	{ http->request.method = RINOO_HTTP_METHOD_GET; }
 	break;
 	case 11:
-#line 49 "http_request_parse.rl"
+#line 49 "./http_request_parse.rl"
 	{ http->request.method = RINOO_HTTP_METHOD_POST; }
 	break;
 	case 12:
-#line 51 "http_request_parse.rl"
+#line 51 "./http_request_parse.rl"
 	{ http->version = RINOO_HTTP_VERSION_10; }
 	break;
 	case 13:
-#line 52 "http_request_parse.rl"
+#line 52 "./http_request_parse.rl"
 	{ http->version = RINOO_HTTP_VERSION_11; }
 	break;
-#line 331 "http_request_parse.c"
+#line 331 "./http_request_parse.c"
 		}
 	}
 
@@ -344,10 +344,10 @@ _again:
 	while ( __nacts-- > 0 ) {
 		switch ( *__acts++ ) {
 	case 9:
-#line 45 "http_request_parse.rl"
+#line 45 "./http_request_parse.rl"
 	{ return -1; }
 	break;
-#line 351 "http_request_parse.c"
+#line 351 "./http_request_parse.c"
 		}
 	}
 	}
@@ -355,7 +355,7 @@ _again:
 	_out: {}
 	}
 
-#line 82 "http_request_parse.rl"
+#line 82 "./http_request_parse.rl"
 
 	(void) httpreq_reader_en_main;
 	(void) httpreq_reader_error;

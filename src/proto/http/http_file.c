@@ -34,7 +34,7 @@ int rinoohttp_send_dir(t_rinoohttp *http, const char *path)
 	if (dir == NULL) {
 		return -1;
 	}
-	result = buffer_create(1024);
+	result = buffer_create(NULL);
 	if (result == NULL) {
 		closedir(dir);
 		errno = ENOMEM;
@@ -131,7 +131,7 @@ int rinoohttp_send_file(t_rinoohttp *http, const char *path)
 		return -1;
 	}
 	http->response.code = 200;
-	buffer_static(dummy, ptr, stats.st_size);
+	buffer_static(&dummy, ptr, stats.st_size);
 	ret = rinoohttp_response_send(http, &dummy);
 	munmap(ptr, stats.st_size);
 	close(fd);

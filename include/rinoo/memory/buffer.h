@@ -13,39 +13,38 @@
 
 # define	RINOO_BUFFER_INCREMENT	2048
 
-typedef struct s_buffer
-{
-	char	*buf;		/**< Pointer to the data */
-	size_t	len;		/**< Data length */
-	size_t	size;		/**< Buffer size */
-	char	alloc;
+typedef struct s_buffer {
+	void *ptr;
+	size_t size;
+	size_t msize;
+	t_buffer_class *class;
 } t_buffer;
 
-# define	buffer_ptr(ptr)				(ptr)->buf
-# define	buffer_len(ptr)				(ptr)->len
-# define	buffer_size(ptr)			(ptr)->size
-# define	buffer_isfull(ptr)			((ptr)->len == (ptr)->size)
-# define	buffer_setlen(ptr, length)		(ptr)->len = length
-# define	buffer_static(buffer, ptr, length)	do { buffer.buf = (char *) (ptr); buffer.len = (length); buffer.size = buffer.len; buffer.alloc = 0; } while (0)
-# define	strtobuffer(buffer, str)		do { buffer.buf = (char *) (str); buffer.len = strlen((str)); buffer.size = buffer.len; buffer.alloc = 0; } while (0)
+# define	buffer_ptr(buffer)			((buffer)->ptr)
+# define	buffer_size(buffer)			((buffer)->size)
+# define	buffer_msize(buffer)			((buffer)->msize)
+# define	buffer_isfull(buffer)			((buffer)->size == (buffer)->msize || (buffer)->msize == 0)
+# define	buffer_setsize(buffer, newsize)		do { (buffer)->size = newsize; } while (0)
+# define	strtobuffer(buffer, str)		do { buffer_static(buffer, (void *)(str), strlen(str)); } while (0)
 
-t_buffer *buffer_create(u32 init_size);
-void buffer_destroy(t_buffer *ptr);
-int buffer_extend(t_buffer *buf, size_t size);
-int buffer_vprint(t_buffer *buf, const char *format, va_list ap);
-int buffer_print(t_buffer *buf, const char *format, ...);
-int buffer_add(t_buffer *buf, const char *data, size_t size);
-int buffer_addstr(t_buffer *buf, const char *str);
+t_buffer *buffer_create(t_buffer_class *class);
+void buffer_static(t_buffer *buffer, void *ptr, size_t size);
+int buffer_destroy(t_buffer *buffer);
+int buffer_extend(t_buffer *buffer, size_t size);
+int buffer_vprint(t_buffer *buffer, const char *format, va_list ap);
+int buffer_print(t_buffer *buffer, const char *format, ...);
+int buffer_add(t_buffer *buffer, const char *data, size_t size);
+int buffer_addstr(t_buffer *buffer, const char *str);
 int buffer_addnull(t_buffer *buf);
-int buffer_erase(t_buffer *buf, u32 len);
-t_buffer *buffer_dup(t_buffer *buf);
-int buffer_cmp(t_buffer *buf1, t_buffer *buf2);
-int buffer_strcmp(t_buffer *buf, const char *str);
-int buffer_strncmp(t_buffer *buf, const char *str, size_t len);
-long int buffer_tolong(t_buffer *buf, size_t *len, int base);
-unsigned long int buffer_toulong(t_buffer *buf, size_t *len, int base);
-float buffer_tofloat(t_buffer *buf, size_t *len);
-double buffer_todouble(t_buffer *buf, size_t *len);
-char *buffer_tostr(t_buffer *buf);
+int buffer_erase(t_buffer *buffer, size_t size);
+t_buffer *buffer_dup(t_buffer *buffer);
+int buffer_cmp(t_buffer *buffer1, t_buffer *buffer2);
+int buffer_strcmp(t_buffer *buffer, const char *str);
+int buffer_strncmp(t_buffer *buffer, const char *str, size_t len);
+long int buffer_tolong(t_buffer *buffer, size_t *len, int base);
+unsigned long int buffer_toulong(t_buffer *buffer, size_t *len, int base);
+float buffer_tofloat(t_buffer *buffer, size_t *len);
+double buffer_todouble(t_buffer *buffer, size_t *len);
+char *buffer_tostr(t_buffer *buffer);
 
 #endif /* !RINOO_MEMORY_BUFFER_H_ */

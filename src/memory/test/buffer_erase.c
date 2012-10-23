@@ -18,32 +18,42 @@
  */
 int main()
 {
-	t_buffer *buf;
+	t_buffer *buffer;
 
-	buf = buffer_create(10);
-	XTEST(buf != NULL);
-	XTEST(buf->buf != NULL);
-	XTEST(buf->len == 0);
-	XTEST(buf->size == 10);
-	XTEST(buffer_add(buf, "bl1bl1bl1", 9) == 9);
-	XTEST(buf->buf != NULL);
-	XTEST(memcmp(buf->buf, "bl1bl1bl1", 9) == 0);
-	XTEST(buf->len == 9);
-	XTEST(buf->size == 10);
-	XTEST(buffer_add(buf, "bl2bl2bl2", 9) == 9);
-	XTEST(buf->buf != NULL);
-	XTEST(memcmp(buf->buf, "bl1bl1bl1bl2bl2bl2", 18) == 0);
-	XTEST(buf->len == 18);
-	XTEST(buf->size == RINOO_BUFFER_INCREMENT * 2);
-	XTEST(buffer_erase(buf, 9) == 0);
-	XTEST(buf->buf != NULL);
-	XTEST(memcmp(buf->buf, "bl2bl2bl2", 9) == 0);
-	XTEST(buf->len == 9);
-	XTEST(buf->size == RINOO_BUFFER_INCREMENT * 2);
-	XTEST(buffer_erase(buf, 9) == 0);
-	XTEST(buf->buf != NULL);
-	XTEST(buf->len == 0);
-	XTEST(buf->size == RINOO_BUFFER_INCREMENT * 2);
-	buffer_destroy(buf);
+	buffer = buffer_create(NULL);
+	XTEST(buffer != NULL);
+	XTEST(buffer->ptr != NULL);
+	XTEST(buffer->size == 0);
+	XTEST(buffer->msize == RINOO_BUFFER_HELPER_INISIZE);
+	XTEST(buffer->class != NULL);
+	XTEST(buffer_add(buffer, "bl1bl1bl1", 9) == 9);
+	XTEST(buffer->ptr != NULL);
+	XTEST(memcmp(buffer->ptr, "bl1bl1bl1", 9) == 0);
+	XTEST(buffer->size == 9);
+	XTEST(buffer->msize == RINOO_BUFFER_HELPER_INISIZE);
+	XTEST(buffer_add(buffer, "bl2bl2bl2", 9) == 9);
+	XTEST(buffer->ptr != NULL);
+	XTEST(memcmp(buffer->ptr, "bl1bl1bl1bl2bl2bl2", 18) == 0);
+	XTEST(buffer->size == 18);
+	XTEST(buffer->msize == buffer->class->growthsize(buffer, 18));
+	XTEST(buffer_erase(buffer, 9) == 0);
+	XTEST(buffer->ptr != NULL);
+	XTEST(memcmp(buffer->ptr, "bl2bl2bl2", 9) == 0);
+	XTEST(buffer->size == 9);
+	XTEST(buffer->msize == buffer->class->growthsize(buffer, 18));
+	XTEST(buffer_erase(buffer, 9) == 0);
+	XTEST(buffer->ptr != NULL);
+	XTEST(buffer->size == 0);
+	XTEST(buffer->msize == buffer->class->growthsize(buffer, 18));
+	XTEST(buffer_add(buffer, "bl2bl2bl2", 9) == 9);
+	XTEST(buffer->ptr != NULL);
+	XTEST(memcmp(buffer->ptr, "bl2bl2bl2", 9) == 0);
+	XTEST(buffer->size == 9);
+	XTEST(buffer->msize == buffer->class->growthsize(buffer, 18));
+	XTEST(buffer_erase(buffer, 0) == 0);
+	XTEST(buffer->ptr != NULL);
+	XTEST(buffer->size == 0);
+	XTEST(buffer->msize == buffer->class->growthsize(buffer, 18));
+	buffer_destroy(buffer);
 	XPASS();
 }

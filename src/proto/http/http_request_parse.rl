@@ -31,7 +31,7 @@
 	  }
   }
   action okac		{
-    buffer_static(http->request.uri, uri_start, uri_end - uri_start);
+    buffer_static(&http->request.uri, uri_start, uri_end - uri_start);
     if (cl_start != NULL && cl_end != NULL)
       {
 	tmp = *cl_end;
@@ -39,7 +39,7 @@
 	http->request.content_length = atoi(cl_start);
 	*cl_end = tmp;
       }
-    http->request.length = fpc - buffer_ptr(http->request.buffer) + 1;
+    http->request.length = fpc - ((char *) buffer_ptr(http->request.buffer)) + 1;
     return 1;
   }
   action parseerror	{ return -1; }
@@ -65,7 +65,7 @@ int rinoohttp_request_parse(t_rinoohttp *http)
 {
 	int cs = 0;
 	char *p = buffer_ptr(http->request.buffer);
-	char *pe = buffer_ptr(http->request.buffer) + buffer_len(http->request.buffer);
+	char *pe = (char *) buffer_ptr(http->request.buffer) + buffer_size(http->request.buffer);
 	char *eof = NULL;
 	char *uri_start = NULL;
 	char *uri_end = NULL;

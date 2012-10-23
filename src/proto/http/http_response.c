@@ -18,7 +18,7 @@
  */
 void rinoohttp_response_setmsg(t_rinoohttp *http, const char *msg)
 {
-	strtobuffer(http->response.msg, msg);
+	strtobuffer(&http->response.msg, msg);
 }
 
 /**
@@ -181,10 +181,10 @@ int rinoohttp_response_send(t_rinoohttp *http, t_buffer *body)
 	t_rinoohttp_header *cur_header;
 
 	XASSERT(http != NULL, -1);
-	XASSERT(buffer_len(http->response.buffer) == 0, -1);
+	XASSERT(buffer_size(http->response.buffer) == 0, -1);
 
 	if (body != NULL) {
-		http->response.content_length = buffer_len(body);
+		http->response.content_length = buffer_size(body);
 	}
 	rinoohttp_response_setdefaultheaders(http);
 	rinoohttp_response_setdefaultmsg(http);
@@ -196,24 +196,24 @@ int rinoohttp_response_send(t_rinoohttp *http, t_buffer *body)
 		buffer_print(http->response.buffer, "HTTP/1.1");
 		break;
 	}
-	buffer_print(http->response.buffer, " %d %.*s\r\n", http->response.code, buffer_len(&http->response.msg), buffer_ptr(&http->response.msg));
+	buffer_print(http->response.buffer, " %d %.*s\r\n", http->response.code, buffer_size(&http->response.msg), buffer_ptr(&http->response.msg));
 	for (cur_node = rinoorbtree_head(&http->response.headers);
 	     cur_node != NULL;
 	     cur_node = rinoorbtree_next(cur_node)) {
 		cur_header = container_of(cur_node, t_rinoohttp_header, node);
 		buffer_print(http->response.buffer,
 			     "%.*s: %.*s\r\n",
-			     buffer_len(&cur_header->key),
+			     buffer_size(&cur_header->key),
 			     buffer_ptr(&cur_header->key),
-			     buffer_len(&cur_header->value),
+			     buffer_size(&cur_header->value),
 			     buffer_ptr(&cur_header->value));
 	}
 	buffer_print(http->response.buffer, "\r\n");
 	ret = rinoo_socket_writeb(http->socket, http->response.buffer);
-	if (ret != (ssize_t) buffer_len(http->response.buffer)) {
+	if (ret != (ssize_t) buffer_size(http->response.buffer)) {
 		return -1;
 	}
-	if (body != NULL && rinoo_socket_writeb(http->socket, body) != (ssize_t) buffer_len(body)) {
+	if (body != NULL && rinoo_socket_writeb(http->socket, body) != (ssize_t) buffer_size(body)) {
 		return -1;
 	}
 	return 0;

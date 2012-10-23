@@ -10,77 +10,121 @@
 
 #include "rinoo/rinoo.h"
 
+static t_buffer_class default_class = {
+	.inisize = RINOO_BUFFER_HELPER_INISIZE,
+	.maxsize = RINOO_BUFFER_HELPER_MAXSIZE,
+	.init = NULL,
+	.growthsize = buffer_helper_growthsize,
+	.malloc = buffer_helper_malloc,
+	.realloc = buffer_helper_realloc,
+	.free = buffer_helper_free,
+};
+
+static t_buffer_class static_class = {
+	.inisize = 0,
+	.maxsize = 0,
+	.init = NULL,
+	.growthsize = NULL,
+	.malloc = NULL,
+	.realloc = NULL,
+	.free = NULL,
+};
+
 /**
- * Creates a new buffer. It allocates the needed memory.
+ * Creates a new buffer. It uses the buffer class for memory allocation.
+ * If class is NULL, then default buffer class is used.
  *
- * @param init_size Initial size of the buffer.
+ * @param class Buffer class to be used.
  *
  * @return Pointer to the created buffer.
  */
-t_buffer *buffer_create(u32 init_size)
+t_buffer *buffer_create(t_buffer_class *class)
 {
-	t_buffer *buf;
+	t_buffer *buffer;
 
-	XASSERT(init_size > 0, NULL);
-
-	buf = calloc(1, sizeof(*buf));
-	XASSERT(buf != NULL, NULL);
-	buf->buf = calloc(1, init_size);
-	if (buf->buf == NULL) {
-		free(buf);
-		XASSERT(0, NULL);
+	buffer = calloc(1, sizeof(*buffer));
+	if (buffer == NULL) {
+		return NULL;
 	}
-	buf->len = 0;
-	buf->size = init_size;
-	buf->alloc = 1;
-	return buf;
+	if (class == NULL) {
+		class = &default_class;
+	}
+	buffer->class = class;
+	buffer->msize = class->inisize;
+	if (class->init != NULL && class->init(buffer) != 0) {
+		free(buffer);
+		return NULL;
+	}
+	if (class->malloc != NULL) {
+		buffer->ptr = class->malloc(buffer, class->inisize);
+		if (buffer->ptr == NULL) {
+			free(buffer);
+			return NULL;
+		}
+	}
+	return buffer;
+}
+
+/**
+ * Initializes a static buffer.
+ *
+ * @param buffer Pointer to the buffer to init.
+ * @param ptr Pointer to the static memory.
+ * @param size Size of the static memory.
+ */
+void buffer_static(t_buffer *buffer, void *ptr, size_t size)
+{
+	buffer->ptr = ptr;
+	buffer->size = size;
+	buffer->msize = 0;
+	buffer->class = &static_class;
 }
 
 /**
  * Destroys a buffer.
  *
  * @param buffer Pointer to the buffer to destroy.
+ *
+ * @return 0 on success, or -1 if an error occurs.
  */
-void buffer_destroy(t_buffer *buf)
+int buffer_destroy(t_buffer *buffer)
 {
-	XASSERTN(buf != NULL);
-	XASSERTN(buf->buf != NULL);
-
-	if (buf->alloc != 0) {
-		buf->alloc = 0;
-		free(buf->buf);
+	if (buffer->ptr != NULL && buffer->class->free != NULL) {
+		if (buffer->class->free(buffer) != 0) {
+			return -1;
+		}
+		buffer->ptr = NULL;
 	}
-	buf->buf = NULL;
-	free(buf);
+	free(buffer);
+	return 0;
 }
 
 /**
  * Extends a buffer. It tries to set new size to (size * 2).
  *
- * @param buf Pointer to the buffer to extend.
+ * @param buffer Pointer to the buffer to extend.
  * @param size New desired size.
  *
  * @return 0 if succeeds, -1 if an error occurs.
  */
-int buffer_extend(t_buffer *buf, size_t size)
+int buffer_extend(t_buffer *buffer, size_t size)
 {
-	void *newbuf;
+	void *ptr;
+	size_t msize;
 
-	XASSERT(buf != NULL, -1);
-	XASSERT(buf->buf != NULL, -1);
-	XASSERT(buf->alloc == 1, -1);
-
-	if (buf->size >= size) {
-		return 0;
-	}
-	size = 2 * (size > RINOO_BUFFER_INCREMENT ? size : RINOO_BUFFER_INCREMENT);
-	newbuf = realloc(buf->buf, size);
-	/* if realloc fails, buf->buf is untouched, we'll keep it */
-	if (unlikely(newbuf == NULL)) {
+	if (buffer->class->growthsize == NULL || buffer->class->realloc == NULL) {
 		return -1;
 	}
-	buf->buf = newbuf;
-	buf->size = size;
+	msize = buffer->class->growthsize(buffer, size);
+	if (msize < size) {
+		return -1;
+	}
+	ptr = buffer->class->realloc(buffer, msize);
+	if (ptr == NULL) {
+		return -1;
+	}
+	buffer->ptr = ptr;
+	buffer->msize = msize;
 	return 0;
 }
 
@@ -90,31 +134,27 @@ int buffer_extend(t_buffer *buf, size_t size)
  * This function uses vsnprintf, you can find how to use the format
  * string with man vsnprintf.
  *
- * @param buf Pointer to the buffer to add data to.
+ * @param buffer Pointer to the buffer to add data to.
  * @param format Format string which defines subsequent arguments.
  * @param ap Vararg list.
  *
  * @return Number of bytes printed if succeeds, else -1.
  */
-int buffer_vprint(t_buffer *buf, const char *format, va_list ap)
+int buffer_vprint(t_buffer *buffer, const char *format, va_list ap)
 {
 	int res;
 	va_list ap2;
 
-	XASSERT(buf != NULL, -1);
-	XASSERT(buf->buf != NULL, -1);
-	XASSERT(buf->alloc == 1, -1);
-
 	va_copy(ap2, ap);
-	while (((u32) (res = vsnprintf(buf->buf + buf->len,
-				       buf->size - buf->len,
-				       format, ap2)) >= buf->size - buf->len) &&
-	       buffer_extend(buf, buf->len + res + 1) == 0) {
+	while (((u32) (res = vsnprintf(buffer->ptr + buffer->size,
+				       buffer->msize - buffer->size,
+				       format, ap2)) >= buffer->msize - buffer->size) &&
+	       buffer_extend(buffer, buffer->size + res + 1) == 0) {
 		va_end(ap2);
 		va_copy(ap2, ap);
 	}
 	va_end(ap2);
-	buf->len += res;
+	buffer->size += res;
 	return res;
 }
 
@@ -123,18 +163,18 @@ int buffer_vprint(t_buffer *buf, const char *format, va_list ap)
  * and it will try to extend this buffer if it is to small.
  * This function uses buffer_vprint.
  *
- * @param buf Pointer to the buffer to add data to.
+ * @param buffer Pointer to the buffer to add data to.
  * @param format Format string which defines subsequent arguments.
  *
  * @return Number of bytes printed if succeeds, else -1.
  */
-int buffer_print(t_buffer *buf, const char *format, ...)
+int buffer_print(t_buffer *buffer, const char *format, ...)
 {
 	int res;
 	va_list ap;
 
 	va_start(ap, format);
-	res = buffer_vprint(buf, format, ap);
+	res = buffer_vprint(buffer, format, ap);
 	va_end(ap);
 	return res;
 }
@@ -143,25 +183,19 @@ int buffer_print(t_buffer *buf, const char *format, ...)
  * Adds data to a buffer. If the buffer is to small, this function
  * will try to extend it.
  *
- * @param buf Buffer where the data will be added.
+ * @param buffer Buffer where the data will be added.
  * @param data Data to add to the buffer.
  * @param size Size of data.
  *
  * @return size if data is added to the buffer, else -1.
  */
-int buffer_add(t_buffer *buf, const char *data, size_t size)
+int buffer_add(t_buffer *buffer, const char *data, size_t size)
 {
-	XASSERT(buf != NULL, -1);
-	XASSERT(buf->buf != NULL, -1);
-	XASSERT(buf->alloc == 1, -1);
-	XASSERT(data != NULL, -1);
-
-	if (size + buf->len > buf->size &&
-	    buffer_extend(buf, size + buf->len) < 0) {
+	if (size + buffer->size > buffer->msize && buffer_extend(buffer, size + buffer->size) < 0) {
 		return -1;
 	}
-	memcpy(buf->buf + buf->len, data, size);
-	buf->len += size;
+	memcpy(buffer->ptr + buffer->size, data, size);
+	buffer->size += size;
 	return size;
 }
 
@@ -169,27 +203,26 @@ int buffer_add(t_buffer *buf, const char *data, size_t size)
  * Adds a string to a buffer. It actually calls buffer_add with strlen
  * of str as size parameter.
  *
- * @param buf Buffer where the string will be added
+ * @param buffer Buffer where the string will be added
  * @param str String to add to the buffer
  *
  * @return Number of bytes added on success, or -1 if an error occurs
  */
-int buffer_addstr(t_buffer *buf, const char *str)
+int buffer_addstr(t_buffer *buffer, const char *str)
 {
-	return buffer_add(buf, str, strlen(str));
+	return buffer_add(buffer, str, strlen(str));
 }
 
 /**
  * Adds a null byte to the end of a buffer.
  *
- * @param buf Buffer where the null byte will be added
+ * @param buffer Buffer where the null byte will be added
  *
  * @return 0 on success, or -1 if an error occurs
  */
-int buffer_addnull(t_buffer *buf)
+int buffer_addnull(t_buffer *buffer)
 {
-	if ((buf->len == 0 || buf->buf[buf->len - 1] != 0) &&
-	    buffer_add(buf, "\0", 1) < 0) {
+	if ((buffer->size == 0 || ((char *) buffer->ptr)[buffer->size - 1] != 0) && buffer_add(buffer, "\0", 1) < 0) {
 		return -1;
 	}
 	return 0;
@@ -199,79 +232,91 @@ int buffer_addnull(t_buffer *buf)
  * Erases beginning data in the buffer and moves the rest
  * to the beginning. This function does -not- reduce the buffer.
  *
- * @param buf Buffer where the data will be erased.
- * @param len Amount of data erased ('len' first bytes).
+ * @param buffer Buffer where data will be erased.
+ * @param size Size to erase. If 0, the whole buffer is erased.
  *
  * @return 0 if data has been erased, else -1.
  */
-int buffer_erase(t_buffer *buf, u32 len)
+int buffer_erase(t_buffer *buffer, size_t size)
 {
-	XASSERT(buf != NULL, -1);
-	XASSERT(buf->buf != NULL, -1);
-
-	if (buf->len > 0) {
-		if (len > buf->len)
-			len = buf->len;
-		if (len < buf->len) {
-			memmove(buf->buf, buf->buf + len, buf->size - len);
-		}
-		bzero(buf->buf + (buf->size - len), len);
-		buf->len -= len;
-		return 0;
+	if (buffer->ptr == NULL) {
+		return -1;
 	}
-	return -1;
+	if (size == 0 || size >= buffer->size) {
+		size = buffer->size;
+	} else {
+		memmove(buffer->ptr, buffer->ptr + size, buffer->size - size);
+	}
+	buffer->size -= size;
+	return 0;
 }
 
 /**
  * Duplicates a buffer.
  *
- * @param buf Pointer to the buffer to duplicate.
+ * @param buffer Pointer to the buffer to duplicate.
+ * @param class Pointer to the class buffer to use in the new buffer.
  *
  * @return A pointer to the new buffer, or NULL if an error occurs.
  */
-t_buffer *buffer_dup(t_buffer *buf)
+t_buffer *buffer_dup_class(t_buffer *buffer, t_buffer_class *class)
 {
-	t_buffer *newbuf;
+	t_buffer *newbuffer;
 
-	XASSERT(buf != NULL, NULL);
-	XASSERT(buf->buf != NULL, NULL);
-
-	newbuf = calloc(1, sizeof(*newbuf));
-	if (unlikely(newbuf == NULL)) {
+	if (class->malloc == NULL) {
 		return NULL;
 	}
-	newbuf->len = buf->len;
-	newbuf->size = buf->size;
-	if (unlikely(newbuf->size) == 0) {
-		newbuf->size = RINOO_BUFFER_INCREMENT;
-	}
-	newbuf->buf = calloc(1, newbuf->size);
-	if (unlikely(newbuf->buf == NULL)) {
-		free(newbuf);
+	newbuffer = malloc(sizeof(*newbuffer));
+	if (unlikely(newbuffer == NULL)) {
 		return NULL;
 	}
-	memcpy(newbuf->buf, buf->buf, buf->len);
-	newbuf->alloc = 1;
-	return newbuf;
+	*newbuffer = *buffer;
+	if (newbuffer->msize == 0) {
+		newbuffer->msize = buffer->size;
+	}
+	newbuffer->class = class;
+	if (class->init != NULL && class->init(newbuffer) != 0) {
+		free(newbuffer);
+		return NULL;
+	}
+	newbuffer->ptr = class->malloc(newbuffer, newbuffer->msize);
+	if (newbuffer == NULL) {
+		free(newbuffer);
+		return NULL;
+	}
+	memcpy(newbuffer->ptr, buffer->ptr, buffer->size);
+	return newbuffer;
+}
+
+/**
+ * Duplicates a buffer.
+ *
+ * @param buffer Pointer to the buffer to duplicate.
+ *
+ * @return A pointer to the new buffer, or NULL if an error occurs.
+ */
+t_buffer *buffer_dup(t_buffer *buffer)
+{
+	return buffer_dup_class(buffer, buffer->class);
 }
 
 /**
  * Compares two buffers
  *
- * @param buf1 Pointer to a buffer.
- * @param buf2 Pointer to a buffer.
+ * @param buffer1 Pointer to a buffer.
+ * @param buffer2 Pointer to a buffer.
  *
- * @return An integer less than, equal to, or greater than zero if buf1 is found, respectively, to be less than, to match, or be greater than buf2
+ * @return An integer less than, equal to, or greater than zero if buffer1 is found, respectively, to be less than, to match, or be greater than buffer2
  */
-int buffer_cmp(t_buffer *buf1, t_buffer *buf2)
+int buffer_cmp(t_buffer *buffer1, t_buffer *buffer2)
 {
 	int ret;
 
-	ret = buffer_len(buf1) - buffer_len(buf2);
+	ret = buffer_size(buffer1) - buffer_size(buffer2);
 	if (ret != 0) {
 		return ret;
 	}
-	ret = memcmp(buffer_ptr(buf1), buffer_ptr(buf2), buffer_len(buf1));
+	ret = memcmp(buffer_ptr(buffer1), buffer_ptr(buffer2), buffer_size(buffer1));
 	if (ret != 0) {
 		return ret;
 	}
@@ -282,89 +327,87 @@ int buffer_cmp(t_buffer *buf1, t_buffer *buf2)
 /**
  * Compares a buffer with a string.
  *
- * @param buf Pointer to a buffer.
+ * @param buffer Pointer to a buffer.
  * @param str Pointer to a string.
  *
- * @return An integer less than, equal to, or greater than zero if buf is found, respectively, to be less than, to match, or be greater than s2
+ * @return An integer less than, equal to, or greater than zero if buffer is found, respectively, to be less than, to match, or be greater than str
  */
-int buffer_strcmp(t_buffer *buf, const char *str)
+int buffer_strcmp(t_buffer *buffer, const char *str)
 {
-	u32 size;
-
-	XASSERT(buf != NULL, -1);
-	XASSERT(str != NULL, -1);
+	size_t size;
 
 	size = strlen(str);
-	if (buffer_len(buf) < size) {
-		return -str[buffer_len(buf)];
+	if (buffer_size(buffer) < size) {
+		return -str[buffer_size(buffer)];
 	}
-	if (buffer_len(buf) > size) {
-		return buf->buf[size];
+	if (buffer_size(buffer) > size) {
+		return ((char *) buffer->ptr)[size];
 	}
-	return memcmp(buffer_ptr(buf), str, size);
+	return memcmp(buffer_ptr(buffer), str, size);
 }
 
 /**
  * Compares a buffer with n bytes of a string.
  *
- * @param buf Pointer to a buffer.
+ * @param buffer Pointer to a buffer.
  * @param str Pointer to a string.
  * @param len Maximum length of the string.
  *
- * @return An integer less than, equal to, or greater than zero if buf is found, respectively, to be less than, to match, or be greater than s2
+ * @return An integer less than, equal to, or greater than zero if buffer is found, respectively, to be less than, to match, or be greater than s2
  */
-int buffer_strncmp(t_buffer *buf, const char *str, size_t len)
+int buffer_strncmp(t_buffer *buffer, const char *str, size_t len)
 {
-	u32 i;
+	size_t i;
 
-	XASSERT(buf != NULL, -1);
-	XASSERT(str != NULL, -1);
-
-	for (i = 0; i < len && i < buffer_len(buf); i++) {
-		if (buf->buf[i] != str[i] || str[i] == 0)
-			return buf->buf[i] - str[i];
+	for (i = 0; i < len && i < buffer_size(buffer); i++) {
+		if (((char *) buffer->ptr)[i] != str[i] || str[i] == 0) {
+			return ((char *) buffer->ptr)[i] - str[i];
+		}
 	}
-	if (i < len && i >= buffer_len(buf))
-		return -buf->buf[buffer_len(buf) - 1];
+	if (i < len && i >= buffer_size(buffer)) {
+		return -((char *) buffer->ptr)[buffer_size(buffer) - 1];
+	}
 	return 0;
 }
+
+
 
 /**
  * Converts a buffer to a long int accordingly to strtol.
  *
- * @param buf Pointer to a buffer to convert.
+ * @param buffer Pointer to a buffer to convert.
  * @param len If not NULL, it stores the buffer length processed for conversion.
  * @param base Conversion base.
  *
  * @return Result of conversion.
  */
-long int buffer_tolong(t_buffer *buf, size_t *len, int base)
+long int buffer_tolong(t_buffer *buffer, size_t *len, int base)
 {
 	long int result;
 	char *endptr;
 	t_buffer *workbuf;
 
-	XASSERT(buf != NULL, 0);
-	XASSERT(buf->buf != NULL, 0);
-
-	workbuf = buf;
-	if (buf->alloc == 0) {
-		/* Considering buf->buf has not been allocated */
-		workbuf = buffer_dup(buf);
+	workbuf = buffer;
+	if (buffer->msize == 0) {
+		/* Considering buffer->ptr has not been allocated */
+		workbuf = buffer_dup_class(buffer, &default_class);
+		if (workbuf == NULL) {
+			return 0;
+		}
 	}
 	result = 0;
-	endptr = workbuf->buf;
+	endptr = workbuf->ptr;
 	if (buffer_addnull(workbuf) == 0) {
-		result = strtol(workbuf->buf, &endptr, base);
+		result = strtol(workbuf->ptr, &endptr, base);
 	}
 	if (len != NULL) {
-		*len = endptr - workbuf->buf;
+		*len = endptr - (char *) workbuf->ptr;
 	}
-	if (workbuf != buf) {
+	if (workbuf != buffer) {
 		buffer_destroy(workbuf);
 	} else {
 		/* Removing null byte */
-		buf->len--;
+		buffer->size--;
 	}
 	return result;
 }
@@ -372,39 +415,39 @@ long int buffer_tolong(t_buffer *buf, size_t *len, int base)
 /**
  * Converts a buffer to an unsigned long int accordingly to strtoul.
  *
- * @param buf Pointer to a buffer to convert.
+ * @param buffer Pointer to a buffer to convert.
  * @param len If not NULL, it stores the buffer length processed for conversion.
  * @param base Conversion base.
  *
  * @return Result of conversion.
  */
-unsigned long int buffer_toulong(t_buffer *buf, size_t *len, int base)
+unsigned long int buffer_toulong(t_buffer *buffer, size_t *len, int base)
 {
 	char *endptr;
 	t_buffer *workbuf;
 	unsigned long int result;
 
-	XASSERT(buf != NULL, 0);
-	XASSERT(buf->buf != NULL, 0);
-
-	workbuf = buf;
-	if (buf->alloc == 0) {
-		/* Considering buf->buf has not been allocated */
-		workbuf = buffer_dup(buf);
+	workbuf = buffer;
+	if (buffer->msize == 0) {
+		/* Considering buffer->ptr has not been allocated */
+		workbuf = buffer_dup_class(buffer, &default_class);
+		if (workbuf == NULL) {
+			return 0;
+		}
 	}
 	result = 0;
-	endptr = workbuf->buf;
+	endptr = workbuf->ptr;
 	if (buffer_addnull(workbuf) == 0) {
-		result = strtoul(workbuf->buf, &endptr, base);
+		result = strtoul(workbuf->ptr, &endptr, base);
 	}
 	if (len != NULL) {
-		*len = endptr - workbuf->buf;
+		*len = endptr - (char *) workbuf->ptr;
 	}
-	if (workbuf != buf) {
+	if (workbuf != buffer) {
 		buffer_destroy(workbuf);
 	} else {
 		/* Removing null byte */
-		buf->len--;
+		buffer->size--;
 	}
 	return result;
 }
@@ -412,38 +455,38 @@ unsigned long int buffer_toulong(t_buffer *buf, size_t *len, int base)
 /**
  * Converts a buffer to a float accordingly to strtof.
  *
- * @param buf Pointer to a buffer to convert.
+ * @param buffer Pointer to a buffer to convert.
  * @param len If not NULL, it stores the buffer length processed for conversion.
  *
  * @return Result of conversion.
  */
-float buffer_tofloat(t_buffer *buf, size_t *len)
+float buffer_tofloat(t_buffer *buffer, size_t *len)
 {
 	float result;
 	char *endptr;
 	t_buffer *workbuf;
 
-	XASSERT(buf != NULL, 0);
-	XASSERT(buf->buf != NULL, 0);
-
-	workbuf = buf;
-	if (buf->alloc == 0) {
-		/* Considering buf->buf has not been allocated */
-		workbuf = buffer_dup(buf);
+	workbuf = buffer;
+	if (buffer->msize == 0) {
+		/* Considering buffer->ptr has not been allocated */
+		workbuf = buffer_dup_class(buffer, &default_class);
+		if (workbuf == NULL) {
+			return 0;
+		}
 	}
 	result = 0;
-	endptr = workbuf->buf;
+	endptr = workbuf->ptr;
 	if (buffer_addnull(workbuf) == 0) {
-		result = strtof(workbuf->buf, &endptr);
+		result = strtof(workbuf->ptr, &endptr);
 	}
 	if (len != NULL) {
-		*len = endptr - workbuf->buf;
+		*len = endptr - (char *) workbuf->ptr;
 	}
-	if (workbuf != buf) {
+	if (workbuf != buffer) {
 		buffer_destroy(workbuf);
 	} else {
 		/* Removing null byte */
-		buf->len--;
+		buffer->size--;
 	}
 	return result;
 }
@@ -451,38 +494,38 @@ float buffer_tofloat(t_buffer *buf, size_t *len)
 /**
  * Converts a buffer to a double accordingly to strtod.
  *
- * @param buf Pointer to a buffer to convert.
+ * @param buffer Pointer to a buffer to convert.
  * @param len If not NULL, it stores the buffer length processed for conversion.
  *
  * @return Result of conversion.
  */
-double buffer_todouble(t_buffer *buf, size_t *len)
+double buffer_todouble(t_buffer *buffer, size_t *len)
 {
 	double result;
 	char *endptr;
 	t_buffer *workbuf;
 
-	XASSERT(buf != NULL, 0);
-	XASSERT(buf->buf != NULL, 0);
-
-	workbuf = buf;
-	if (buf->alloc == 0) {
-		/* Considering buf->buf has not been allocated */
-		workbuf = buffer_dup(buf);
+	workbuf = buffer;
+	if (buffer->msize == 0) {
+		/* Considering buffer->ptr has not been allocated */
+		workbuf = buffer_dup_class(buffer, &default_class);
+		if (workbuf == NULL) {
+			return 0;
+		}
 	}
 	result = 0;
-	endptr = workbuf->buf;
+	endptr = workbuf->ptr;
 	if (buffer_addnull(workbuf) == 0) {
-		result = strtod(workbuf->buf, &endptr);
+		result = strtod(workbuf->ptr, &endptr);
 	}
 	if (len != NULL) {
-		*len = endptr - workbuf->buf;
+		*len = endptr - (char *) workbuf->ptr;
 	}
-	if (workbuf != buf) {
+	if (workbuf != buffer) {
 		buffer_destroy(workbuf);
 	} else {
 		/* Removing null byte */
-		buf->len--;
+		buffer->size--;
 	}
 	return result;
 }
@@ -492,14 +535,14 @@ double buffer_todouble(t_buffer *buf, size_t *len)
  * It makes sure the buffer ends with \0 and returns the internal buffer pointer.
  * Buffer length changes, thus.
  *
- * @param buf Pointer to the buffer to convert.
+ * @param buffer Pointer to the buffer to convert.
  *
  * @return A pointer to a string or NULL if an error occurs.
  */
-char *buffer_tostr(t_buffer *buf)
+char *buffer_tostr(t_buffer *buffer)
 {
-	if (buffer_addnull(buf) != 0) {
+	if (buffer_addnull(buffer) != 0) {
 		return NULL;
 	}
-	return buf->buf;
+	return buffer->ptr;
 }

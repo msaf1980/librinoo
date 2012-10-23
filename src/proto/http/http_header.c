@@ -84,13 +84,13 @@ int rinoohttp_header_setdata(t_rinoorbtree *headertree, const char *key, const c
 	XASSERT(value != NULL, -1);
 	XASSERT(size > 0, -1);
 
-	strtobuffer(dummy.key, key);
+	strtobuffer(&dummy.key, key);
 	new_value = strndup(value, size);
 	found = rinoorbtree_find(headertree, &dummy.node);
 	if (found != NULL) {
 		new = container_of(found, t_rinoohttp_header, node);
-		free(new->value.buf);
-		strtobuffer(new->value, new_value);
+		free(new->value.ptr);
+		strtobuffer(&new->value, new_value);
 		return 0;
 	}
 
@@ -105,8 +105,8 @@ int rinoohttp_header_setdata(t_rinoorbtree *headertree, const char *key, const c
 		free(new);
 		return -1;
 	}
-	strtobuffer(new->key, key);
-	strtobuffer(new->value, new_value);
+	strtobuffer(&new->key, key);
+	strtobuffer(&new->value, new_value);
 	if (rinoorbtree_put(headertree, &new->node) != 0) {
 		rinoohttp_header_free(&new->node);
 		return -1;
@@ -142,7 +142,7 @@ void rinoohttp_header_remove(t_rinoorbtree *headertree, const char *key)
 	XASSERTN(headertree != NULL);
 	XASSERTN(key != NULL);
 
-	strtobuffer(dummy.key, key);
+	strtobuffer(&dummy.key, key);
 	toremove = rinoorbtree_find(headertree, &dummy.node);
 	if (toremove != NULL) {
 		rinoorbtree_remove(headertree, toremove);
@@ -165,7 +165,7 @@ t_rinoohttp_header *rinoohttp_header_get(t_rinoorbtree *headertree, const char *
 	XASSERT(headertree != NULL, NULL);
 	XASSERT(key != NULL, NULL);
 
-	strtobuffer(dummy.key, key);
+	strtobuffer(&dummy.key, key);
 	node = rinoorbtree_find(headertree, &dummy.node);
 	if (node == NULL) {
 		return NULL;

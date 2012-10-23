@@ -18,17 +18,17 @@
  */
 int main()
 {
-	t_buffer *buf;
+	t_buffer *buffer;
 	char *result;
 
-	buf = buffer_create(10);
-	XTEST(buf != NULL);
-	XTEST(buffer_add(buf, "qwertyuiop", 10) == 10);
-	result = buffer_tostr(buf);
+	buffer = buffer_create(NULL);
+	XTEST(buffer != NULL);
+	XTEST(buffer_add(buffer, "qwertyuiop", 10) == 10);
+	result = buffer_tostr(buffer);
 	XTEST(result != NULL);
 	XTEST(strlen(result) == 10);
 	XTEST(strcmp(result, "qwertyuiop") == 0);
-	XTEST(buffer_len(buf) == 11);
-	buffer_destroy(buf);
+	XTEST(buffer_size(buffer) == 11);
+	buffer_destroy(buffer);
 	XPASS();
 }

@@ -10,23 +10,23 @@
 
 #include	"rinoo/rinoo.h"
 
-void check_buf(t_buffer * buf, float expected_result)
+void check_buf(t_buffer *buffer, float expected_result)
 {
 	size_t len;
 	float result;
 
-	result = buffer_tofloat(buf, NULL);
+	result = buffer_tofloat(buffer, NULL);
 	XTEST(result == expected_result);
 	len = 0;
-	result = buffer_tofloat(buf, &len);
+	result = buffer_tofloat(buffer, &len);
 	XTEST(result == expected_result);
-	XTEST(len == buffer_len(buf));
-	result = buffer_tofloat(buf, NULL);
+	XTEST(len == buffer_size(buffer));
+	result = buffer_tofloat(buffer, NULL);
 	XTEST(result == expected_result);
 	len = 0;
-	result = buffer_tofloat(buf, &len);
+	result = buffer_tofloat(buffer, &len);
 	XTEST(result == expected_result);
-	XTEST(len == buffer_len(buf));
+	XTEST(len == buffer_size(buffer));
 }
 
 /**
@@ -37,26 +37,26 @@ void check_buf(t_buffer * buf, float expected_result)
  */
 int main()
 {
-	t_buffer *buf;
-	t_buffer buf2;
+	t_buffer *buffer;
+	t_buffer buffer2;
 
-	buf = buffer_create(10);
-	XTEST(buf != NULL);
-	XTEST(buffer_add(buf, "12345.6789", 10) == 10);
-	check_buf(buf, 12345.6789);
-	buffer_erase(buf, buffer_len(buf));
-	XTEST(buffer_add(buf, "1", 1) == 1);
-	check_buf(buf, 1);
-	buffer_erase(buf, buffer_len(buf));
-	XTEST(buffer_add(buf, "-12345.678", 10) == 10);
-	check_buf(buf, -12345.678);
-	buffer_erase(buf, buffer_len(buf));
-	buffer_destroy(buf);
-	strtobuffer(buf2, "98765.4321");
-	check_buf(&buf2, 98765.4321);
-	strtobuffer(buf2, "0");
-	check_buf(&buf2, 0);
-	strtobuffer(buf2, "-9876543.21");
-	check_buf(&buf2, -9876543.21);
+	buffer = buffer_create(NULL);
+	XTEST(buffer != NULL);
+	XTEST(buffer_add(buffer, "12345.6789", 10) == 10);
+	check_buf(buffer, 12345.6789);
+	buffer_erase(buffer, buffer_size(buffer));
+	XTEST(buffer_add(buffer, "1", 1) == 1);
+	check_buf(buffer, 1);
+	buffer_erase(buffer, buffer_size(buffer));
+	XTEST(buffer_add(buffer, "-12345.678", 10) == 10);
+	check_buf(buffer, -12345.678);
+	buffer_erase(buffer, buffer_size(buffer));
+	buffer_destroy(buffer);
+	strtobuffer(&buffer2, "98765.4321");
+	check_buf(&buffer2, 98765.4321);
+	strtobuffer(&buffer2, "0");
+	check_buf(&buffer2, 0);
+	strtobuffer(&buffer2, "-9876543.21");
+	check_buf(&buffer2, -9876543.21);
 	XPASS();
 }
