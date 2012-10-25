@@ -460,7 +460,7 @@ ssize_t	rinoo_socket_write(t_rinoosocket *socket, const void *buf, size_t count)
 /**
  * Socket read interface for t_buffer.
  * This function waits for and reads information available on the socket.
- * Adds the result to the t_buffer structure. It does extend the buffer is necessary.
+ * Adds the result to the t_buffer structure. It does extend the buffer if necessary.
  *
  * @param socket Pointer to the socket to read
  * @param buffer Buffer where to store the result
@@ -482,6 +482,55 @@ ssize_t rinoo_socket_readb(t_rinoosocket *socket, t_buffer *buffer)
 		   buffer_msize(buffer) - buffer_size(buffer));
 	buffer_setsize(buffer, buffer_size(buffer) + res);
 	return res;
+}
+
+/**
+ * Reads a line from a socket.
+ * This function waits for and reads information available on a socket until
+ * it finds a delimiter or the maximum line size speficied.
+ * Adds the result to the t_buffer structure. It does extend the buffer if necessary.
+ * The size returned is the size of the last line found. It is actually not the total
+ * amount of bytes read. The function can implicitly store more data in buffer.
+ * If the calling function aims to call sequentially rinoo_socket_readline
+ * with the same buffer, it has to remove the last line from it by calling buffer_erase
+ * with the returned size.
+ *
+ * @param socket Pointer to the socket to read
+ * @param buffer Pointer to the buffer where to store data read
+ * @param delim Pointer to the line delimiter
+ * @param maxsize Maximum line size to be read
+ *
+ * @return The size of the last line found, or -1 if an error occurs.
+ */
+ssize_t rinoo_socket_readline(t_rinoosocket *socket, t_buffer *buffer, const char *delim, size_t maxsize)
+{
+	void *ptr;
+	size_t dlen;
+	ssize_t res;
+	off_t offset;
+
+	offset = 0;
+	dlen = strlen(delim);
+	while (buffer_size(buffer) < maxsize) {
+		if (buffer_size(buffer) - offset >= dlen) {
+			ptr = memmem(buffer_ptr(buffer) + offset, buffer_size(buffer) - offset, delim, dlen);
+			if (ptr != NULL) {
+				return (ptr - buffer_ptr(buffer) + dlen);
+			}
+			offset = buffer_size(buffer) - dlen;
+		}
+		if (buffer_isfull(buffer) && buffer_extend(buffer, 0) <= 0) {
+			return -1;
+		}
+		if (rinoo_socket_waitin(socket) != 0) {
+			return -1;
+		}
+		res = read(socket->fd,
+			   buffer_ptr(buffer) + buffer_size(buffer),
+			   buffer_msize(buffer) - buffer_size(buffer));
+		buffer_setsize(buffer, buffer_size(buffer) + res);
+	}
+	return maxsize;
 }
 
 /**

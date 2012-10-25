@@ -21,7 +21,9 @@ int rinoohttp_request_get(t_rinoohttp *http)
 			return 1;
 		} else if (ret == -1) {
 			http->response.code = 400;
-			rinoohttp_response_send(http, NULL);
+			if (rinoohttp_response_send(http, NULL) != 0 && errno == ESHUTDOWN) {
+				return 0;
+			}
 			rinoohttp_reset(http);
 		}
 	}
