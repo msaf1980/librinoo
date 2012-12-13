@@ -29,7 +29,7 @@ int main()
 	XTEST(sched != NULL);
 	sock1 = rinoo_socket(sched, AF_INET, SOCK_STREAM, socket1_func);
 	XTEST(sock1 != NULL);
-	XTEST(rinoo_socket_schedule(sock1, 0) == 0);
+	XTEST(rinoo_socket_start(sock1) == 0);
 	rinoo_sched_loop(sched);
 	rinoo_sched_destroy(sched);
 	XPASS();

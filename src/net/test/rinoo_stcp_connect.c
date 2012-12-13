@@ -34,7 +34,7 @@ int main()
 	XTEST(ssl != NULL);
 	sslsock = rinoo_ssl(sched, ssl, ssl_run);
 	XTEST(sslsock != NULL);
-	XTEST(rinoo_socket_schedule(&sslsock->socket, 0) == 0);
+	XTEST(rinoo_socket_start(&sslsock->socket) == 0);
 	rinoo_sched_loop(sched);
 	rinoo_ssl_context_destroy(ssl);
 	rinoo_sched_destroy(sched);

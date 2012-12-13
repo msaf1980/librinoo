@@ -183,9 +183,6 @@ int rinoo_socket_schedule(t_rinoosocket *socket, u32 ms)
 
 	XASSERT(socket != NULL, -1);
 
-	if (ms == 0) {
-		return rinoo_task_schedule(&socket->task, NULL);
-	}
 	toadd.tv_sec = ms / 1000;
 	toadd.tv_usec = (ms % 1000) * 1000;
 	timeradd(&socket->task.sched->clock, &toadd, &res);
@@ -202,6 +199,11 @@ int rinoo_socket_unschedule(t_rinoosocket *socket)
 int rinoo_socket_timeout(t_rinoosocket *socket, u32 ms)
 {
 	return rinoo_socket_schedule(socket, ms);
+}
+
+int rinoo_socket_start(t_rinoosocket *socket)
+{
+	return rinoo_task_schedule(&socket->task, NULL);
 }
 
 /**

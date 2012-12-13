@@ -158,7 +158,7 @@ t_rinoosocket *rinoo_tcp_server(t_rinoosched *sched, t_ip ip, u32 port, void (*c
 		rinoo_socket_destroy(server);
 		return NULL;
 	}
-	if (rinoo_socket_schedule(server, 0) != 0) {
+	if (rinoo_socket_start(server) != 0) {
 		rinoo_socket_destroy(server);
 		return NULL;
 	}

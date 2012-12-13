@@ -82,8 +82,8 @@ int main()
 	XTEST(sslserver != NULL);
 	sslclient = rinoo_ssl(sched, ssl, client_func);
 	XTEST(sslclient != NULL);
-	XTEST(rinoo_socket_schedule(&sslserver->socket, 0) == 0);
-	XTEST(rinoo_socket_schedule(&sslclient->socket, 1) == 0);
+	XTEST(rinoo_socket_start(&sslserver->socket) == 0);
+	XTEST(rinoo_socket_start(&sslclient->socket) == 0);
 	rinoo_sched_loop(sched);
 	rinoo_ssl_context_destroy(ssl);
 	rinoo_sched_destroy(sched);

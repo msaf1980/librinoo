@@ -22,7 +22,7 @@ static int rinoo_task_cmp(t_rinoorbtree_node *node1, t_rinoorbtree_node *node2)
 	if (task1 == task2) {
 		return 0;
 	}
-	if (timercmp(&task1->tv, &task2->tv, <=)) {
+	if (timercmp(&task1->tv, &task2->tv, <)) {
 		return -1;
 	}
 	return 1;
