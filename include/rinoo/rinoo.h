@@ -21,6 +21,7 @@
 # include	<dirent.h>
 # include	<signal.h>
 # include	<unistd.h>
+# include	<stdbool.h>
 # include	<stdlib.h>
 # include	<stdarg.h>
 # include	<stddef.h>

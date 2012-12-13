@@ -27,7 +27,4 @@ typedef unsigned long long	u64;
 #  define	INT_TO_PTR(p)	((void*)(p))
 # endif		/* !__WORDSIZE == 64 */
 
-# define	TRUE		1
-# define	FALSE		0
-
 #endif		/* !RINOO_XTYPES_H_ */
