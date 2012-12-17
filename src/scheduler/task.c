@@ -114,9 +114,6 @@ int rinoo_task(t_rinoosched *sched,
 	XASSERT(sched != NULL, -1);
 	XASSERT(function != NULL, -1);
 
-	if (fcontext_get(&task->context) != 0) {
-		return -1;
-	}
 	task->sched = sched;
 	task->queued = false;
 	task->function = function;
@@ -158,6 +155,7 @@ int rinoo_task_run(t_rinootask *task)
 	int valgrind_stackid = VALGRIND_STACK_REGISTER(task->stack, task->stack + sizeof(task->stack));
 #endif /* !RINOO_DEBUG */
 
+	rinoo_log("Running task %p (old %p)", task, old);
 	ret = fcontext_swap(&old->context, &task->context);
 
 #ifdef RINOO_DEBUG
@@ -166,6 +164,7 @@ int rinoo_task_run(t_rinootask *task)
 
 	driver->current = old;
 	if (ret == 0 && task->function == NULL) {
+		rinoo_log("Stopping task %p (old %p)", task, old);
 		/* This task is finished */
 		rinoo_task_unschedule(task);
 		if (task->delete != NULL) {

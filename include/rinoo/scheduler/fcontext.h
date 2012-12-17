@@ -64,8 +64,6 @@ typedef struct s_fcontext {
 
 void fcontext(t_fcontext *ctx, void (*func)(void *ptr), void *arg);
 void fcontext_jump(void);
-int fcontext_get(t_fcontext *ctx);
-int fcontext_set(t_fcontext *ctx);
 int fcontext_swap(t_fcontext *octx, t_fcontext *nctx);
 
 #endif		/* !FCONTEXT_H_ */

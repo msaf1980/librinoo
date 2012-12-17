@@ -19,33 +19,14 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-.globl fcontext_get
-	.type fcontext_get, @function
+.globl fcontext_jump
+	.type fcontext_jump, @function
 
-fcontext_get:
-	movq	%r8, 0x8(%rdi)
-	movq	%r9, 0x10(%rdi)
-	movq	%r12, 0x28(%rdi)
-	movq	%r13, 0x30(%rdi)
-	movq	%r14, 0x38(%rdi)
-	movq	%r15, 0x40(%rdi)
-	movq	%rdi, 0x48(%rdi)
-	movq	%rsi, 0x50(%rdi)
-	movq	%rbp, 0x58(%rdi)
-	movq	%rbx, 0x60(%rdi)
-	movq	%rdx, 0x68(%rdi)
-	movq	%rcx, 0x70(%rdi)
-	movq	(%rsp), %rcx
-	movq	%rcx, 0x80(%rdi)
-	leaq	0x8(%rsp), %rcx
-	movq	%rcx, 0x78(%rdi)
-	xorl	%eax, %eax
-	ret
-
-.globl fcontext_set
-	.type fcontext_set, @function
-
-fcontext_set:
+fcontext_jump:
+	movq	%rbx, %rsp
+	popq	%rdi
+	testq	%rdi, %rdi
+	je	2f
 	movq	0x28(%rdi), %r12
 	movq	0x30(%rdi), %r13
 	movq	0x38(%rdi), %r14
@@ -63,16 +44,6 @@ fcontext_set:
 	movq	0x48(%rdi), %rdi
 	xorl    %eax, %eax
 	ret
-
-.globl fcontext_jump
-	.type fcontext_jump, @function
-
-fcontext_jump:
-	movq	%rbx, %rsp
-	popq	%rdi
-	testq	%rdi, %rdi
-	je	2f
-	call	fcontext_set@PLT
 
 2:	movq    %rax,%rdi
 	call    exit@PLT

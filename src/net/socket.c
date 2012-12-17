@@ -536,6 +536,31 @@ ssize_t rinoo_socket_readline(t_rinoosocket *socket, t_buffer *buffer, const cha
 }
 
 /**
+ * This function reads socket input to find an expected string.
+ *
+ * @param socket Pointer to the socket to read
+ * @param buffer Pointer to the buffer where to store data read
+ * @param expected Expected string to be matched
+ *
+ * @return Buffer size if the string has been found, otherwise -1
+ */
+ssize_t rinoo_socket_expect(t_rinoosocket *socket, t_buffer *buffer, const char *expected)
+{
+	size_t len;
+
+	len = strlen(expected);
+	while (buffer_size(buffer) < len) {
+		if (rinoo_socket_readb(socket, buffer) != 0) {
+			return -1;
+		}
+	}
+	if (buffer_strncmp(buffer, expected, len) == 0) {
+		return buffer_size(buffer);
+	}
+	return -1;
+}
+
+/**
  * Socket write interface for t_buffer.
  * This function waits for the socket to be available for write operations and writes the buffer content into the socket.
  *
