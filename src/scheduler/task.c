@@ -93,8 +93,6 @@ static void rinoo_task_process(void *arg)
 	XASSERTN(task != NULL);
 	XASSERTN(task->function != NULL);
 	task->function(task);
-	/* That means the task is over */
-	task->function = NULL;
 }
 
 /**
@@ -155,7 +153,6 @@ int rinoo_task_run(t_rinootask *task)
 	int valgrind_stackid = VALGRIND_STACK_REGISTER(task->stack, task->stack + sizeof(task->stack));
 #endif /* !RINOO_DEBUG */
 
-	rinoo_log("Running task %p (old %p)", task, old);
 	ret = fcontext_swap(&old->context, &task->context);
 
 #ifdef RINOO_DEBUG
@@ -163,8 +160,7 @@ int rinoo_task_run(t_rinootask *task)
 #endif /* !RINOO_DEBUG */
 
 	driver->current = old;
-	if (ret == 0 && task->function == NULL) {
-		rinoo_log("Stopping task %p (old %p)", task, old);
+	if (ret == 0) {
 		/* This task is finished */
 		rinoo_task_unschedule(task);
 		if (task->delete != NULL) {
@@ -187,7 +183,7 @@ int rinoo_task_release(t_rinoosched *sched)
 	XASSERT(sched != NULL, -1);
 
 	errno = 0;
-	if (fcontext_swap(&sched->driver.current->context, &sched->driver.main.context) != 0) {
+	if (fcontext_swap(&sched->driver.current->context, &sched->driver.main.context) != 1) {
 		return -1;
 	}
 	return errno;

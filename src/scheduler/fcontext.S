@@ -84,7 +84,7 @@ fcontext_swap:
 	movq	0x68(%rsi), %rdx
 	movq	0x70(%rsi), %rcx
 	movq	0x50(%rsi), %rsi
-	xorl	%eax, %eax
+	movl	$1, %eax
 	ret
 
 .globl fcontext
@@ -105,3 +105,23 @@ fcontext:
 	movq	%rcx, 0x78(%rdi)
 	movq	%rsi, 0x80(%rdi)
 	ret
+
+	/* fcontext C code */
+	/*
+	void fcontext(t_fcontext *ctx, void (*func)(void *ptr), void *arg)
+	{
+		unsigned long int *sp;
+
+		sp = (unsigned long int *) ((uintptr_t) ctx->stack.sp + ctx->stack.size);
+		sp = (unsigned long int *) ((((uintptr_t) (sp - 1)) & -16L) - 8);
+
+		sp[0] = (unsigned long int) &fcontext_jump;
+		sp[1] = (unsigned long int) ctx->link;
+
+		ctx->reg[FREG_RIP] = (long int) func;
+		ctx->reg[FREG_RDI] = (long int) arg;
+		ctx->reg[FREG_RBX] = (long int) &sp[1];
+		ctx->reg[FREG_RSP] = (long int) sp;
+	}
+	*/
+
