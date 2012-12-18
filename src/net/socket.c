@@ -313,11 +313,16 @@ int rinoo_socket_waitout(t_rinoosocket *socket)
 int rinoo_socket_connect(t_rinoosocket *socket, const struct sockaddr *addr, socklen_t addrlen)
 {
 	int val;
+	int enabled;
 	socklen_t size;
 
 	XASSERT(socket != NULL, -1);
 
 	errno = 0;
+	enabled = 1;
+	if (setsockopt(socket->fd, SOL_SOCKET, SO_REUSEADDR, &enabled, sizeof(enabled)) != 0) {
+		return -1;
+	}
 	if (connect(socket->fd, addr, addrlen) == 0) {
 		return 0;
 	}

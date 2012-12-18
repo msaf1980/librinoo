@@ -379,7 +379,11 @@ void rinoorbtree_remove(t_rinoorbtree *tree, t_rinoorbtree_node *node)
 	}
 
 	if (node == tree->head) {
-		tree->head = (parent != NULL ? parent->left : child);
+		if (parent != NULL && parent->left == NULL) {
+			tree->head = parent;
+		} else {
+			tree->head = child;
+		}
 	}
 color:
 	if (color == RINOO_RBTREE_BLACK) {
