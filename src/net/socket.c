@@ -10,50 +10,29 @@
 
 #include	"rinoo/rinoo.h"
 
-static void rinoo_socket_run(t_rinootask *task);
-
-static void rinoo_socket_autodestroy(t_rinootask *task)
-{
-	t_rinoosocket *socket;
-
-	socket = container_of(task, t_rinoosocket, task);
-	if (socket->autodestroy != NULL) {
-		socket->autodestroy(socket);
-	}
-}
-
 /**
  * Generic socket creation.
  * This function should be used internally only.
  *
  * @param sched Pointer to a scheduler
  * @param fd Socket file descriptor
- * @param run Pointer to the function which will run the socket
  *
  * @return 0 on success, otherwise -1
  */
-int rinoo_socket_init(t_rinoosched *sched,
-		      t_rinoosocket *socket,
-		      int fd,
-		      void (*run)(t_rinoosocket *socket),
-		      void (*autodestroy)(t_rinoosocket *socket))
+int rinoo_socket_init(t_rinoosched *sched, t_rinoosocket *socket, int fd, void (*autodestroy)(t_rinoosocket *socket))
 {
 	int enabled;
 
 	XASSERT(sched != NULL, -1);
 	XASSERT(socket != NULL, -1);
-	XASSERT(run != NULL, -1);
 
 	socket->fd = fd;
-	socket->run = run;
+	socket->sched = sched;
 	enabled = 1;
 	if (unlikely(ioctl(socket->fd, FIONBIO, &enabled) == -1)) {
 		return -1;
 	}
 	socket->autodestroy = autodestroy;
-	if (unlikely(rinoo_task(sched, &socket->task, rinoo_socket_run, rinoo_socket_autodestroy) != 0)) {
-		return -1;
-	}
 	return 0;
 }
 
@@ -65,23 +44,16 @@ int rinoo_socket_init(t_rinoosched *sched,
  * @param sock Pointer to a socket structure to fill
  * @param domain Socket domain (see man socket)
  * @param type Socket type (see man socket)
- * @param run Pointer to the function which will run the socket
  * @param autodestroy Pointer to a function to destroy the socket (if NULL, the socket will be automatically closed)
  *
  * @return 0 on success, otherwise -1
  */
-int rinoo_socket_set(t_rinoosched *sched,
-		     t_rinoosocket *sock,
-		     int domain,
-		     int type,
-		     void (*run)(t_rinoosocket *socket),
-		     void (*autodestroy)(t_rinoosocket *socket))
+int rinoo_socket_set(t_rinoosched *sched, t_rinoosocket *sock, int domain, int type, void (*autodestroy)(t_rinoosocket *socket))
 {
 	int fd;
 
 	XASSERT(sched != NULL, -1);
 	XASSERT(sock != NULL, -1);
-	XASSERT(run != NULL, -1);
 
 	fd = socket(domain, type, 0);
 	if (unlikely(fd == -1)) {
@@ -90,7 +62,7 @@ int rinoo_socket_set(t_rinoosched *sched,
 	if (autodestroy == NULL) {
 		autodestroy = rinoo_socket_close;
 	}
-	if (unlikely(rinoo_socket_init(sched, sock, fd, run, autodestroy) != 0)) {
+	if (unlikely(rinoo_socket_init(sched, sock, fd, autodestroy) != 0)) {
 		close(fd);
 		return -1;
 	}
@@ -104,17 +76,15 @@ int rinoo_socket_set(t_rinoosched *sched,
  * @param sched Pointer to a scheduler
  * @param domain Socket domain (see man socket)
  * @param type Socket type (see man socket)
- * @param run Pointer to the function which will run the socket
  *
  * @return A pointer to the new socket or NULL if an error occurs
  */
-t_rinoosocket *rinoo_socket(t_rinoosched *sched, int domain, int type, void (*run)(t_rinoosocket *socket))
+t_rinoosocket *rinoo_socket(t_rinoosched *sched, int domain, int type)
 {
 	int fd;
 	t_rinoosocket *new;
 
 	XASSERT(sched != NULL, NULL);
-	XASSERT(run != NULL, NULL);
 
 	fd = socket(domain, type, 0);
 	if (unlikely(fd == -1)) {
@@ -125,7 +95,7 @@ t_rinoosocket *rinoo_socket(t_rinoosched *sched, int domain, int type, void (*ru
 		close(fd);
 		return NULL;
 	}
-	if (unlikely(rinoo_socket_init(sched, new, fd, run, rinoo_socket_destroy) != 0)) {
+	if (unlikely(rinoo_socket_init(sched, new, fd, rinoo_socket_destroy) != 0)) {
 		close(fd);
 		free(new);
 		return NULL;
@@ -143,7 +113,6 @@ void rinoo_socket_close(t_rinoosocket *socket)
 {
 	XASSERTN(socket != NULL);
 
-	rinoo_task_unschedule(&socket->task);
 	rinoo_sched_socket(socket, RINOO_SCHED_REMOVE, RINOO_MODE_NONE);
 	close(socket->fd);
 }
@@ -185,60 +154,20 @@ int rinoo_socket_schedule(t_rinoosocket *socket, u32 ms)
 
 	toadd.tv_sec = ms / 1000;
 	toadd.tv_usec = (ms % 1000) * 1000;
-	timeradd(&socket->task.sched->clock, &toadd, &res);
-	return rinoo_task_schedule(&socket->task, &res);
+	timeradd(&socket->sched->clock, &toadd, &res);
+	return rinoo_task_schedule(socket->sched->driver.current, &res);
 }
 
 int rinoo_socket_unschedule(t_rinoosocket *socket)
 {
 	XASSERT(socket != NULL, -1);
 
-	return rinoo_task_unschedule(&socket->task);
+	return rinoo_task_unschedule(socket->task);
 }
 
 int rinoo_socket_timeout(t_rinoosocket *socket, u32 ms)
 {
 	return rinoo_socket_schedule(socket, ms);
-}
-
-int rinoo_socket_start(t_rinoosocket *socket)
-{
-	return rinoo_task_schedule(&socket->task, NULL);
-}
-
-/**
- * Main socket run function. It is called at socket treatment startup.
- * This function should be called internally only by rinoo_task_run.
- *
- * @param sched Pointer to the scheduler dealing with this task
- * @param arg Pointer to the socket to run
- */
-static void rinoo_socket_run(t_rinootask *task)
-{
-	t_rinoosocket *socket;
-
-	socket = container_of(task, t_rinoosocket, task);
-	socket->run(socket);
-}
-
-/**
- * Resumes socket execution by switching to the socket context.
- *
- * @param socket Pointer to the socket to resume
- *
- * @return 0 on sucess or -1 if an error occurs
- */
-int rinoo_socket_resume(t_rinoosocket *socket)
-{
-	int ret;
-
-	XASSERT(socket != NULL, -1);
-
-	ret = rinoo_task_run(&socket->task);
-	if (ret == 1) {
-		return 0;
-	}
-	return ret;
 }
 
 /**
@@ -251,10 +180,9 @@ int rinoo_socket_resume(t_rinoosocket *socket)
 int rinoo_socket_release(t_rinoosocket *socket)
 {
 	XASSERT(socket != NULL, -1);
-	XASSERT(socket->task.sched->driver.current == &socket->task, -1);
 
 	rinoo_socket_error_set(socket, ETIMEDOUT);
-	return rinoo_task_release(socket->task.sched);
+	return rinoo_task_release(socket->sched->driver.current);
 }
 
 /**
@@ -394,11 +322,10 @@ int rinoo_socket_listen(t_rinoosocket *socket, const struct sockaddr *addr, sock
  * @param socket Pointer to the socket which is listening to
  * @param addr Address to the peer socket (see man accept)
  * @param addrlen Sockaddr structure size (see man accept)
- * @param run Pointer to the function which will run the socket
  *
  * @return A pointer to the new client socket or NULL if an error occurs
  */
-t_rinoosocket *rinoo_socket_accept(t_rinoosocket *socket, struct sockaddr *addr, socklen_t *addrlen, void (*run)(t_rinoosocket *socket))
+t_rinoosocket *rinoo_socket_accept(t_rinoosocket *socket, struct sockaddr *addr, socklen_t *addrlen)
 {
 	int fd;
 	t_rinoosocket *new;
@@ -415,7 +342,7 @@ t_rinoosocket *rinoo_socket_accept(t_rinoosocket *socket, struct sockaddr *addr,
 		close(fd);
 		return NULL;
 	}
-	if (unlikely(rinoo_socket_init(socket->task.sched, new, fd, run, rinoo_socket_destroy) != 0)) {
+	if (unlikely(rinoo_socket_init(socket->task->sched, new, fd, rinoo_socket_destroy) != 0)) {
 		close(fd);
 		free(new);
 		return NULL;

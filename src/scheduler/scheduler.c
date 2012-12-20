@@ -74,29 +74,28 @@ void rinoo_sched_destroy(t_rinoosched *sched)
 int rinoo_sched_socket(t_rinoosocket *socket, t_rinoosched_action action, t_rinoosched_mode mode)
 {
 	XASSERT(socket != NULL, -1);
-	XASSERT(socket->task.sched != NULL, -1);
+	XASSERT(socket->sched != NULL, -1);
 	XASSERT(socket->fd < RINOO_SCHEDULER_MAXFDS, -1);
 
-	switch (action)
-	{
+	switch (action) {
 	case RINOO_SCHED_ADD:
-		if (socket->task.sched->sock_pool[socket->fd] != socket) {
-			if (unlikely(rinoo_epoll_insert(socket->task.sched, socket, mode) != 0)) {
+		if (socket->sched->sock_pool[socket->fd] != socket) {
+			if (unlikely(rinoo_epoll_insert(socket->sched, socket, mode) != 0)) {
 				return -1;
 			}
-			socket->task.sched->sock_pool[socket->fd] = socket;
+			socket->task->sched->sock_pool[socket->fd] = socket;
 		} else {
-			if (unlikely(rinoo_epoll_addmode(socket->task.sched, socket, mode) != 0)) {
+			if (unlikely(rinoo_epoll_addmode(socket->task->sched, socket, mode) != 0)) {
 				return -1;
 			}
 		}
 		break;
 	case RINOO_SCHED_REMOVE:
-		if (rinoo_epoll_remove(socket->task.sched, socket) != 0)
+		if (rinoo_epoll_remove(socket->task->sched, socket) != 0)
 		{
 			return -1;
 		}
-		socket->task.sched->sock_pool[socket->fd] = NULL;
+		socket->task->sched->sock_pool[socket->fd] = NULL;
 		break;
 	}
 	return 0;

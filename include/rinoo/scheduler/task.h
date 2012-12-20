@@ -16,21 +16,13 @@
 /* Defined in scheduler.h */
 struct s_rinoosched;
 
-typedef union u_rinootask_arg
-{
-	void	*ptr;
-	int	args[2];
-} t_rinootask_arg;
-
 typedef struct s_rinootask
 {
 	struct s_rinoosched	*sched;
 	struct timeval		tv;
-	bool			queued;
-	t_fcontext		context;
-	void			(*function)(struct s_rinootask *task);
-	void			(*delete)(struct s_rinootask *task);
+	bool			scheduled;
 	t_rinoorbtree_node	proc_node;
+	t_fcontext		context;
 	char			stack[RINOO_TASK_STACK_SIZE];
 } t_rinootask;
 
@@ -45,10 +37,7 @@ int rinoo_task_driver_init(struct s_rinoosched *sched);
 void rinoo_task_driver_destroy(struct s_rinoosched *sched);
 u32 rinoo_task_driver_run(struct s_rinoosched *sched);
 
-int rinoo_task(struct s_rinoosched *sched,
-	       t_rinootask *task,
-	       void (*function)(t_rinootask *task),
-	       void (*delete)(t_rinootask *task));
+t_rinootask *rinoo_task(struct s_rinoosched *sched, void (*function)(void *arg), void *arg);
 void rinoo_task_destroy(t_rinootask *task);
 int rinoo_task_release(struct s_rinoosched *sched);
 int rinoo_task_run(t_rinootask *task);

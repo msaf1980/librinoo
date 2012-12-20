@@ -81,47 +81,45 @@ u32 rinoo_task_driver_run(t_rinoosched *sched)
 }
 
 /**
- * Internal routine called for each context.
+ * Create a new task.
  *
- * @param p1 First part of t_rinootask pointer
- * @param p2 Second part of t_rinootask pointer
- */
-static void rinoo_task_process(void *arg)
-{
-	t_rinootask *task = arg;
-
-	XASSERTN(task != NULL);
-	XASSERTN(task->function != NULL);
-	task->function(task);
-}
-
-/**
- * Initialize a task.
- *
- * @param sched Pointer to a scheduler to use
- * @param task Pointer to the task to initialize
+ * @param sched sched Pointer to a scheduler to use
  * @param function Routine to call for that task
+ * @param arg Routine argument to be passed
  *
- * @return 0 if the task has been successfuly initialize, otherwise -1
+ * @return Pointer to the created task, or NULL if an error occurs
  */
-int rinoo_task(t_rinoosched *sched,
-	       t_rinootask *task,
-	       void (*function)(t_rinootask *task),
-	       void (*delete)(t_rinootask *task))
+t_rinootask *rinoo_task(t_rinoosched *sched, void (*function)(void *arg), void *arg)
 {
-	XASSERT(sched != NULL, -1);
-	XASSERT(function != NULL, -1);
+	t_rinootask *task;
 
+	XASSERT(sched != NULL, NULL);
+	XASSERT(function != NULL, NULL);
+
+	task = malloc(sizeof(*task));
+	if (task == NULL) {
+		return NULL;
+	}
 	task->sched = sched;
-	task->queued = false;
-	task->function = function;
-	task->delete = delete;
+	task->scheduled = false;
 	task->context.stack.sp = task->stack;
 	task->context.stack.size = sizeof(task->stack);
 	task->context.link = NULL;
+	if (task->sched->driver.current != NULL) {
+		task->context.link = &task->sched->driver.current->context;
+	} else {
+		task->context.link = &task->sched->driver.main.context;
+	}
 	memset(&task->tv, 0, sizeof(task->tv));
 	memset(&task->proc_node, 0, sizeof(task->proc_node));
-	return 0;
+	fcontext(&task->context, function, arg);
+	return task;
+}
+
+void rinoo_task_destroy(t_rinootask *task)
+{
+	rinoo_task_unschedule(task);
+	free(task);
 }
 
 /**
@@ -140,10 +138,6 @@ int rinoo_task_run(t_rinootask *task)
 
 	XASSERT(task != NULL, -1);
 
-	if (task->context.link == NULL) {
-		task->context.link = &(task->sched->driver.current->context);
-		fcontext(&task->context, rinoo_task_process, task);
-	}
 	driver = &task->sched->driver;
 	old = driver->current;
 	driver->current = task;
@@ -162,11 +156,7 @@ int rinoo_task_run(t_rinootask *task)
 	driver->current = old;
 	if (ret == 0) {
 		/* This task is finished */
-		rinoo_task_unschedule(task);
-		if (task->delete != NULL) {
-			task->delete(task);
-		}
-		return 1;
+		rinoo_task_destroy(task);
 	}
 	return ret;
 }
@@ -194,9 +184,9 @@ int rinoo_task_schedule(t_rinootask *task, struct timeval *tv)
 	XASSERT(task != NULL, -1);
 	XASSERT(task->sched != NULL, -1);
 
-	if (task->queued == true) {
+	if (task->scheduled == true) {
 		rinoorbtree_remove(&task->sched->driver.proc_tree, &task->proc_node);
-		task->queued = false;
+		task->scheduled = false;
 	}
 	if (tv != NULL) {
 		task->tv = *tv;
@@ -206,7 +196,7 @@ int rinoo_task_schedule(t_rinootask *task, struct timeval *tv)
 	if (rinoorbtree_put(&task->sched->driver.proc_tree, &task->proc_node) != 0) {
 		return -1;
 	}
-	task->queued = true;
+	task->scheduled = true;
 	return 0;
 }
 
@@ -215,10 +205,10 @@ int rinoo_task_unschedule(t_rinootask *task)
 	XASSERT(task != NULL, -1);
 	XASSERT(task->sched != NULL, -1);
 
-	if (task->queued == true) {
+	if (task->scheduled == true) {
 		rinoorbtree_remove(&task->sched->driver.proc_tree, &task->proc_node);
 		memset(&task->tv, 0, sizeof(task->tv));
-		task->queued = false;
+		task->scheduled = false;
 	}
 	return 0;
 }

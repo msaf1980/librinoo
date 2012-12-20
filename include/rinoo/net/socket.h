@@ -15,9 +15,8 @@ typedef struct s_rinoosocket
 {
 	int			fd;
 	int			error;
-	void			(*run)(struct s_rinoosocket *socket);
 	void			(*autodestroy)(struct s_rinoosocket *socket);
-	t_rinootask		task;
+	t_rinoosched		*sched;
 	struct s_rinoosocket	*parent;
 	void			*context;
 } t_rinoosocket;
@@ -27,10 +26,9 @@ typedef in_addr_t       t_ip;
 int rinoo_socket_init(t_rinoosched *sched,
 		      t_rinoosocket *socket,
 		      int fd,
-		      void (*run)(t_rinoosocket *socket),
 		      void (*autodestroy)(t_rinoosocket *socket));
-int rinoo_socket_set(t_rinoosched *sched, t_rinoosocket *sock, int domain, int type, void (*run)(t_rinoosocket *socket), void (*autodestroy)(t_rinoosocket *socket));
-t_rinoosocket *rinoo_socket(t_rinoosched *sched, int domain, int type, void (*run)(t_rinoosocket *socket));
+int rinoo_socket_set(t_rinoosched *sched, t_rinoosocket *sock, int domain, int type, void (*autodestroy)(t_rinoosocket *socket));
+t_rinoosocket *rinoo_socket(t_rinoosched *sched, int domain, int type);
 void rinoo_socket_close(t_rinoosocket *socket);
 void rinoo_socket_destroy(t_rinoosocket *socket);
 
@@ -48,7 +46,7 @@ int rinoo_socket_waitout(t_rinoosocket *socket);
 int rinoo_socket_connect(t_rinoosocket *socket, const struct sockaddr *addr, socklen_t addrlen);
 int rinoo_socket_bind(t_rinoosocket *socket, const struct sockaddr *addr, socklen_t addrlen);
 int rinoo_socket_listen(t_rinoosocket *socket, const struct sockaddr *addr, socklen_t addrlen, int backlog);
-t_rinoosocket *rinoo_socket_accept(t_rinoosocket *socket, struct sockaddr *addr, socklen_t *addrlen, void (*run)(t_rinoosocket *socket));
+t_rinoosocket *rinoo_socket_accept(t_rinoosocket *socket, struct sockaddr *addr, socklen_t *addrlen);
 ssize_t rinoo_socket_read(t_rinoosocket *socket, void *buf, size_t count);
 ssize_t	rinoo_socket_write(t_rinoosocket *socket, const void *buf, size_t count);
 ssize_t rinoo_socket_readb(t_rinoosocket *socket, t_buffer *buffer);
