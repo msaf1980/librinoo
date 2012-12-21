@@ -8,7 +8,7 @@
  *
  */
 
-#include	"rinoo/rinoo.h"
+#include "rinoo/rinoo.h"
 
 /**
  * Main function for this unit test

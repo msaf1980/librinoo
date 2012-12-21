@@ -8,26 +8,25 @@
  *
  */
 
-#ifndef		RINOO_MACROS_H_
-# define	RINOO_MACROS_H_
+#ifndef RINOO_MACROS_H_
+#define RINOO_MACROS_H_
 
-# if defined(__GNUC__) && \
-  (__GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 96))
-#  define	likely(x)	__builtin_expect((x), 1)
-#  define	unlikely(x)	__builtin_expect((x), 0)
-# else
-#  define	likely(x)	(x)
-#  define	unlikely(x)	(x)
-# endif
+#if defined(__GNUC__) && (__GNUC__ > 2 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 96))
+#define	likely(x)	__builtin_expect((x), 1)
+#define	unlikely(x)	__builtin_expect((x), 0)
+#else
+#define	likely(x)	(x)
+#define	unlikely(x)	(x)
+#endif
 
-# if defined(__GNUC__)
-#  define	unused(x)	x __attribute__((unused))
-# else
-#  define	unused(x)	x
-# endif
+#if defined(__GNUC__)
+#define unused(x)	x __attribute__((unused))
+#else
+#define unused(x)	x
+#endif
 
 #define	container_of(ptr, type, member) ({ \
 	const typeof(((type *) 0)->member) *__mptr = (ptr); \
 	(type *)( (char *)__mptr - offsetof(type,member) );})
 
-#endif		/* !RINOO_MACROS_H_ */
+#endif /* !RINOO_MACROS_H_ */

@@ -8,9 +8,9 @@
  *
  */
 
-#ifndef		RINOO_MODULE_STRUCT_H_
-# define	RINOO_MODULE_STRUCT_H_
+#ifndef RINOO_MODULE_STRUCT_H_
+#define RINOO_MODULE_STRUCT_H_
 
-# include	"rinoo/struct/rbtree.h"
+#include "rinoo/struct/rbtree.h"
 
-#endif		/* !RINOO_MODULE_STRUCT_H_ */
+#endif /* !RINOO_MODULE_STRUCT_H_ */

@@ -8,7 +8,7 @@
  *
  */
 
-#include	"rinoo/rinoo.h"
+#include "rinoo/rinoo.h"
 
 size_t buffer_helper_growthsize(t_buffer *buffer, size_t newsize)
 {

@@ -8,12 +8,12 @@
  *
  */
 
-#ifndef		RINOO_MODULE_SCHEDULER_H_
-# define	RINOO_MODULE_SCHEDULER_H_
+#ifndef RINOO_MODULE_SCHEDULER_H_
+#define RINOO_MODULE_SCHEDULER_H_
 
-# include	"rinoo/scheduler/fcontext.h"
-# include	"rinoo/scheduler/task.h"
-# include	"rinoo/scheduler/epoll.h"
-# include	"rinoo/scheduler/scheduler.h"
+#include "rinoo/scheduler/fcontext.h"
+#include "rinoo/scheduler/task.h"
+#include "rinoo/scheduler/epoll.h"
+#include "rinoo/scheduler/scheduler.h"
 
-#endif		/* !RINOO_MODULE_SCHEDULER_H_ */
+#endif /* !RINOO_MODULE_SCHEDULER_H_ */

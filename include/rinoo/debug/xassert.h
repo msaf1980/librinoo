@@ -8,19 +8,19 @@
  *
  */
 
-#ifndef		RINOO_DEBUG_XASSERT_H_
-# define	RINOO_DEBUG_XASSERT_H_
+#ifndef RINOO_DEBUG_XASSERT_H_
+#define RINOO_DEBUG_XASSERT_H_
 
-# ifdef		RINOO_DEBUG
+#ifdef RINOO_DEBUG
 
-# define	XASSERT(expr, ret)		if (unlikely(!(expr))) { fprintf(stderr, "Error in function '%s' - %s:%d - %s\n", __FUNCTION__, __FILE__, __LINE__, #expr); return ret; }
-# define	XASSERTN(expr)			if (unlikely(!(expr))) { fprintf(stderr, "Error in function '%s' - %s:%d - %s\n", __FUNCTION__, __FILE__, __LINE__, #expr); return; }
+#define XASSERT(expr, ret)	if (unlikely(!(expr))) { fprintf(stderr, "Error in function '%s' - %s:%d - %s\n", __FUNCTION__, __FILE__, __LINE__, #expr); return ret; }
+#define XASSERTN(expr)		if (unlikely(!(expr))) { fprintf(stderr, "Error in function '%s' - %s:%d - %s\n", __FUNCTION__, __FILE__, __LINE__, #expr); return; }
 
-# else
+#else
 
-# define	XASSERT(expr, ret)		if (unlikely(!(expr))) { return ret; }
-# define	XASSERTN(expr)			if (unlikely(!(expr))) { return; }
+#define XASSERT(expr, ret)	if (unlikely(!(expr))) { return ret; }
+#define XASSERTN(expr)		if (unlikely(!(expr))) { return; }
 
-# endif		/* !RINOO_DEBUG */
+#endif /* !RINOO_DEBUG */
 
-#endif		/* !RINOO_DEBUG_XASSERT_H_ */
+#endif /* !RINOO_DEBUG_XASSERT_H_ */

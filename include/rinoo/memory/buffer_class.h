@@ -8,8 +8,8 @@
  *
  */
 
-#ifndef		RINOO_MEMORY_BUFFER_CLASS_H_
-# define	RINOO_MEMORY_BUFFER_CLASS_H_
+#ifndef RINOO_MEMORY_BUFFER_CLASS_H_
+#define RINOO_MEMORY_BUFFER_CLASS_H_
 
 struct s_buffer;
 
@@ -23,4 +23,4 @@ typedef struct s_buffer_class {
 	int (*free)(struct s_buffer *buffer);
 } t_buffer_class;
 
-#endif		/* !RINOO_MEMORY_BUFFER_CLASS_H_ */
+#endif /* !RINOO_MEMORY_BUFFER_CLASS_H_ */

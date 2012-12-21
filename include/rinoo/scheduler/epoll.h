@@ -8,22 +8,21 @@
  *
  */
 
-#ifndef		RINOO_EPOLL_H_
-# define	RINOO_EPOLL_H_
+#ifndef RINOO_EPOLL_H_
+#define RINOO_EPOLL_H_
 
-# define	RINOO_EPOLL_MAX_EVENTS	128
+#define RINOO_EPOLL_MAX_EVENTS	128
 
-# include	<sys/epoll.h>
+#include <sys/epoll.h>
 
 struct s_rinoosched;	/* Defined in scheduler.h */
 enum e_rinoosched_mode;	/* Defined in scheduler.h */
 
-typedef struct		s_rinooepoll
-{
-  int			fd;
-  sigset_t		sigmask;
-  struct epoll_event	events[RINOO_EPOLL_MAX_EVENTS];
-}			t_rinooepoll;
+typedef struct s_rinooepoll {
+	int fd;
+	sigset_t sigmask;
+	struct epoll_event events[RINOO_EPOLL_MAX_EVENTS];
+} t_rinooepoll;
 
 int rinoo_epoll_init(struct s_rinoosched *sched);
 void rinoo_epoll_destroy(struct s_rinoosched *sched);
@@ -32,4 +31,4 @@ int rinoo_epoll_addmode(struct s_rinoosched *sched, int fd, enum e_rinoosched_mo
 int rinoo_epoll_remove(struct s_rinoosched *sched, int fd);
 int rinoo_epoll_poll(struct s_rinoosched *sched, u32 timeout);
 
-#endif		/* !RINOO_RINOO_EPOLL_H_ */
+#endif /* !RINOO_RINOO_EPOLL_H_ */

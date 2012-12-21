@@ -8,11 +8,11 @@
  *
  */
 
-#ifndef		RINOO_MODULE_MEMORY_H_
-# define	RINOO_MODULE_MEMORY_H_
+#ifndef RINOO_MODULE_MEMORY_H_
+#define RINOO_MODULE_MEMORY_H_
 
-# include	"rinoo/memory/buffer_class.h"
-# include	"rinoo/memory/buffer.h"
-# include	"rinoo/memory/buffer_helper.h"
+#include "rinoo/memory/buffer_class.h"
+#include "rinoo/memory/buffer.h"
+#include "rinoo/memory/buffer_helper.h"
 
-#endif		/* !RINOO_MODULE_MEMORY_H_ */
+#endif /* !RINOO_MODULE_MEMORY_H_ */

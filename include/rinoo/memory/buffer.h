@@ -8,10 +8,10 @@
  *
  */
 
-#ifndef		RINOO_MEMORY_BUFFER_H_
-# define	RINOO_MEMORY_BUFFER_H_
+#ifndef RINOO_MEMORY_BUFFER_H_
+#define RINOO_MEMORY_BUFFER_H_
 
-# define	RINOO_BUFFER_INCREMENT	2048
+#define RINOO_BUFFER_INCREMENT	2048
 
 typedef struct s_buffer {
 	void *ptr;
@@ -20,12 +20,12 @@ typedef struct s_buffer {
 	t_buffer_class *class;
 } t_buffer;
 
-# define	buffer_ptr(buffer)			((buffer)->ptr)
-# define	buffer_size(buffer)			((buffer)->size)
-# define	buffer_msize(buffer)			((buffer)->msize)
-# define	buffer_isfull(buffer)			((buffer)->size == (buffer)->msize || (buffer)->msize == 0)
-# define	buffer_setsize(buffer, newsize)		do { (buffer)->size = newsize; } while (0)
-# define	strtobuffer(buffer, str)		do { buffer_static(buffer, (void *)(str), strlen(str)); } while (0)
+#define buffer_ptr(buffer)			((buffer)->ptr)
+#define buffer_size(buffer)			((buffer)->size)
+#define buffer_msize(buffer)			((buffer)->msize)
+#define buffer_isfull(buffer)			((buffer)->size == (buffer)->msize || (buffer)->msize == 0)
+#define buffer_setsize(buffer, newsize)		do { (buffer)->size = newsize; } while (0)
+#define strtobuffer(buffer, str)		do { buffer_static(buffer, (void *)(str), strlen(str)); } while (0)
 
 t_buffer *buffer_create(t_buffer_class *class);
 void buffer_static(t_buffer *buffer, void *ptr, size_t size);

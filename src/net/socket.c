@@ -8,7 +8,7 @@
  *
  */
 
-#include	"rinoo/rinoo.h"
+#include "rinoo/rinoo.h"
 
 /**
  * Socket initialisation function. This function is similar to rinoo_socket,
@@ -18,11 +18,10 @@
  * @param sock Pointer to a socket structure to fill
  * @param domain Socket domain (see man socket)
  * @param type Socket type (see man socket)
- * @param autodestroy Pointer to a function to destroy the socket (if NULL, the socket will be automatically closed)
  *
  * @return 0 on success, otherwise -1
  */
-int rinoo_socket_set(t_rinoosched *sched, t_rinoosocket *sock, int domain, int type, void (*autodestroy)(t_rinoosocket *socket))
+int rinoo_socket_set(t_rinoosched *sched, t_rinoosocket *sock, int domain, int type)
 {
 	int fd;
 	int enabled;
@@ -36,15 +35,11 @@ int rinoo_socket_set(t_rinoosched *sched, t_rinoosocket *sock, int domain, int t
 	}
 	sock->fd = fd;
 	sock->sched = sched;
-	if (autodestroy == NULL) {
-		autodestroy = rinoo_socket_close;
-	}
 	enabled = 1;
 	if (unlikely(ioctl(sock->fd, FIONBIO, &enabled) == -1)) {
 		close(fd);
 		return -1;
 	}
-	sock->autodestroy = autodestroy;
 	return 0;
 
 }
@@ -68,7 +63,7 @@ t_rinoosocket *rinoo_socket(t_rinoosched *sched, int domain, int type)
 	if (unlikely(new == NULL)) {
 		return NULL;
 	}
-	if (unlikely(rinoo_socket_set(sched, new, domain, type, rinoo_socket_destroy) != 0)) {
+	if (unlikely(rinoo_socket_set(sched, new, domain, type) != 0)) {
 		free(new);
 		return NULL;
 	}
@@ -287,7 +282,6 @@ t_rinoosocket *rinoo_socket_accept(t_rinoosocket *socket, struct sockaddr *addr,
 	new->fd = fd;
 	new->parent = socket;
 	new->sched = socket->sched;
-	new->autodestroy = rinoo_socket_destroy;
 	enabled = 1;
 	if (unlikely(ioctl(new->fd, FIONBIO, &enabled) == -1)) {
 		close(fd);

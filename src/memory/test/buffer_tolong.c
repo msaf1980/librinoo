@@ -8,7 +8,7 @@
  *
  */
 
-#include	"rinoo/rinoo.h"
+#include "rinoo/rinoo.h"
 
 void check_buf(t_buffer *buffer, long int expected_result)
 {

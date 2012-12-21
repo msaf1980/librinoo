@@ -8,11 +8,11 @@
  *
  */
 
-#ifndef		RINOO_MODULE_GLOBAL_H_
-# define	RINOO_MODULE_GLOBAL_H_
+#ifndef RINOO_MODULE_GLOBAL_H_
+#define RINOO_MODULE_GLOBAL_H_
 
-# include	"rinoo/global/xtypes.h"
-# include	"rinoo/global/macros.h"
-# include	"rinoo/global/utils.h"
+#include "rinoo/global/xtypes.h"
+#include "rinoo/global/macros.h"
+#include "rinoo/global/utils.h"
 
-#endif		/* !RINOO_MODULE_GLOBAL_H_ */
+#endif /* !RINOO_MODULE_GLOBAL_H_ */

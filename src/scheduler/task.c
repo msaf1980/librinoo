@@ -202,9 +202,6 @@ int rinoo_task_release(t_rinoosched *sched)
 	if (fcontext_swap(&sched->driver.current->context, &sched->driver.main.context) != 1) {
 		return -1;
 	}
-	if (errno != 0) {
-		abort();
-	}
 	return errno;
 }
 

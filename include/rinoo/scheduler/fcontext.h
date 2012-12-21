@@ -28,8 +28,8 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef		FCONTEXT_H_
-# define	FCONTEXT_H_
+#ifndef FCONTEXT_H_
+#define FCONTEXT_H_
 
 enum {
 	FREG_R8 = 0,
@@ -66,4 +66,4 @@ void fcontext(t_fcontext *ctx, void (*func)(void *ptr), void *arg);
 void fcontext_jump(void);
 int fcontext_swap(t_fcontext *octx, t_fcontext *nctx);
 
-#endif		/* !FCONTEXT_H_ */
+#endif /* !FCONTEXT_H_ */

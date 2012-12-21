@@ -8,25 +8,23 @@
  *
  */
 
-#ifndef		RINOO_SCHEDULER_SCHEDULER_H_
-# define	RINOO_SCHEDULER_SCHEDULER_H_
+#ifndef RINOO_SCHEDULER_SCHEDULER_H_
+#define RINOO_SCHEDULER_SCHEDULER_H_
 
-# define	RINOO_SCHEDULER_MAXFDS		1000000
+#define RINOO_SCHEDULER_MAXFDS		1000000
 
-typedef enum e_rinoosched_mode
-{
+typedef enum e_rinoosched_mode {
 	RINOO_MODE_NONE = 0,
 	RINOO_MODE_IN = 1,
 	RINOO_MODE_OUT = 2
 } t_rinoosched_mode;
 
-typedef struct s_rinoosched
-{
-	int			stop;
-	struct timeval		clock;
-	t_rinootask_driver	driver;
-	struct s_rinooepoll	epoll;
-	t_rinootask		*task_pool[RINOO_SCHEDULER_MAXFDS];
+typedef struct s_rinoosched {
+	int stop;
+	struct timeval clock;
+	t_rinootask_driver driver;
+	struct s_rinooepoll epoll;
+	t_rinootask *task_pool[RINOO_SCHEDULER_MAXFDS];
 } t_rinoosched;
 
 t_rinoosched *rinoo_sched();
@@ -39,4 +37,4 @@ void rinoo_sched_wake(t_rinoosched *sched, int fd, t_rinoosched_mode mode, int e
 int rinoo_sched_poll(t_rinoosched *sched);
 void rinoo_sched_loop(t_rinoosched *sched);
 
-#endif	        /* !RINOO_SCHEDULER_SCHEDULER_H */
+#endif /* !RINOO_SCHEDULER_SCHEDULER_H */

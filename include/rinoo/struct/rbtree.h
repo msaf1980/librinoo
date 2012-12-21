@@ -32,30 +32,27 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef		RINOO_STRUCT_RBTREE_H_
-# define	RINOO_STRUCT_RBTREE_H_
+#ifndef RINOO_STRUCT_RBTREE_H_
+#define RINOO_STRUCT_RBTREE_H_
 
-typedef enum e_rinoorbtree_color
-{
+typedef enum e_rinoorbtree_color {
 	RINOO_RBTREE_RED = 0,
 	RINOO_RBTREE_BLACK
 } t_rinoorbtree_color;
 
-typedef struct s_rinoorbtree_node
-{
-	struct s_rinoorbtree_node	*left;
-	struct s_rinoorbtree_node	*right;
-	struct s_rinoorbtree_node	*parent;
-	t_rinoorbtree_color		color;
+typedef struct s_rinoorbtree_node {
+	t_rinoorbtree_color color;
+	struct s_rinoorbtree_node *left;
+	struct s_rinoorbtree_node *right;
+	struct s_rinoorbtree_node *parent;
 } t_rinoorbtree_node;
 
-typedef struct s_rinoorbtree
-{
-	u64			size;
-	t_rinoorbtree_node	*root;
-	t_rinoorbtree_node	*head;
-	int			(*compare)(t_rinoorbtree_node *node1, t_rinoorbtree_node *node2);
-	void			(*delete)(t_rinoorbtree_node *node);
+typedef struct s_rinoorbtree {
+	u64 size;
+	t_rinoorbtree_node *root;
+	t_rinoorbtree_node *head;
+	int (*compare)(t_rinoorbtree_node *node1, t_rinoorbtree_node *node2);
+	void (*delete)(t_rinoorbtree_node *node);
 } t_rinoorbtree;
 
 int rinoorbtree(t_rinoorbtree *tree,
@@ -68,4 +65,4 @@ t_rinoorbtree_node *rinoorbtree_head(t_rinoorbtree *tree);
 t_rinoorbtree_node *rinoorbtree_next(t_rinoorbtree_node *node);
 t_rinoorbtree_node *rinoorbtree_find(t_rinoorbtree *tree, t_rinoorbtree_node *node);
 
-#endif		/* !RINOO_STRUCT_RBTREE_H_ */
+#endif /* !RINOO_STRUCT_RBTREE_H_ */

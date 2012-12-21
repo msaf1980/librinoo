@@ -8,29 +8,27 @@
  *
  */
 
-#ifndef		RINOO_SCHEDULER_TASK_H_
-# define	RINOO_SCHEDULER_TASK_H_
+#ifndef RINOO_SCHEDULER_TASK_H_
+#define RINOO_SCHEDULER_TASK_H_
 
-# define	RINOO_TASK_STACK_SIZE	(16 * 1024)
+#define RINOO_TASK_STACK_SIZE	(16 * 1024)
 
 /* Defined in scheduler.h */
 struct s_rinoosched;
 
-typedef struct s_rinootask
-{
-	struct s_rinoosched	*sched;
-	struct timeval		tv;
-	bool			scheduled;
-	t_rinoorbtree_node	proc_node;
-	t_fcontext		context;
-	char			stack[RINOO_TASK_STACK_SIZE];
+typedef struct s_rinootask {
+ 	bool scheduled;
+	struct timeval tv;
+	struct s_rinoosched *sched;
+	t_rinoorbtree_node proc_node;
+	t_fcontext context;
+	char stack[RINOO_TASK_STACK_SIZE];
 } t_rinootask;
 
-typedef struct s_rinootask_driver
-{
-	t_rinootask	main;
-	t_rinootask	*current;
-	t_rinoorbtree	proc_tree;
+typedef struct s_rinootask_driver {
+	t_rinootask main;
+	t_rinootask *current;
+	t_rinoorbtree proc_tree;
 } t_rinootask_driver;
 
 int rinoo_task_driver_init(struct s_rinoosched *sched);
@@ -48,4 +46,4 @@ int rinoo_task_schedule(t_rinootask *task, struct timeval *tv);
 int rinoo_task_unschedule(t_rinootask *task);
 int rinoo_task_start(struct s_rinoosched *sched, void (*function)(void *arg), void *arg);
 
-#endif		/* RINOO_SCHEDULER_TASK_H_ */
+#endif /* RINOO_SCHEDULER_TASK_H_ */
