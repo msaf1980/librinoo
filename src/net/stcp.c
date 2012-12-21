@@ -102,12 +102,11 @@ t_rinoossl *rinoo_ssl(t_rinoosched *sched, t_rinoossl_ctx *ctx)
 
 	XASSERT(sched != NULL && ctx != NULL, NULL);
 
-	ssl = malloc(sizeof(*ssl));
+	ssl = calloc(1, sizeof(*ssl));
 	if (ssl == NULL) {
 		return NULL;
 	}
 	ssl->ctx = ctx;
-	ssl->ssl = NULL;
 	if (unlikely(rinoo_socket_set(sched, &ssl->socket, AF_INET, SOCK_STREAM) != 0)) {
 		free(ssl);
 		return NULL;
