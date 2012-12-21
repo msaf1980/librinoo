@@ -17,7 +17,6 @@
 
 struct s_rinoosched;	/* Defined in scheduler.h */
 enum e_rinoosched_mode;	/* Defined in scheduler.h */
-struct s_rinoosocket;	/* Defined in net/socket.h */
 
 typedef struct		s_rinooepoll
 {
@@ -28,9 +27,9 @@ typedef struct		s_rinooepoll
 
 int rinoo_epoll_init(struct s_rinoosched *sched);
 void rinoo_epoll_destroy(struct s_rinoosched *sched);
-int rinoo_epoll_insert(struct s_rinoosched *sched, struct s_rinoosocket *socket, enum e_rinoosched_mode mode);
-int rinoo_epoll_addmode(struct s_rinoosched *sched, struct s_rinoosocket *socket, enum e_rinoosched_mode mode);
-int rinoo_epoll_remove(struct s_rinoosched *sched, struct s_rinoosocket *socket);
+int rinoo_epoll_insert(struct s_rinoosched *sched, int fd, enum e_rinoosched_mode mode);
+int rinoo_epoll_addmode(struct s_rinoosched *sched, int fd, enum e_rinoosched_mode mode);
+int rinoo_epoll_remove(struct s_rinoosched *sched, int fd);
 int rinoo_epoll_poll(struct s_rinoosched *sched, u32 timeout);
 
 #endif		/* !RINOO_RINOO_EPOLL_H_ */

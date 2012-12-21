@@ -50,16 +50,22 @@ void rinoo_sched_destroy(t_rinoosched *sched)
 	/* Destroying all pending sockets. */
 	for (i = 0; i < RINOO_SCHEDULER_MAXFDS; i++)
 	{
-		if (sched->sock_pool[i] != NULL)
+		if (sched->task_pool[i] != NULL)
 		{
-			errno = ESHUTDOWN;
-			rinoo_socket_error_set(sched->sock_pool[i], ESHUTDOWN);
-			rinoo_socket_resume(sched->sock_pool[i]);
+			errno = ECANCELED;
+			rinoo_task_resume(sched->task_pool[i]);
 		}
 	}
 	rinoo_task_driver_destroy(sched);
 	rinoo_epoll_destroy(sched);
 	free(sched);
+}
+
+void rinoo_sched_test(void *arg)
+{
+	t_rinoosched *sched = arg;
+
+	rinoo_sched_loop(sched);
 }
 
 /**
@@ -71,50 +77,50 @@ void rinoo_sched_destroy(t_rinoosched *sched)
  *
  * @return 0 on success, or -1 if an error occurs.
  */
-int rinoo_sched_socket(t_rinoosocket *socket, t_rinoosched_action action, t_rinoosched_mode mode)
+int rinoo_sched_waitfor(t_rinoosched *sched, int fd, t_rinoosched_mode mode)
 {
-	XASSERT(socket != NULL, -1);
-	XASSERT(socket->sched != NULL, -1);
-	XASSERT(socket->fd < RINOO_SCHEDULER_MAXFDS, -1);
+	XASSERT(fd < RINOO_SCHEDULER_MAXFDS, -1);
 
-	switch (action) {
-	case RINOO_SCHED_ADD:
-		if (socket->sched->sock_pool[socket->fd] != socket) {
-			if (unlikely(rinoo_epoll_insert(socket->sched, socket, mode) != 0)) {
+	if (sched->task_pool[fd] == NULL) {
+			if (unlikely(rinoo_epoll_insert(sched, fd, mode) != 0)) {
 				return -1;
 			}
-			socket->task->sched->sock_pool[socket->fd] = socket;
-		} else {
-			if (unlikely(rinoo_epoll_addmode(socket->task->sched, socket, mode) != 0)) {
-				return -1;
-			}
-		}
-		break;
-	case RINOO_SCHED_REMOVE:
-		if (rinoo_epoll_remove(socket->task->sched, socket) != 0)
-		{
+	} else {
+		if (unlikely(rinoo_epoll_addmode(sched, fd, mode) != 0)) {
 			return -1;
 		}
-		socket->task->sched->sock_pool[socket->fd] = NULL;
-		break;
+	}
+	sched->task_pool[fd] = rinoo_task_driver_getcurrent(sched);
+	if (unlikely(sched->task_pool[fd] == &sched->driver.main)) {
+		return rinoo_sched_poll(sched);
+	}
+	return rinoo_task_release(sched);
+}
+
+int rinoo_sched_remove(t_rinoosched *sched, int fd)
+{
+	XASSERT(fd < RINOO_SCHEDULER_MAXFDS, -1);
+
+	sched->task_pool[fd] = NULL;
+	if (rinoo_epoll_remove(sched, fd) != 0) {
+		return -1;
 	}
 	return 0;
 }
 
-/**
- * Returns the socket corresponding to a file descriptor.
- *
- * @param sched Pointer to the scheduler to use.
- * @param fd File descriptor (< RINOO_SCHEDULER_MAXFDS).
- *
- * @return A pointer to the corresponding socket if found, else NULL.
- */
-t_rinoosocket *rinoo_sched_get(t_rinoosched *sched, int fd)
+void rinoo_sched_wake(t_rinoosched *sched, int fd, t_rinoosched_mode unused(mode), int error)
 {
-	XASSERT(sched != NULL, NULL);
-	XASSERT(fd >= 0 && fd < RINOO_SCHEDULER_MAXFDS, NULL);
+	t_rinootask *task;
 
-	return sched->sock_pool[fd];
+	XASSERTN(fd < RINOO_SCHEDULER_MAXFDS);
+
+	task = sched->task_pool[fd];
+	errno = error;
+	if (task == NULL || task == &sched->driver.main) {
+		/* Nothing to wake */
+		return;
+	}
+	rinoo_task_resume(task);
 }
 
 /**
@@ -130,6 +136,18 @@ void rinoo_sched_stop(t_rinoosched *sched)
 	sched->stop = 1;
 }
 
+int rinoo_sched_poll(t_rinoosched *sched)
+{
+	u32 timeout;
+
+	gettimeofday(&sched->clock, NULL);
+	timeout = rinoo_task_driver_run(sched);
+	if (sched->stop == 0) {
+		return rinoo_epoll_poll(sched, timeout);
+	}
+	return 0;
+}
+
 /**
  * Main scheduler loop.
  *
@@ -138,13 +156,7 @@ void rinoo_sched_stop(t_rinoosched *sched)
  */
 void rinoo_sched_loop(t_rinoosched *sched)
 {
-	u32 timeout;
-
 	while (sched->stop == 0) {
-		gettimeofday(&sched->clock, NULL);
-		timeout = rinoo_task_driver_run(sched);
-		if (sched->stop == 0) {
-			rinoo_epoll_poll(sched, timeout);
-		}
+		rinoo_sched_poll(sched);
 	}
 }

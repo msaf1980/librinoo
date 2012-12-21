@@ -36,12 +36,16 @@ typedef struct s_rinootask_driver
 int rinoo_task_driver_init(struct s_rinoosched *sched);
 void rinoo_task_driver_destroy(struct s_rinoosched *sched);
 u32 rinoo_task_driver_run(struct s_rinoosched *sched);
+t_rinootask *rinoo_task_driver_getcurrent(struct s_rinoosched *sched);
 
-t_rinootask *rinoo_task(struct s_rinoosched *sched, void (*function)(void *arg), void *arg);
+t_rinootask *rinoo_task(struct s_rinoosched *sched, t_rinootask *parent, void (*function)(void *arg), void *arg);
 void rinoo_task_destroy(t_rinootask *task);
+int rinoo_task_start(struct s_rinoosched *sched, void (*function)(void *arg), void *arg);
+int rinoo_task_run(struct s_rinoosched *sched, void (*function)(void *arg), void *arg);
+int rinoo_task_resume(t_rinootask *task);
 int rinoo_task_release(struct s_rinoosched *sched);
-int rinoo_task_run(t_rinootask *task);
 int rinoo_task_schedule(t_rinootask *task, struct timeval *tv);
 int rinoo_task_unschedule(t_rinootask *task);
+int rinoo_task_start(struct s_rinoosched *sched, void (*function)(void *arg), void *arg);
 
 #endif		/* RINOO_SCHEDULER_TASK_H_ */

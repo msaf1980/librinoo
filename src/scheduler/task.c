@@ -71,13 +71,18 @@ u32 rinoo_task_driver_run(t_rinoosched *sched)
 		task = container_of(head, t_rinootask, proc_node);
 		if (timercmp(&task->tv, &sched->clock, <=)) {
 			rinoo_task_unschedule(task);
-			rinoo_task_run(task);
+			rinoo_task_resume(task);
 		} else {
 			timersub(&task->tv, &sched->clock, &tv);
 			return (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
 		}
 	}
 	return 1000;
+}
+
+t_rinootask *rinoo_task_driver_getcurrent(t_rinoosched *sched)
+{
+	return sched->driver.current;
 }
 
 /**
@@ -89,7 +94,7 @@ u32 rinoo_task_driver_run(t_rinoosched *sched)
  *
  * @return Pointer to the created task, or NULL if an error occurs
  */
-t_rinootask *rinoo_task(t_rinoosched *sched, void (*function)(void *arg), void *arg)
+t_rinootask *rinoo_task(t_rinoosched *sched, t_rinootask *parent, void (*function)(void *arg), void *arg)
 {
 	t_rinootask *task;
 
@@ -105,10 +110,8 @@ t_rinootask *rinoo_task(t_rinoosched *sched, void (*function)(void *arg), void *
 	task->context.stack.sp = task->stack;
 	task->context.stack.size = sizeof(task->stack);
 	task->context.link = NULL;
-	if (task->sched->driver.current != NULL) {
-		task->context.link = &task->sched->driver.current->context;
-	} else {
-		task->context.link = &task->sched->driver.main.context;
+	if (parent != NULL) {
+		task->context.link = &parent->context;
 	}
 	memset(&task->tv, 0, sizeof(task->tv));
 	memset(&task->proc_node, 0, sizeof(task->proc_node));
@@ -122,15 +125,38 @@ void rinoo_task_destroy(t_rinootask *task)
 	free(task);
 }
 
+int rinoo_task_start(t_rinoosched *sched, void (*function)(void *arg), void *arg)
+{
+	t_rinootask *task;
+
+	task = rinoo_task(sched, &sched->driver.main, function, arg);
+	if (task == NULL) {
+		return -1;
+	}
+	rinoo_task_schedule(task, NULL);
+	return 0;
+}
+
+int rinoo_task_run(t_rinoosched *sched, void (*function)(void *arg), void *arg)
+{
+	t_rinootask *task;
+
+	task = rinoo_task(sched, sched->driver.current, function, arg);
+	if (task == NULL) {
+		return -1;
+	}
+	return rinoo_task_resume(task);
+}
+
 /**
- * Run or resume a task.
+ * Resume a task.
  * This function switches to the task stack by calling fcontext_swap.
  *
  * @param task Pointer to the task to run or resume
  *
  * @return 1 if the given task has been executed and is over, 0 if it's been released, -1 if an error occurs
  */
-int rinoo_task_run(t_rinootask *task)
+int rinoo_task_resume(t_rinootask *task)
 {
 	int ret;
 	t_rinootask *old;
@@ -175,6 +201,9 @@ int rinoo_task_release(t_rinoosched *sched)
 	errno = 0;
 	if (fcontext_swap(&sched->driver.current->context, &sched->driver.main.context) != 1) {
 		return -1;
+	}
+	if (errno != 0) {
+		abort();
 	}
 	return errno;
 }

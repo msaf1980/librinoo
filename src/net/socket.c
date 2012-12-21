@@ -11,32 +11,6 @@
 #include	"rinoo/rinoo.h"
 
 /**
- * Generic socket creation.
- * This function should be used internally only.
- *
- * @param sched Pointer to a scheduler
- * @param fd Socket file descriptor
- *
- * @return 0 on success, otherwise -1
- */
-int rinoo_socket_init(t_rinoosched *sched, t_rinoosocket *socket, int fd, void (*autodestroy)(t_rinoosocket *socket))
-{
-	int enabled;
-
-	XASSERT(sched != NULL, -1);
-	XASSERT(socket != NULL, -1);
-
-	socket->fd = fd;
-	socket->sched = sched;
-	enabled = 1;
-	if (unlikely(ioctl(socket->fd, FIONBIO, &enabled) == -1)) {
-		return -1;
-	}
-	socket->autodestroy = autodestroy;
-	return 0;
-}
-
-/**
  * Socket initialisation function. This function is similar to rinoo_socket,
  * except that it does not allocate memory for socket structure.
  *
@@ -51,6 +25,7 @@ int rinoo_socket_init(t_rinoosched *sched, t_rinoosocket *socket, int fd, void (
 int rinoo_socket_set(t_rinoosched *sched, t_rinoosocket *sock, int domain, int type, void (*autodestroy)(t_rinoosocket *socket))
 {
 	int fd;
+	int enabled;
 
 	XASSERT(sched != NULL, -1);
 	XASSERT(sock != NULL, -1);
@@ -59,13 +34,17 @@ int rinoo_socket_set(t_rinoosched *sched, t_rinoosocket *sock, int domain, int t
 	if (unlikely(fd == -1)) {
 		return -1;
 	}
+	sock->fd = fd;
+	sock->sched = sched;
 	if (autodestroy == NULL) {
 		autodestroy = rinoo_socket_close;
 	}
-	if (unlikely(rinoo_socket_init(sched, sock, fd, autodestroy) != 0)) {
+	enabled = 1;
+	if (unlikely(ioctl(sock->fd, FIONBIO, &enabled) == -1)) {
 		close(fd);
 		return -1;
 	}
+	sock->autodestroy = autodestroy;
 	return 0;
 
 }
@@ -81,22 +60,15 @@ int rinoo_socket_set(t_rinoosched *sched, t_rinoosocket *sock, int domain, int t
  */
 t_rinoosocket *rinoo_socket(t_rinoosched *sched, int domain, int type)
 {
-	int fd;
 	t_rinoosocket *new;
 
 	XASSERT(sched != NULL, NULL);
 
-	fd = socket(domain, type, 0);
-	if (unlikely(fd == -1)) {
-		return NULL;
-	}
 	new = calloc(1, sizeof(*new));
 	if (unlikely(new == NULL)) {
-		close(fd);
 		return NULL;
 	}
-	if (unlikely(rinoo_socket_init(sched, new, fd, rinoo_socket_destroy) != 0)) {
-		close(fd);
+	if (unlikely(rinoo_socket_set(sched, new, domain, type, rinoo_socket_destroy) != 0)) {
 		free(new);
 		return NULL;
 	}
@@ -113,7 +85,7 @@ void rinoo_socket_close(t_rinoosocket *socket)
 {
 	XASSERTN(socket != NULL);
 
-	rinoo_sched_socket(socket, RINOO_SCHED_REMOVE, RINOO_MODE_NONE);
+	rinoo_sched_remove(socket->sched, socket->fd);
 	close(socket->fd);
 }
 
@@ -145,31 +117,6 @@ int rinoo_socket_error_get(t_rinoosocket *socket)
 	return socket->error;
 }
 
-int rinoo_socket_schedule(t_rinoosocket *socket, u32 ms)
-{
-	struct timeval res;
-	struct timeval toadd;
-
-	XASSERT(socket != NULL, -1);
-
-	toadd.tv_sec = ms / 1000;
-	toadd.tv_usec = (ms % 1000) * 1000;
-	timeradd(&socket->sched->clock, &toadd, &res);
-	return rinoo_task_schedule(socket->sched->driver.current, &res);
-}
-
-int rinoo_socket_unschedule(t_rinoosocket *socket)
-{
-	XASSERT(socket != NULL, -1);
-
-	return rinoo_task_unschedule(socket->task);
-}
-
-int rinoo_socket_timeout(t_rinoosocket *socket, u32 ms)
-{
-	return rinoo_socket_schedule(socket, ms);
-}
-
 /**
  * Releases the current socket execution
  *
@@ -182,7 +129,7 @@ int rinoo_socket_release(t_rinoosocket *socket)
 	XASSERT(socket != NULL, -1);
 
 	rinoo_socket_error_set(socket, ETIMEDOUT);
-	return rinoo_task_release(socket->sched->driver.current);
+	return rinoo_task_release(socket->sched);
 }
 
 /**
@@ -194,10 +141,7 @@ int rinoo_socket_release(t_rinoosocket *socket)
  */
 int rinoo_socket_waitin(t_rinoosocket *socket)
 {
-	if (unlikely(rinoo_sched_socket(socket, RINOO_SCHED_ADD, RINOO_MODE_IN) != 0)) {
-		return -1;
-	}
-	if (rinoo_socket_release(socket) != 0) {
+	if (unlikely(rinoo_sched_waitfor(socket->sched, socket->fd, RINOO_MODE_IN) != 0)) {
 		return -1;
 	}
 	if (socket->error != 0) {
@@ -216,10 +160,7 @@ int rinoo_socket_waitin(t_rinoosocket *socket)
  */
 int rinoo_socket_waitout(t_rinoosocket *socket)
 {
-	if (unlikely(rinoo_sched_socket(socket, RINOO_SCHED_ADD, RINOO_MODE_OUT) != 0)) {
-		return -1;
-	}
-	if (rinoo_socket_release(socket) != 0) {
+	if (unlikely(rinoo_sched_waitfor(socket->sched, socket->fd, RINOO_MODE_OUT) != 0)) {
 		return -1;
 	}
 	if (socket->error != 0) {
@@ -328,6 +269,7 @@ int rinoo_socket_listen(t_rinoosocket *socket, const struct sockaddr *addr, sock
 t_rinoosocket *rinoo_socket_accept(t_rinoosocket *socket, struct sockaddr *addr, socklen_t *addrlen)
 {
 	int fd;
+	int enabled;
 	t_rinoosocket *new;
 
 	if (rinoo_socket_waitin(socket) != 0) {
@@ -342,14 +284,14 @@ t_rinoosocket *rinoo_socket_accept(t_rinoosocket *socket, struct sockaddr *addr,
 		close(fd);
 		return NULL;
 	}
-	if (unlikely(rinoo_socket_init(socket->task->sched, new, fd, rinoo_socket_destroy) != 0)) {
+	new->fd = fd;
+	new->parent = socket;
+	new->sched = socket->sched;
+	new->autodestroy = rinoo_socket_destroy;
+	enabled = 1;
+	if (unlikely(ioctl(new->fd, FIONBIO, &enabled) == -1)) {
 		close(fd);
 		free(new);
-		return NULL;
-	}
-	new->parent = socket;
-	if (rinoo_sched_socket(new, RINOO_SCHED_ADD, RINOO_MODE_OUT) != 0) {
-		rinoo_socket_destroy(new);
 		return NULL;
 	}
 	return new;

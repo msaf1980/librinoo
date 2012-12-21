@@ -1,0 +1,91 @@
+/**
+ * @file rinoo_socket_write.c
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
+ * @date Sun Jan 3 15:34:47 2010
+ *
+ * @brief Test file for read/write functions.
+ *
+ *
+ */
+#include "rinoo/rinoo.h"
+
+void process_client(void *arg)
+{
+	char b;
+	t_rinoosocket *socket = arg;
+
+	rinoo_log("server - client accepted");
+	rinoo_log("server - sending 'abcdef'");
+	XTEST(rinoo_socket_write(socket, "abcdef", 6) == 6);
+	rinoo_log("server - receiving 'b'");
+	XTEST(rinoo_socket_read(socket, &b, 1) == 1);
+	XTEST(b == 'b');
+	rinoo_log("server - receiving nothing");
+	XTEST(rinoo_socket_read(socket, &b, 1) == 0);
+	rinoo_sched_stop(socket->sched);
+	rinoo_socket_destroy(socket);
+}
+
+void server_func(void *arg)
+{
+	t_rinoosocket *server;
+	t_rinoosocket *client;
+	struct sockaddr_in addr;
+	t_rinoosched *sched = arg;
+
+	server = rinoo_socket(sched, AF_INET, SOCK_STREAM);
+	XTEST(server != NULL);
+	addr.sin_port = htons(4242);
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = 0;
+	XTEST(rinoo_socket_listen(server, (struct sockaddr *) &addr, sizeof(addr), 42) == 0);
+	rinoo_log("server listening...");
+	client = rinoo_socket_accept(server, (struct sockaddr *) &addr, (socklen_t *)(int[]){(sizeof(struct sockaddr))});
+	XTEST(client != NULL);
+	rinoo_log("server - accepting client (%s:%d)", inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
+	rinoo_task_start(sched, process_client, client);
+	rinoo_socket_destroy(server);
+}
+
+void client_func(void *arg)
+{
+	char a;
+	char cur;
+	struct sockaddr_in addr;
+	t_rinoosocket *socket;
+	t_rinoosched *sched = arg;
+
+	socket = rinoo_socket(sched, AF_INET, SOCK_STREAM);
+	XTEST(socket != NULL);
+	addr.sin_port = htons(4242);
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = 0;
+	XTEST(rinoo_socket_connect(socket, (struct sockaddr *) &addr, sizeof(addr)) == 0);
+	rinoo_log("client - connected");
+	for (cur = 'a'; cur <= 'f'; cur++) {
+		rinoo_log("client - receiving '%c'", cur);
+		XTEST(rinoo_socket_read(socket, &a, 1) == 1);
+		XTEST(a == cur);
+	}
+	rinoo_log("client - sending 'b'");
+	XTEST(rinoo_socket_write(socket, "b", 1) == 1);
+	rinoo_socket_destroy(socket);
+}
+
+/**
+ * This test will check if a scheduler is well initialized.
+ *
+ * @return 0 if test passed
+ */
+int main()
+{
+	t_rinoosched *sched;
+
+	sched = rinoo_sched();
+	XTEST(sched != NULL);
+	XTEST(rinoo_task_start(sched, server_func, sched) == 0);
+	XTEST(rinoo_task_start(sched, client_func, sched) == 0);
+	rinoo_sched_loop(sched);
+	rinoo_sched_destroy(sched);
+	XPASS();
+}
