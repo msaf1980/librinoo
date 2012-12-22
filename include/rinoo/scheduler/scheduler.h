@@ -33,7 +33,7 @@ void rinoo_sched_stop(t_rinoosched *sched);
 int rinoo_sched_waitfor(t_rinoosched *sched, int fd,  t_rinoosched_mode mode);
 int rinoo_sched_remove(t_rinoosched *sched, int fd);
 struct s_rinoosocket *rinoo_sched_get(t_rinoosched *sched, int fd);
-void rinoo_sched_wake(t_rinoosched *sched, int fd, t_rinoosched_mode mode, int error);
+void rinoo_sched_wakeup(t_rinoosched *sched, int fd, t_rinoosched_mode mode, int error);
 int rinoo_sched_poll(t_rinoosched *sched);
 void rinoo_sched_loop(t_rinoosched *sched);
 

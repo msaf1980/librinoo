@@ -141,14 +141,14 @@ int rinoo_epoll_poll(t_rinoosched *sched, u32 timeout)
 	}
 	for (i = 0; i < nbevents; i++) {
 		if ((sched->epoll.events[i].events & EPOLLIN) == EPOLLIN) {
-			rinoo_sched_wake(sched, sched->epoll.events[i].data.fd, RINOO_MODE_IN, 0);
+			rinoo_sched_wakeup(sched, sched->epoll.events[i].data.fd, RINOO_MODE_IN, 0);
 		}
 		if ((sched->epoll.events[i].events & EPOLLOUT) == EPOLLOUT) {
-			rinoo_sched_wake(sched, sched->epoll.events[i].data.fd, RINOO_MODE_OUT, 0);
+			rinoo_sched_wakeup(sched, sched->epoll.events[i].data.fd, RINOO_MODE_OUT, 0);
 		}
 		if (((sched->epoll.events[i].events & EPOLLERR) == EPOLLERR ||
 		     (sched->epoll.events[i].events & EPOLLHUP) == EPOLLHUP)) {
-			rinoo_sched_wake(sched, sched->epoll.events[i].data.fd, RINOO_MODE_NONE, ECONNRESET);
+			rinoo_sched_wakeup(sched, sched->epoll.events[i].data.fd, RINOO_MODE_NONE, ECONNRESET);
 		}
 	}
 	return 0;

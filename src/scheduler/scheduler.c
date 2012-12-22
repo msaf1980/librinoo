@@ -47,7 +47,7 @@ void rinoo_sched_destroy(t_rinoosched *sched)
 
 	XASSERTN(sched != NULL);
 
-	/* Destroying all pending sockets. */
+	/* Destroying all pending tasks. */
 	for (i = 0; i < RINOO_SCHEDULER_MAXFDS; i++)
 	{
 		if (sched->task_pool[i] != NULL)
@@ -61,18 +61,11 @@ void rinoo_sched_destroy(t_rinoosched *sched)
 	free(sched);
 }
 
-void rinoo_sched_test(void *arg)
-{
-	t_rinoosched *sched = arg;
-
-	rinoo_sched_loop(sched);
-}
-
 /**
- * Controls socket mode registration in the scheduler.
+ * Register a file descriptor in the scheduler and wait for IO.
  *
- * @param socket Pointer to the socket to change in the scheduler.
- * @param action Action to perform: enable/disable socket event.
+ * @param sched Pointer to the scheduler.
+ * @param fd File descriptor to monitor.
  * @param mode Mode to enable (IN/OUT).
  *
  * @return 0 on success, or -1 if an error occurs.
@@ -97,6 +90,14 @@ int rinoo_sched_waitfor(t_rinoosched *sched, int fd, t_rinoosched_mode mode)
 	return rinoo_task_release(sched);
 }
 
+/**
+ * Unregister a file descriptor from the scheduler.
+ *
+ * @param sched Pointer to the scheduler.
+ * @param fd File descriptor to remove.
+ *
+ * @return 0 on success, otherwise -1.
+ */
 int rinoo_sched_remove(t_rinoosched *sched, int fd)
 {
 	XASSERT(fd < RINOO_SCHEDULER_MAXFDS, -1);
@@ -108,7 +109,16 @@ int rinoo_sched_remove(t_rinoosched *sched, int fd)
 	return 0;
 }
 
-void rinoo_sched_wake(t_rinoosched *sched, int fd, t_rinoosched_mode unused(mode), int error)
+/**
+ * Wake up a file descriptor task.
+ * This function should be called by the file descriptor monitoring layer (epoll).
+ *
+ * @param sched Pointer to the scheduler.
+ * @param fd File descriptor which received IO event.
+ * @param mode IO Event.
+ * @param error Error flag.
+ */
+void rinoo_sched_wakeup(t_rinoosched *sched, int fd, t_rinoosched_mode unused(mode), int error)
 {
 	t_rinootask *task;
 
@@ -136,6 +146,13 @@ void rinoo_sched_stop(t_rinoosched *sched)
 	sched->stop = 1;
 }
 
+/**
+ * Check for any task to be executed and poll hte file descriptor monitoring layer (epoll).
+ *
+ * @param sched Pointer to the scheduler.
+ *
+ * @return 0 on success, otherwise -1.
+ */
 int rinoo_sched_poll(t_rinoosched *sched)
 {
 	u32 timeout;
@@ -150,6 +167,7 @@ int rinoo_sched_poll(t_rinoosched *sched)
 
 /**
  * Main scheduler loop.
+ * This calls rinoo_sched_poll in a loop until the scheduler gets stopped.
  *
  * @param sched Pointer to the scheduler to use.
  *

@@ -11,8 +11,8 @@
 #include "rinoo/rinoo.h"
 
 /**
- * Socket initialisation function. This function is similar to rinoo_socket,
- * except that it does not allocate memory for socket structure.
+ * Socket initialisation function. This function creates a socket file descriptor
+ * and enables non-blocking IO.
  *
  * @param sched Pointer to a scheduler
  * @param sock Pointer to a socket structure to fill
@@ -110,21 +110,6 @@ int rinoo_socket_error_get(t_rinoosocket *socket)
 	XASSERT(socket != NULL, 0);
 
 	return socket->error;
-}
-
-/**
- * Releases the current socket execution
- *
- * @param sched Pointer to the scheduler currently used
- *
- * @return 0 on success or -1 if an error occurs
- */
-int rinoo_socket_release(t_rinoosocket *socket)
-{
-	XASSERT(socket != NULL, -1);
-
-	rinoo_socket_error_set(socket, ETIMEDOUT);
-	return rinoo_task_release(socket->sched);
 }
 
 /**
