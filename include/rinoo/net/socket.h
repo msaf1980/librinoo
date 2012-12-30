@@ -13,7 +13,6 @@
 
 typedef struct s_rinoosocket {
 	int fd;
-	int error;
 	t_rinoosched *sched;
 	struct s_rinoosocket *parent;
 } t_rinoosocket;
@@ -25,12 +24,11 @@ t_rinoosocket *rinoo_socket(t_rinoosched *sched, int domain, int type);
 void rinoo_socket_close(t_rinoosocket *socket);
 void rinoo_socket_destroy(t_rinoosocket *socket);
 
-void rinoo_socket_error_set(t_rinoosocket *socket, int error);
-int rinoo_socket_error_get(t_rinoosocket *socket);
 int rinoo_socket_resume(t_rinoosocket *socket);
 int rinoo_socket_release(t_rinoosocket *socket);
 int rinoo_socket_waitin(t_rinoosocket *socket);
 int rinoo_socket_waitout(t_rinoosocket *socket);
+int rinoo_socket_timeout(t_rinoosocket *socket, u32 ms);
 
 int rinoo_socket_connect(t_rinoosocket *socket, const struct sockaddr *addr, socklen_t addrlen);
 int rinoo_socket_bind(t_rinoosocket *socket, const struct sockaddr *addr, socklen_t addrlen);

@@ -21,9 +21,11 @@ typedef enum e_rinoosched_mode {
 
 typedef struct s_rinoosched {
 	int stop;
+	int error;
 	struct timeval clock;
 	t_rinootask_driver driver;
 	struct s_rinooepoll epoll;
+	t_rinoosched_mode lastmode;
 	t_rinootask *task_pool[RINOO_SCHEDULER_MAXFDS];
 } t_rinoosched;
 

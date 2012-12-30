@@ -98,20 +98,6 @@ void rinoo_socket_destroy(t_rinoosocket *socket)
 	free(socket);
 }
 
-void rinoo_socket_error_set(t_rinoosocket *socket, int error)
-{
-	XASSERTN(socket != NULL);
-
-	socket->error = error;
-}
-
-int rinoo_socket_error_get(t_rinoosocket *socket)
-{
-	XASSERT(socket != NULL, 0);
-
-	return socket->error;
-}
-
 /**
  * Releases socket execution and waits for the socket to be available for read operations.
  *
@@ -121,14 +107,7 @@ int rinoo_socket_error_get(t_rinoosocket *socket)
  */
 int rinoo_socket_waitin(t_rinoosocket *socket)
 {
-	if (unlikely(rinoo_sched_waitfor(socket->sched, socket->fd, RINOO_MODE_IN) != 0)) {
-		return -1;
-	}
-	if (socket->error != 0) {
-		errno = socket->error;
-		return -1;
-	}
-	return 0;
+	return rinoo_sched_waitfor(socket->sched, socket->fd, RINOO_MODE_IN);
 }
 
 /**
@@ -140,14 +119,23 @@ int rinoo_socket_waitin(t_rinoosocket *socket)
  */
 int rinoo_socket_waitout(t_rinoosocket *socket)
 {
-	if (unlikely(rinoo_sched_waitfor(socket->sched, socket->fd, RINOO_MODE_OUT) != 0)) {
-		return -1;
+	return rinoo_sched_waitfor(socket->sched, socket->fd, RINOO_MODE_OUT);
+}
+
+int rinoo_socket_timeout(t_rinoosocket *socket, u32 ms)
+{
+	struct timeval res;
+	struct timeval toadd;
+
+	XASSERT(socket != NULL, -1);
+
+	if (ms == 0) {
+		return rinoo_task_schedule(rinoo_task_driver_getcurrent(socket->sched), NULL);
 	}
-	if (socket->error != 0) {
-		errno = socket->error;
-		return -1;
-	}
-	return 0;
+	toadd.tv_sec = ms / 1000;
+	toadd.tv_usec = (ms % 1000) * 1000;
+	timeradd(&socket->sched->clock, &toadd, &res);
+	return rinoo_task_schedule(rinoo_task_driver_getcurrent(socket->sched), &res);
 }
 
 /**

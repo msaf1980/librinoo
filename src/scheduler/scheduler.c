@@ -75,9 +75,9 @@ int rinoo_sched_waitfor(t_rinoosched *sched, int fd, t_rinoosched_mode mode)
 	XASSERT(fd < RINOO_SCHEDULER_MAXFDS, -1);
 
 	if (sched->task_pool[fd] == NULL) {
-			if (unlikely(rinoo_epoll_insert(sched, fd, mode) != 0)) {
-				return -1;
-			}
+		if (unlikely(rinoo_epoll_insert(sched, fd, mode) != 0)) {
+			return -1;
+		}
 	} else {
 		if (unlikely(rinoo_epoll_addmode(sched, fd, mode) != 0)) {
 			return -1;
@@ -87,7 +87,21 @@ int rinoo_sched_waitfor(t_rinoosched *sched, int fd, t_rinoosched_mode mode)
 	if (unlikely(sched->task_pool[fd] == &sched->driver.main)) {
 		return rinoo_sched_poll(sched);
 	}
-	return rinoo_task_release(sched);
+	if (rinoo_task_release(sched) != 0) {
+		return -1;
+	}
+	if (sched->error != 0) {
+		errno = sched->error;
+		return -1;
+	}
+	if (sched->lastmode != mode) {
+		/* Task has been resumed without setting lastmode */
+		errno = ETIMEDOUT;
+		return -1;
+	}
+	sched->error = 0;
+	sched->lastmode = RINOO_MODE_NONE;
+	return 0;
 }
 
 /**
@@ -118,14 +132,15 @@ int rinoo_sched_remove(t_rinoosched *sched, int fd)
  * @param mode IO Event.
  * @param error Error flag.
  */
-void rinoo_sched_wakeup(t_rinoosched *sched, int fd, t_rinoosched_mode unused(mode), int error)
+void rinoo_sched_wakeup(t_rinoosched *sched, int fd, t_rinoosched_mode mode, int error)
 {
 	t_rinootask *task;
 
 	XASSERTN(fd < RINOO_SCHEDULER_MAXFDS);
 
 	task = sched->task_pool[fd];
-	errno = error;
+	sched->error = error;
+	sched->lastmode = mode;
 	if (task == NULL || task == &sched->driver.main) {
 		/* Nothing to wake */
 		return;
