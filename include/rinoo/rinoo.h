@@ -62,6 +62,6 @@
 #include "rinoo/net/module.h"
 
 /* PROTO */
-//#include "rinoo/proto/module.h"
+#include "rinoo/proto/module.h"
 
 #endif /* !RINOO_H_ */

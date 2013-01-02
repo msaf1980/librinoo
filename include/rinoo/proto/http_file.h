@@ -8,11 +8,11 @@
  *
  */
 
-#ifndef RINOO_PROTO_HTTP_FILE_H_
-#define RINOO_PROTO_HTTP_FILE_H_
+#ifndef		RINOO_PROTO_HTTP_FILE_H_
+# define	RINOO_PROTO_HTTP_FILE_H_
 
 int rinoohttp_send_dir(t_rinoohttp *http, const char *path);
 int rinoohttp_send_file(t_rinoohttp *http, const char *path);
 
-#endif /* !RINOO_PROTO_HTTP_FILE_H_ */
+#endif		/* !RINOO_PROTO_HTTP_FILE_H_ */
 
