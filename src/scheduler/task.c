@@ -59,6 +59,14 @@ void rinoo_task_driver_destroy(t_rinoosched *sched)
 	rinoorbtree_flush(&sched->driver.proc_tree);
 }
 
+/**
+ * Runs pending tasks and returns time before next task (in ms).
+ * If no task is queued, a default timeout of 1000ms is returned.
+ *
+ * @param sched Pointer to the scheduler to use
+ *
+ * @return Time before next task in ms or 1000 if no task is queued
+ */
 u32 rinoo_task_driver_run(t_rinoosched *sched)
 {
 	t_rinootask *task;
@@ -80,6 +88,25 @@ u32 rinoo_task_driver_run(t_rinoosched *sched)
 	return 1000;
 }
 
+/**
+ * Returns number of pending tasks.
+ *
+ * @param sched Pointer to the schedulter to use
+ *
+ * @return Number of pending tasks.
+ */
+u32 rinoo_task_driver_nbpending(t_rinoosched *sched)
+{
+	return sched->driver.proc_tree.size;
+}
+
+/**
+ * Gets current running task.
+ *
+ * @param sched Pointer to the scheduler to use
+ *
+ * @return Pointer to the current task
+ */
 t_rinootask *rinoo_task_driver_getcurrent(t_rinoosched *sched)
 {
 	return sched->driver.current;
@@ -119,12 +146,26 @@ t_rinootask *rinoo_task(t_rinoosched *sched, t_rinootask *parent, void (*functio
 	return task;
 }
 
+/**
+ * Destroy a task.
+ *
+ * @param task Pointer to the task to destroy
+ */
 void rinoo_task_destroy(t_rinootask *task)
 {
 	rinoo_task_unschedule(task);
 	free(task);
 }
 
+/**
+ * Queue a task to be launch asynchronously.
+ *
+ * @param sched Pointer to the scheduler to use
+ * @param function Pointer to the routine function
+ * @param arg Argument to be passed to the routine function
+ *
+ * @return 0 on success, otherwise -1
+ */
 int rinoo_task_start(t_rinoosched *sched, void (*function)(void *arg), void *arg)
 {
 	t_rinootask *task;
@@ -137,6 +178,16 @@ int rinoo_task_start(t_rinoosched *sched, void (*function)(void *arg), void *arg
 	return 0;
 }
 
+/**
+ * Run a task within the current task.
+ * This function will return once the routine returned.
+ *
+ * @param sched Pointer to the scheduler to use
+ * @param function Pointer to the routine function
+ * @param arg Argument to be passed to the routine function
+ *
+ * @return 0 on success, otherwise -1
+ */
 int rinoo_task_run(t_rinoosched *sched, void (*function)(void *arg), void *arg)
 {
 	t_rinootask *task;
@@ -194,15 +245,11 @@ int rinoo_task_resume(t_rinootask *task)
  *
  * @return 0 on success or errno if an error occurs
  */
-int rinoo_task_release(t_rinoosched *sched)
+void rinoo_task_release(t_rinoosched *sched)
 {
-	XASSERT(sched != NULL, -1);
+	XASSERTN(sched != NULL);
 
-	errno = 0;
-	if (fcontext_swap(&sched->driver.current->context, &sched->driver.main.context) != 1) {
-		return -1;
-	}
-	return errno;
+	fcontext_swap(&sched->driver.current->context, &sched->driver.main.context);
 }
 
 int rinoo_task_schedule(t_rinootask *task, struct timeval *tv)

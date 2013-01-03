@@ -16,8 +16,7 @@ void process_client(void *arg)
 
 	rinoo_log("server - client accepted");
 	rinoo_log("server - receiving nothing, waiting timeout");
-	XTEST(rinoo_socket_read(socket, &a, 1) == -1);
-	rinoo_sched_stop(socket->sched);
+	XTEST(rinoo_socket_read(socket, &a, 1) <= 0);
 	rinoo_socket_destroy(socket);
 }
 
@@ -58,6 +57,8 @@ void client_func(void *arg)
 	rinoo_log("client - connected");
 	rinoo_socket_timeout(socket, 1000);
 	XTEST(rinoo_socket_read(socket, &a, 1) == -1);
+	rinoo_log("server  - timeout");
+	perror("socket");
 	rinoo_socket_destroy(socket);
 }
 

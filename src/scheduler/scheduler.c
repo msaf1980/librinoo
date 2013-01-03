@@ -87,14 +87,16 @@ int rinoo_sched_waitfor(t_rinoosched *sched, int fd, t_rinoosched_mode mode)
 	if (unlikely(sched->task_pool[fd] == &sched->driver.main)) {
 		return rinoo_sched_poll(sched);
 	}
-	if (rinoo_task_release(sched) != 0) {
-		return -1;
-	}
+	sched->nbpending++;
+	rinoo_task_release(sched);
+	sched->nbpending--;
 	if (sched->error != 0) {
+		rinoo_sched_remove(sched, fd);
 		errno = sched->error;
 		return -1;
 	}
 	if (sched->lastmode != mode) {
+		rinoo_sched_remove(sched, fd);
 		/* Task has been resumed without setting lastmode */
 		errno = ETIMEDOUT;
 		return -1;
@@ -189,7 +191,8 @@ int rinoo_sched_poll(t_rinoosched *sched)
  */
 void rinoo_sched_loop(t_rinoosched *sched)
 {
-	while (sched->stop == 0) {
+	sched->stop = 0;
+	while (sched->stop == 0 && (sched->nbpending > 0 || rinoo_task_driver_nbpending(sched) > 0)) {
 		rinoo_sched_poll(sched);
 	}
 }

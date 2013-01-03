@@ -22,7 +22,6 @@ void process_client(void *arg)
 	XTEST(b == 'b');
 	rinoo_log("server - receiving nothing");
 	XTEST(rinoo_socket_read(socket, &b, 1) == 0);
-	rinoo_sched_stop(socket->sched);
 	rinoo_socket_destroy(socket);
 }
 
