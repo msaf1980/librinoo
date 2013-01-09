@@ -284,7 +284,8 @@ ssize_t rinoo_socket_read(t_rinoosocket *socket, void *buf, size_t count)
 
 /**
  * Replacement to the write(2) syscall in this library.
- * This function waits for the socket to be available for write operations and calls the write(2) syscall.
+ * This function waits for the socket to be available for write operations and calls write(2) syscall
+ * as many time as needed.
  *
  * @param socket Pointer to the socket to read
  * @param buf Buffer which stores the information to write
@@ -294,10 +295,22 @@ ssize_t rinoo_socket_read(t_rinoosocket *socket, void *buf, size_t count)
  */
 ssize_t	rinoo_socket_write(t_rinoosocket *socket, const void *buf, size_t count)
 {
-	if (rinoo_socket_waitout(socket) != 0) {
-		return -1;
+	ssize_t ret;
+	size_t sent;
+
+	sent = count;
+	while (count > 0) {
+		if (rinoo_socket_waitout(socket) != 0) {
+			return -1;
+		}
+		ret = write(socket->fd, buf, count);
+		if (ret <= 0) {
+			return -1;
+		}
+		count -= ret;
+		buf += ret;
 	}
-	return write(socket->fd, buf, count);
+	return sent;
 }
 
 /**
