@@ -23,6 +23,10 @@ typedef struct s_rinootask {
 	t_rinoorbtree_node proc_node;
 	t_fcontext context;
 	char stack[RINOO_TASK_STACK_SIZE];
+
+#ifdef RINOO_DEBUG
+	int valgrind_stackid;
+#endif /* !RINOO_DEBUG */
 } t_rinootask;
 
 typedef struct s_rinootask_driver {

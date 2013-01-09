@@ -143,6 +143,12 @@ t_rinootask *rinoo_task(t_rinoosched *sched, t_rinootask *parent, void (*functio
 	memset(&task->tv, 0, sizeof(task->tv));
 	memset(&task->proc_node, 0, sizeof(task->proc_node));
 	fcontext(&task->context, function, arg);
+
+#ifdef RINOO_DEBUG
+	/* This code avoids valgrind to mix stack switches */
+	task->valgrind_stackid = VALGRIND_STACK_REGISTER(task->stack, task->stack + sizeof(task->stack));
+#endif /* !RINOO_DEBUG */
+
 	return task;
 }
 
@@ -153,6 +159,9 @@ t_rinootask *rinoo_task(t_rinoosched *sched, t_rinootask *parent, void (*functio
  */
 void rinoo_task_destroy(t_rinootask *task)
 {
+#ifdef RINOO_DEBUG
+	VALGRIND_STACK_DEREGISTER(task->valgrind_stackid);
+#endif /* !RINOO_DEBUG */
 	rinoo_task_unschedule(task);
 	free(task);
 }
@@ -218,18 +227,7 @@ int rinoo_task_resume(t_rinootask *task)
 	driver = &task->sched->driver;
 	old = driver->current;
 	driver->current = task;
-
-#ifdef RINOO_DEBUG
-	/* This code avoids valgrind to mix stack switches */
-	int valgrind_stackid = VALGRIND_STACK_REGISTER(task->stack, task->stack + sizeof(task->stack));
-#endif /* !RINOO_DEBUG */
-
 	ret = fcontext_swap(&old->context, &task->context);
-
-#ifdef RINOO_DEBUG
-	VALGRIND_STACK_DEREGISTER(valgrind_stackid);
-#endif /* !RINOO_DEBUG */
-
 	driver->current = old;
 	if (ret == 0) {
 		/* This task is finished */
