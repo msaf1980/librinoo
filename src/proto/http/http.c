@@ -33,6 +33,7 @@ int rinoohttp_init(t_rinoosocket *socket, t_rinoohttp *http)
 		buffer_destroy(http->response.buffer);
 		return -1;
 	}
+//	http->version = RINOO_HTTP_VERSION_11;
 	return 0;
 }
 

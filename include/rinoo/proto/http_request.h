@@ -33,5 +33,7 @@ typedef struct s_rinoohttp_request
 
 int rinoohttp_request_parse(struct s_rinoohttp *http);
 int rinoohttp_request_get(struct s_rinoohttp *http);
+void rinoohttp_request_setdefaultheaders(struct s_rinoohttp *http);
+int rinoohttp_request_send(struct s_rinoohttp *http, t_rinoohttp_method method, const char *uri, t_buffer *body);
 
 #endif		/* !RINOO_PROTO_HTTP_REQUEST_H_ */

@@ -11,6 +11,30 @@
 #include "rinoo/rinoo.h"
 
 /**
+ * Reads a http response.
+ *
+ * @param http Pointer to a http structure
+ *
+ * @return 1 if a response has been correctly read, otherwise 0
+ */
+int rinoohttp_response_get(t_rinoohttp *http)
+{
+	int ret;
+
+	rinoohttp_reset(http);
+	while (rinoo_socket_readb(http->socket, http->response.buffer) > 0) {
+		ret = rinoohttp_response_parse(http);
+		if (ret == 1) {
+			return 1;
+		} else if (ret == -1) {
+			rinoohttp_reset(http);
+			return 0;
+		}
+	}
+	return 0;
+}
+
+/**
  * Set the HTTP message of a HTTP response.
  *
  * @param http Pointer to the HTTP context to use.
@@ -160,6 +184,11 @@ void rinoohttp_response_setdefaultmsg(t_rinoohttp *http)
 	}
 }
 
+/**
+ * Sets default http response headers.
+ *
+ * @param http Pointer to a http structure
+ */
 void rinoohttp_response_setdefaultheaders(t_rinoohttp *http)
 {
 	char tmp[24];
@@ -174,6 +203,14 @@ void rinoohttp_response_setdefaultheaders(t_rinoohttp *http)
 	}
 }
 
+/**
+ * Sends a http response.
+ *
+ * @param http Pointer to a http structure
+ * @param body Pointer to http response body, if any
+ *
+ * @return 0 on success, otherwise -1
+ */
 int rinoohttp_response_send(t_rinoohttp *http, t_buffer *body)
 {
 	ssize_t ret;
