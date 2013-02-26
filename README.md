@@ -44,6 +44,8 @@ RiNOO is a simple way to create high scalability client/server applications.
 
 ## Example with HTTP
 
+    #include "rinoo/rinoo.h"
+
     void http_client(void *sched)
     {
         t_rinoohttp http;
