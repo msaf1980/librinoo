@@ -1,6 +1,6 @@
 /**
  * @file   buffer.c
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2012
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2013
  * @date   Thu Dec  3 23:23:17 2009
  *
  * @brief  Contains functions to create a buffer (pointer & size)

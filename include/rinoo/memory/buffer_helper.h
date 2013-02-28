@@ -1,6 +1,6 @@
 /**
  * @file   buffer_helper.h
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2012
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2013
  * @date   Mon Oct 21 14:18:35 2012
  *
  * @brief  Header for buffer helper

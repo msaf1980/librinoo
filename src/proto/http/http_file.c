@@ -1,6 +1,6 @@
 /**
  * @file   http_file.c
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2012
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2013
  * @date   Wed Feb 16 23:36:42 2011
  *
  * @brief  HTTP Server file sending

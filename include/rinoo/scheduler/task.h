@@ -1,6 +1,6 @@
 /**
  * @file   task.h
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2012
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2013
  * @date   Tue Jul  5 17:21:44 2011
  *
  * @brief  Header file for tasks function declarations.

@@ -1,6 +1,6 @@
 /**
  * @file   task.c
- * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2012
+ * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
  * @date   Thu Oct 13 22:15:13 2011
  *
  * @brief  Scheduler task functions

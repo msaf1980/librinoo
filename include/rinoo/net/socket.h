@@ -1,6 +1,6 @@
 /**
  * @file   socket.h
- * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2012
+ * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
  * @date   Wed Jan 25 00:28:29 2012
  *
  * @brief  Header file for socket function declarations.

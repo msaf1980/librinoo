@@ -1,6 +1,6 @@
 /**
  * @file   http_header.h
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2012
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2013
  * @date   Sun Jan  9 19:57:32 2011
  *
  * @brief  Header file which describes HTTP header functions

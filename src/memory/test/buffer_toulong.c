@@ -1,6 +1,6 @@
 /**
  * @file   buffer_toulong.c
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2012
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2013
  * @date   Thu Apr  7 18:20:26 2011
  *
  * @brief  buffer_toulong unit test

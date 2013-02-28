@@ -1,6 +1,6 @@
 /**
  * @file   fcontext.h
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2012
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2013
  * @date   Wed Oct 10 15:18:43 2012
  *
  * @brief  Header file for fast context.

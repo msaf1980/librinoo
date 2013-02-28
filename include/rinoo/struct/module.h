@@ -1,6 +1,6 @@
 /**
  * @file   module.h
- * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2012
+ * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
  * @date   Fri Apr 13 10:43:05 2012
  *
  * @brief  Header file for data structures module.

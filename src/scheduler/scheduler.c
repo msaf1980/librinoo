@@ -1,6 +1,6 @@
 /**
  * @file   scheduler.c
- * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2012
+ * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
  * @date   Fri Jan  6 16:10:07 2012
  *
  * @brief  Scheduler functions

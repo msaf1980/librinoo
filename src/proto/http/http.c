@@ -1,6 +1,6 @@
 /**
  * @file   http.c
- * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2012
+ * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
  * @date   Sun Apr 15 00:07:08 2012
  *
  * @brief

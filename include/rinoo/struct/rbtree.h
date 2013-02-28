@@ -1,6 +1,6 @@
 /**
  * @file   rbtree.h
- * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2012
+ * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
  * @date   Fri Apr 13 10:43:43 2012
  *
  * @brief Header file for Red-Black tree implementation.

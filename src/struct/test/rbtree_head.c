@@ -1,6 +1,6 @@
 /**
  * @file   rbtree_head.c
- * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2012
+ * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
  * @date   Fri Apr 13 14:58:37 2012
  *
  * @brief  rinoo rbtree head unit test

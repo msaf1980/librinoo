@@ -1,6 +1,6 @@
 /**
  * @file   buffer_vprint.c
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2012
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2013
  * @date   Thu Jan 21 18:27:58 2010
  *
  * @brief  buffer_vprint unit test

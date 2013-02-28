@@ -1,6 +1,6 @@
 /**
  * @file   xassert.h
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2012
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2013
  * @date   Mon Oct 26 13:15:55 2009
  *
  * @brief  Header file for assert definitions
