@@ -227,10 +227,10 @@ int rinoohttp_response_send(t_rinoohttp *http, t_buffer *body)
 	rinoohttp_response_setdefaultmsg(http);
 	switch (http->version) {
 	case RINOO_HTTP_VERSION_10:
-		buffer_print(http->response.buffer, "HTTP/1.0");
+		buffer_add(http->response.buffer, "HTTP/1.0", 8);
 		break;
 	default:
-		buffer_print(http->response.buffer, "HTTP/1.1");
+		buffer_add(http->response.buffer, "HTTP/1.1", 8);
 		break;
 	}
 	buffer_print(http->response.buffer, " %d %.*s\r\n", http->response.code, buffer_size(&http->response.msg), buffer_ptr(&http->response.msg));
@@ -245,7 +245,7 @@ int rinoohttp_response_send(t_rinoohttp *http, t_buffer *body)
 			     buffer_size(&cur_header->value),
 			     buffer_ptr(&cur_header->value));
 	}
-	buffer_print(http->response.buffer, "\r\n");
+	buffer_add(http->response.buffer, "\r\n", 2);
 	ret = rinoo_socket_writeb(http->socket, http->response.buffer);
 	if (ret != (ssize_t) buffer_size(http->response.buffer)) {
 		return -1;

@@ -78,23 +78,23 @@ int rinoohttp_request_send(t_rinoohttp *http, t_rinoohttp_method method, const c
 	http->request.method = method;
 	switch (http->request.method) {
 	case RINOO_HTTP_METHOD_GET:
-		buffer_print(http->request.buffer, "GET ");
+		buffer_add(http->request.buffer, "GET ", 4);
 		break;
 	case RINOO_HTTP_METHOD_POST:
-		buffer_print(http->request.buffer, "POST ");
+		buffer_add(http->request.buffer, "POST ", 5);
 		break;
 	case RINOO_HTTP_METHOD_UNKNOWN:
 		return -1;
 	}
 	strtobuffer(&http->request.uri, uri);
-	buffer_print(http->request.buffer, "%s", uri);
+	buffer_add(http->request.buffer, buffer_ptr(&http->request.uri), buffer_size(&http->request.uri));
 	rinoohttp_request_setdefaultheaders(http);
 	switch (http->version) {
 	case RINOO_HTTP_VERSION_10:
-		buffer_print(http->request.buffer, " HTTP/1.0\r\n");
+		buffer_add(http->request.buffer, " HTTP/1.0\r\n", 11);
 		break;
 	default:
-		buffer_print(http->request.buffer, " HTTP/1.1\r\n");
+		buffer_add(http->request.buffer, " HTTP/1.1\r\n", 11);
 		break;
 	}
 	for (cur_node = rinoorbtree_head(&http->request.headers);
@@ -108,7 +108,7 @@ int rinoohttp_request_send(t_rinoohttp *http, t_rinoohttp_method method, const c
 			     buffer_size(&cur_header->value),
 			     buffer_ptr(&cur_header->value));
 	}
-	buffer_print(http->request.buffer, "\r\n");
+	buffer_add(http->request.buffer, "\r\n", 2);
 	ret = rinoo_socket_writeb(http->socket, http->request.buffer);
 	if (ret != (ssize_t) buffer_size(http->request.buffer)) {
 		return -1;
