@@ -1,6 +1,6 @@
 /**
  * @file   stcp.c
- * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2012
+ * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
  * @date   Tue Jun  5 10:26:46 2012
  *
  * @brief  Secure connection management

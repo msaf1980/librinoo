@@ -1,6 +1,6 @@
 /**
  * @file   task.h
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2012
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2013
  * @date   Tue Jul  5 17:21:44 2011
  *
  * @brief  Header file for tasks function declarations.
@@ -50,5 +50,6 @@ void rinoo_task_release(struct s_rinoosched *sched);
 int rinoo_task_schedule(t_rinootask *task, struct timeval *tv);
 int rinoo_task_unschedule(t_rinootask *task);
 int rinoo_task_start(struct s_rinoosched *sched, void (*function)(void *arg), void *arg);
+int rinoo_task_wait(struct s_rinoosched *sched, u32 ms);
 
 #endif /* RINOO_SCHEDULER_TASK_H_ */

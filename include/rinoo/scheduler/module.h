@@ -1,6 +1,6 @@
 /**
  * @file   module.h
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2012
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2013
  * @date   Mon Dec 28 00:12:30 2009
  *
  * @brief  Header file for scheduler module.

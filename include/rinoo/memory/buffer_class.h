@@ -1,6 +1,6 @@
 /**
  * @file   buffer_class.h
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2012
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2013
  * @date   Mon Oct 21 14:14:01 2012
  *
  * @brief  Header file for buffer class

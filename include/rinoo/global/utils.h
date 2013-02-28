@@ -1,6 +1,6 @@
 /**
  * @file   utils.h
- * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2012
+ * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
  * @date   Tue Mar 20 18:13:53 2012
  *
  * @brief  Header file for global utils

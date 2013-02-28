@@ -1,6 +1,6 @@
 /**
  * @file   http_header.c
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2012
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2013
  * @date   Sun Jan  9 18:59:50 2011
  *
  * @brief  Functions to manager HTTP headers

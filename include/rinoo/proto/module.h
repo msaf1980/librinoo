@@ -1,6 +1,6 @@
 /**
  * @file   module.h
- * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2012
+ * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
  * @date   Sun Apr 15 21:58:11 2012
  *
  * @brief  Header file for proto module.

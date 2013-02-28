@@ -2,7 +2,7 @@
 #line 1 "./http_request_parse.rl"
 /**
  * @file   http_request_parse.rl
- * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2012
+ * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
  * @date   Sun Apr 15 22:29:07 2012
  *
  * @brief  HTTP request parsing

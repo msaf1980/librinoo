@@ -1,6 +1,6 @@
 /**
  * @file   tcp.h
- * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2012
+ * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
  * @date   Tue Mar 20 18:10:17 2012
  *
  * @brief  Header file for TCP function declarations

@@ -1,6 +1,6 @@
 /**
  * @file   http.c
- * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2012
+ * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
  * @date   Sun Apr 15 00:07:08 2012
  *
  * @brief
@@ -33,6 +33,7 @@ int rinoohttp_init(t_rinoosocket *socket, t_rinoohttp *http)
 		buffer_destroy(http->response.buffer);
 		return -1;
 	}
+	http->version = RINOO_HTTP_VERSION_11;
 	return 0;
 }
 

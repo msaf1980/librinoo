@@ -1,6 +1,6 @@
 /**
  * @file   xtypes.h
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2012
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2013
  * @date   Mon Oct 26 14:09:29 2009
  *
  * @brief  Header file for type declarations

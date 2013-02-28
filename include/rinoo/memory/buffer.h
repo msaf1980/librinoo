@@ -1,6 +1,6 @@
 /**
  * @file   buffer.h
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2012
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2013
  * @date   Tue Dec 15 02:20:19 2009
  *
  * @brief  Header file for buffer management
