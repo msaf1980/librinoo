@@ -252,6 +252,14 @@ void rinoo_task_release(t_rinoosched *sched)
 	fcontext_swap(&sched->driver.current->context, &sched->driver.main.context);
 }
 
+/**
+ * Schedule a task to be executed at specific time.
+ *
+ * @param task Pointer to the task to schedule
+ * @param tv Pointer to a timeval representing the expected execution time
+ *
+ * @return 0 on success or -1 if an error occurs
+ */
 int rinoo_task_schedule(t_rinootask *task, struct timeval *tv)
 {
 	XASSERT(task != NULL, -1);
@@ -273,6 +281,13 @@ int rinoo_task_schedule(t_rinootask *task, struct timeval *tv)
 	return 0;
 }
 
+/**
+ * Remove a task which has been scheduled for execution.
+ *
+ * @param task Pointer to the task to unschedule
+ *
+ * @return 0 on success or -1 if an error occurs
+ */
 int rinoo_task_unschedule(t_rinootask *task)
 {
 	XASSERT(task != NULL, -1);
@@ -283,5 +298,34 @@ int rinoo_task_unschedule(t_rinootask *task)
 		memset(&task->tv, 0, sizeof(task->tv));
 		task->scheduled = false;
 	}
+	return 0;
+}
+
+/**
+ * Release a task for a given time.
+ *
+ * @param sched Pointer to the scheduler to use
+ * @param ms Release time in milliseconds
+ *
+ * @return 0 on success or -1 if an error occurs
+ */
+int rinoo_task_wait(t_rinoosched *sched, u32 ms)
+{
+	struct timeval res;
+	struct timeval toadd;
+
+	if (ms == 0) {
+		if (rinoo_task_schedule(rinoo_task_driver_getcurrent(sched), NULL) != 0) {
+			return -1;
+		}
+	} else {
+		toadd.tv_sec = ms / 1000;
+		toadd.tv_usec = (ms % 1000) * 1000;
+		timeradd(&sched->clock, &toadd, &res);
+		if (rinoo_task_schedule(rinoo_task_driver_getcurrent(sched), &res) != 0) {
+			return -1;
+		}
+	}
+	rinoo_task_release(sched);
 	return 0;
 }
