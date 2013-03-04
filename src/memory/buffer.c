@@ -311,17 +311,14 @@ t_buffer *buffer_dup(t_buffer *buffer)
 int buffer_cmp(t_buffer *buffer1, t_buffer *buffer2)
 {
 	int ret;
+	size_t min;
 
-	ret = buffer_size(buffer1) - buffer_size(buffer2);
-	if (ret != 0) {
-		return ret;
+	min = (buffer_size(buffer1) < buffer_size(buffer2) ? buffer_size(buffer1) : buffer_size(buffer2));
+	ret = memcmp(buffer_ptr(buffer1), buffer_ptr(buffer2), min);
+	if (ret == 0) {
+		ret = buffer_size(buffer1) - buffer_size(buffer2);
 	}
-	ret = memcmp(buffer_ptr(buffer1), buffer_ptr(buffer2), buffer_size(buffer1));
-	if (ret != 0) {
-		return ret;
-	}
-	return 0;
-
+	return ret;
 }
 
 /**
@@ -334,20 +331,11 @@ int buffer_cmp(t_buffer *buffer1, t_buffer *buffer2)
  */
 int buffer_strcmp(t_buffer *buffer, const char *str)
 {
-	size_t size;
-
-	size = strlen(str);
-	if (buffer_size(buffer) < size) {
-		return -str[buffer_size(buffer)];
-	}
-	if (buffer_size(buffer) > size) {
-		return ((char *) buffer->ptr)[size];
-	}
-	return memcmp(buffer_ptr(buffer), str, size);
+	return buffer_strncmp(buffer, str, strlen(str));
 }
 
 /**
- * Compares a buffer with n bytes of a string.
+ * Compares a buffer to the first n bytes of a string.
  *
  * @param buffer Pointer to a buffer.
  * @param str Pointer to a string.
@@ -357,20 +345,51 @@ int buffer_strcmp(t_buffer *buffer, const char *str)
  */
 int buffer_strncmp(t_buffer *buffer, const char *str, size_t len)
 {
-	size_t i;
+	int ret;
+	size_t min;
 
-	for (i = 0; i < len && i < buffer_size(buffer); i++) {
-		if (((char *) buffer->ptr)[i] != str[i] || str[i] == 0) {
-			return ((char *) buffer->ptr)[i] - str[i];
-		}
+	min = (buffer_size(buffer) < len ? buffer_size(buffer) : len);
+	ret = memcmp(buffer_ptr(buffer), str, min);
+	if (ret == 0) {
+		ret = buffer_size(buffer) - len;
 	}
-	if (i < len && i >= buffer_size(buffer)) {
-		return -((char *) buffer->ptr)[buffer_size(buffer) - 1];
-	}
-	return 0;
+	return ret;
 }
 
+/**
+ * Compares a buffer with a string ignoring case.
+ *
+ * @param buffer Pointer to a buffer.
+ * @param str Pointer to a string.
+ *
+ * @return An integer less than, equal to, or greater than zero if buffer is found, respectively, to be less than, to match, or be greater than str
+ */
+int buffer_strcasecmp(t_buffer *buffer, const char *str)
+{
+	return buffer_strncasecmp(buffer, str, strlen(str));
+}
 
+/**
+ * Compares a buffer to the first n bytes of a string ignoring case.
+ *
+ * @param buffer Pointer to a buffer.
+ * @param str Pointer to a string.
+ * @param len Maximum length of the string.
+ *
+ * @return An integer less than, equal to, or greater than zero if buffer is found, respectively, to be less than, to match, or be greater than s2
+ */
+int buffer_strncasecmp(t_buffer *buffer, const char *str, size_t len)
+{
+	int ret;
+	size_t min;
+
+	min = (buffer_size(buffer) < len ? buffer_size(buffer) : len);
+	ret = strncasecmp(buffer_ptr(buffer), str, min);
+	if (ret == 0) {
+		ret = buffer_size(buffer) - len;
+	}
+	return ret;
+}
 
 /**
  * Converts a buffer to a long int accordingly to strtol.
