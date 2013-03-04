@@ -24,7 +24,7 @@ void process_client(void *arg)
 	XTEST(rinoo_ssl_read(ssl, &b, 1) == 1);
 	XTEST(b == 'b');
 	rinoo_log("server - receiving nothing");
-	XTEST(rinoo_ssl_read(ssl, &b, 1) == 0);
+	XTEST(rinoo_ssl_read(ssl, &b, 1) == -1);
 	rinoo_ssl_destroy(ssl);
 }
 

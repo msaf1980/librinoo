@@ -284,7 +284,7 @@ ssize_t rinoo_ssl_read(t_rinoossl *ssl, void *buf, size_t count)
 
 		}
 	}
-	if (ret < 0) {
+	if (ret <= 0) {
 		return -1;
 	}
 	return ret;
@@ -321,7 +321,7 @@ ssize_t rinoo_ssl_write(t_rinoossl *ssl, const void *buf, size_t count)
 
 		}
 	}
-	if (ret < 0) {
+	if (ret <= 0) {
 		return -1;
 	}
 	return ret;
@@ -335,9 +335,10 @@ ssize_t rinoo_ssl_readb(t_rinoossl *ssl, t_buffer *buffer)
 		return -1;
 	}
 	res = rinoo_ssl_read(ssl, buffer_ptr(buffer) + buffer_size(buffer), buffer_msize(buffer) - buffer_size(buffer));
-	if (res > 0) {
-		buffer_setsize(buffer, buffer_size(buffer) + res);
+	if (res <= 0) {
+		return -1;
 	}
+	buffer_setsize(buffer, buffer_size(buffer) + res);
 	return res;
 }
 
