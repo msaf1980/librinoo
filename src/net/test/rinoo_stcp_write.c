@@ -73,7 +73,7 @@ void client_func(void *arg)
 
 
 /**
- * This test will check if a scheduler is well initialized.
+ * Main function for this unit test.
  *
  * @return 0 if test passed
  */

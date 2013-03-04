@@ -331,7 +331,17 @@ int buffer_cmp(t_buffer *buffer1, t_buffer *buffer2)
  */
 int buffer_strcmp(t_buffer *buffer, const char *str)
 {
-	return buffer_strncmp(buffer, str, strlen(str));
+	int ret;
+	size_t min;
+	size_t len;
+
+	len = strlen(str);
+	min = (buffer_size(buffer) < len ? buffer_size(buffer) : len);
+	ret = memcmp(buffer_ptr(buffer), str, min);
+	if (ret == 0) {
+		ret = buffer_size(buffer) - len;
+	}
+	return ret;
 }
 
 /**
@@ -350,7 +360,7 @@ int buffer_strncmp(t_buffer *buffer, const char *str, size_t len)
 
 	min = (buffer_size(buffer) < len ? buffer_size(buffer) : len);
 	ret = memcmp(buffer_ptr(buffer), str, min);
-	if (ret == 0) {
+	if (ret == 0 && buffer_size(buffer) < len) {
 		ret = buffer_size(buffer) - len;
 	}
 	return ret;
@@ -366,7 +376,17 @@ int buffer_strncmp(t_buffer *buffer, const char *str, size_t len)
  */
 int buffer_strcasecmp(t_buffer *buffer, const char *str)
 {
-	return buffer_strncasecmp(buffer, str, strlen(str));
+	int ret;
+	size_t min;
+	size_t len;
+
+	len = strlen(str);
+	min = (buffer_size(buffer) < len ? buffer_size(buffer) : len);
+	ret = strncasecmp(buffer_ptr(buffer), str, min);
+	if (ret == 0) {
+		ret = buffer_size(buffer) - len;
+	}
+	return ret;
 }
 
 /**
@@ -385,7 +405,7 @@ int buffer_strncasecmp(t_buffer *buffer, const char *str, size_t len)
 
 	min = (buffer_size(buffer) < len ? buffer_size(buffer) : len);
 	ret = strncasecmp(buffer_ptr(buffer), str, min);
-	if (ret == 0) {
+	if (ret == 0 && buffer_size(buffer) < len) {
 		ret = buffer_size(buffer) - len;
 	}
 	return ret;

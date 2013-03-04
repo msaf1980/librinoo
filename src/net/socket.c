@@ -276,10 +276,16 @@ t_rinoosocket *rinoo_socket_accept(t_rinoosocket *socket, struct sockaddr *addr,
  */
 ssize_t rinoo_socket_read(t_rinoosocket *socket, void *buf, size_t count)
 {
+	ssize_t ret;
+
 	if (rinoo_socket_waitin(socket) != 0) {
 		return -1;
 	}
-	return read(socket->fd, buf, count);
+	ret = read(socket->fd, buf, count);
+	if (ret <= 0) {
+		return -1;
+	}
+	return ret;
 }
 
 /**
@@ -294,10 +300,16 @@ ssize_t rinoo_socket_read(t_rinoosocket *socket, void *buf, size_t count)
  */
 ssize_t	rinoo_socket_write(t_rinoosocket *socket, const void *buf, size_t count)
 {
+	ssize_t ret;
+
 	if (rinoo_socket_waitout(socket) != 0) {
 		return -1;
 	}
-	return write(socket->fd, buf, count);
+	ret = write(socket->fd, buf, count);
+	if (ret <= 0) {
+		return -1;
+	}
+	return ret;
 }
 
 /**
@@ -323,6 +335,9 @@ ssize_t rinoo_socket_readb(t_rinoosocket *socket, t_buffer *buffer)
 	res = read(socket->fd,
 		   buffer_ptr(buffer) + buffer_size(buffer),
 		   buffer_msize(buffer) - buffer_size(buffer));
+	if (res <= 0) {
+		return -1;
+	}
 	buffer_setsize(buffer, buffer_size(buffer) + res);
 	return res;
 }
@@ -371,6 +386,9 @@ ssize_t rinoo_socket_readline(t_rinoosocket *socket, t_buffer *buffer, const cha
 		res = read(socket->fd,
 			   buffer_ptr(buffer) + buffer_size(buffer),
 			   buffer_msize(buffer) - buffer_size(buffer));
+		if (res <= 0) {
+			return -1;
+		}
 		buffer_setsize(buffer, buffer_size(buffer) + res);
 	}
 	return maxsize;
@@ -391,7 +409,7 @@ ssize_t rinoo_socket_expect(t_rinoosocket *socket, t_buffer *buffer, const char 
 
 	len = strlen(expected);
 	while (buffer_size(buffer) < len) {
-		if (rinoo_socket_readb(socket, buffer) != 0) {
+		if (rinoo_socket_readb(socket, buffer) <= 0) {
 			return -1;
 		}
 	}
@@ -423,7 +441,7 @@ ssize_t rinoo_socket_writeb(t_rinoosocket *socket, t_buffer *buffer)
 			return -1;
 		}
 		res = write(socket->fd, buffer_ptr(buffer) + buffer_size(buffer) - len, len);
-		if (res < 0) {
+		if (res <= 0) {
 			return -1;
 		}
 		total += res;
