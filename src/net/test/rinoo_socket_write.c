@@ -1,6 +1,6 @@
 /**
  * @file rinoo_socket_write.c
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2013
  * @date Sun Jan 3 15:34:47 2010
  *
  * @brief Test file for read/write functions.
@@ -8,6 +8,8 @@
  *
  */
 #include "rinoo/rinoo.h"
+
+extern const t_rinoosocket_class socket_class_tcp;
 
 void process_client(void *arg)
 {
@@ -32,7 +34,7 @@ void server_func(void *arg)
 	struct sockaddr_in addr;
 	t_rinoosched *sched = arg;
 
-	server = rinoo_socket(sched, AF_INET, SOCK_STREAM);
+	server = rinoo_socket(sched, &socket_class_tcp);
 	XTEST(server != NULL);
 	addr.sin_port = htons(4242);
 	addr.sin_family = AF_INET;
@@ -54,7 +56,7 @@ void client_func(void *arg)
 	t_rinoosocket *socket;
 	t_rinoosched *sched = arg;
 
-	socket = rinoo_socket(sched, AF_INET, SOCK_STREAM);
+	socket = rinoo_socket(sched, &socket_class_tcp);
 	XTEST(socket != NULL);
 	addr.sin_port = htons(4242);
 	addr.sin_family = AF_INET;

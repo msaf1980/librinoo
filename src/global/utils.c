@@ -1,6 +1,6 @@
 /**
  * @file   utils.c
- * @author Reginald Lips <reginald.l@gmail.com>
+ * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
  * @date   Tue Mar 20 18:15:13 2012
  *
  * @brief  Utility functions

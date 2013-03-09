@@ -8,88 +8,69 @@
  *
  */
 
-#include"rinoo/rinoo.h"
+#include "rinoo/rinoo.h"
+
+extern const t_rinoosocket_class socket_class_tcp;
 
 /**
- * Creates a TCP socket.
+ * Creates a TCP client to be connected to a specific IP, on a specific port.
  *
- * @param sched Pointer to a scheduler
+ * @param sched Scheduler pointer
+ * @param ip Destination IP to connect to
+ * @param port Destination port to connect to
+ * @param timeout Socket timeout
  *
- * @return A pointer to a socket structure on success, or NULL if an error occurs
+ * @return Socket pointer on success or NULL if an error occurs
  */
-t_rinoosocket *rinoo_tcp(t_rinoosched *sched)
-{
-	return rinoo_socket(sched, AF_INET, SOCK_STREAM);
-}
-
-t_rinoosocket *rinoo_tcp_client(t_rinoosched *sched, t_ip ip, u32 port, u32 unused(timeout))
+t_rinoosocket *rinoo_tcp_client(t_rinoosched *sched, t_ip ip, u32 port, u32 timeout)
 {
 	t_rinoosocket *socket;
+	struct sockaddr_in addr;
 
-	socket = rinoo_tcp(sched);
+	socket = rinoo_socket(sched, &socket_class_tcp);
 	if (unlikely(socket == NULL)) {
 		return NULL;
 	}
-	if (rinoo_tcp_connect(socket, ip, port) != 0) {
+	if (timeout != 0 && rinoo_socket_timeout(socket, timeout) != 0) {
+		rinoo_socket_destroy(socket);
+		return NULL;
+	}
+	addr.sin_port = htons(port);
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = ip;
+	if (rinoo_socket_connect(socket, (struct sockaddr *) &addr, sizeof(addr)) != 0) {
 		rinoo_socket_destroy(socket);
 		return NULL;
 	}
 	return socket;
 }
 
+/**
+ * Creates a TCP server listening to a specific port, on a specific IP.
+ *
+ * @param sched Scheduler pointer
+ * @param ip IP to bind
+ * @param port Port to bind
+ *
+ * @return Socket pointer to the server on success or NULL if an error occurs
+ */
 t_rinoosocket *rinoo_tcp_server(t_rinoosched *sched, t_ip ip, u32 port)
 {
 	t_rinoosocket *socket;
+	struct sockaddr_in addr;
 
-	socket = rinoo_tcp(sched);
+	socket = rinoo_socket(sched, &socket_class_tcp);
 	if (unlikely(socket == NULL)) {
 		return NULL;
 	}
-	if (rinoo_tcp_listen(socket, ip, port) != 0) {
+	addr.sin_port = htons(port);
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = ip;
+	if (rinoo_socket_listen(socket, (struct sockaddr *) &addr, sizeof(addr), RINOO_TCP_BACKLOG) != 0) {
 		rinoo_socket_destroy(socket);
 		return NULL;
 	}
 	return socket;
-}
-
-/**
- * Connects a TCP socket to the specified ip and port.
- * Occasionally, it sets a timeout on the socket.
- *
- * @param socket Pointer to the socket to connect
- * @param ip IP to connect to
- * @param port Port to connect to
- *
- * @return 0 on success or -1 if an error occurs (timeout is considered as an error)
- */
-int rinoo_tcp_connect(t_rinoosocket *socket, t_ip ip, u32 port)
-{
-	struct sockaddr_in addr;
-
-	addr.sin_port = htons(port);
-	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = ip;
-	return rinoo_socket_connect(socket, (struct sockaddr *) &addr, sizeof(addr));
-}
-
-/**
- * Marks the specified socket to be listening to new connection using rinoo_tcp_accept.
- * Additionally, this function will bind the socket to the specified ip and port.
- *
- * @param socket Pointer to the socket to use
- * @param ip Ip to bind
- * @param port Port to bind
- *
- * @return 0 on success or -1 if an error occurs
- */
-int rinoo_tcp_listen(t_rinoosocket *socket, t_ip ip, u32 port)
-{
-	struct sockaddr_in addr;
-
-	addr.sin_port = htons(port);
-	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = ip;
-	return rinoo_socket_listen(socket, (struct sockaddr *) &addr, sizeof(addr), RINOO_TCP_BACKLOG);
 }
 
 /**

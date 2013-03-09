@@ -1,6 +1,6 @@
 /**
  * @file   http_request.h
- * @author Reginald Lips <reginald.l@gmail.com>
+ * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
  * @date   Tue Apr 17 17:55:30 2012
  *
  * @brief  Header file for HTTP request

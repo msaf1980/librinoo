@@ -1,6 +1,6 @@
 /**
  * @file   socket.c
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2013
  * @date   Wed Dec 30 17:25:49 2009
  *
  * @brief  All functions needed to manage sockets.
@@ -10,19 +10,9 @@
 
 #include "rinoo/rinoo.h"
 
-/* Default is TCP */
-static t_rinoosocket_class default_socket_class = {
-	.domain = AF_INET,
-	.type = SOCK_STREAM,
-	.read = rinoo_socket_helper_read,
-	.write = rinoo_socket_helper_write,
-	.connect = rinoo_socket_helper_connect,
-	.accept = rinoo_socket_helper_accept
-}
-
 /**
- * Socket initialisation function. This function creates a socket file descriptor
- * and enables non-blocking IO.
+ * Socket initialisation function.
+ * Initializes a socket depending on socket class.
  *
  * @param sched Pointer to a scheduler
  * @param sock Pointer to a socket structure to fill
@@ -30,61 +20,47 @@ static t_rinoosocket_class default_socket_class = {
  *
  * @return 0 on success, otherwise -1
  */
-int rinoo_socket_set(t_rinoosched *sched, t_rinoosocket *sock, t_rinoosocket_class *class)
+int rinoo_socket_init(t_rinoosched *sched, t_rinoosocket *sock, const t_rinoosocket_class *class)
 {
-	int fd;
-	int enabled;
-
 	XASSERT(sched != NULL, -1);
 	XASSERT(sock != NULL, -1);
+	XASSERT(class != NULL, -1);
 
-	if (class == NULL) {
-		class = &default_socket_class;
-	}
-	fd = socket(class->domain, class->type, 0);
-	if (unlikely(fd == -1)) {
-		return -1;
-	}
-	sock->fd = fd;
+	sock->class = class;
 	sock->sched = sched;
-	enabled = 1;
-	if (unlikely(ioctl(sock->fd, FIONBIO, &enabled) == -1)) {
-		close(fd);
-		return -1;
-	}
-	return 0;
+	return class->open(sock);
 
 }
 
 /**
- * Socket creation function. It is a replacement of the socket(2) syscall in this library.
+ * Socket creation function depending on socket class.
  *
  * @param sched Pointer to a scheduler
- * @param domain Socket domain (see man socket)
- * @param type Socket type (see man socket)
+ * @param class Socket class
  *
  * @return A pointer to the new socket or NULL if an error occurs
  */
-t_rinoosocket *rinoo_socket(t_rinoosched *sched, t_rinoosocket_class *class)
+t_rinoosocket *rinoo_socket(t_rinoosched *sched, const t_rinoosocket_class *class)
 {
 	t_rinoosocket *new;
 
 	XASSERT(sched != NULL, NULL);
+	XASSERT(class != NULL, NULL);
 
-	new = calloc(1, sizeof(*new));
+	new = class->create(sched);
 	if (unlikely(new == NULL)) {
 		return NULL;
 	}
-	if (unlikely(rinoo_socket_set(sched, new, domain, type) != 0)) {
-		free(new);
+	new->class = class;
+	if (unlikely(rinoo_socket_init(sched, new, class) != 0)) {
+		class->destroy(new);
 		return NULL;
 	}
 	return new;
 }
 
 /**
- * Close a socket. This function should be used when the socket structure
- * has been allocated by the user (by using rinoo_socket_set).
+ * Close a socket only (does not free memory).
  *
  * @param socket Pointer to the socket to close
  */
@@ -93,12 +69,11 @@ void rinoo_socket_close(t_rinoosocket *socket)
 	XASSERTN(socket != NULL);
 
 	rinoo_sched_remove(socket->sched, socket->fd);
-	close(socket->fd);
+	socket->class->close(socket);
 }
 
 /**
- * Destroys a socket. This function is automatically called at the end
- * of the run() function.
+ * Destroys a socket.
  *
  * @param socket Pointer to the socket to destroy
  */
@@ -107,7 +82,7 @@ void rinoo_socket_destroy(t_rinoosocket *socket)
 	XASSERTN(socket != NULL);
 
 	rinoo_socket_close(socket);
-	free(socket);
+	socket->class->destroy(socket);
 }
 
 /**
@@ -134,6 +109,14 @@ int rinoo_socket_waitout(t_rinoosocket *socket)
 	return rinoo_sched_waitfor(socket->sched, socket->fd, RINOO_MODE_OUT);
 }
 
+/**
+ * Schedules a socket to be waken up.
+ *
+ * @param socket Socket pointer
+ * @param ms Timeout in milliseconds
+ *
+ * @return 0 on success or -1 if an error occurs
+ */
 int rinoo_socket_timeout(t_rinoosocket *socket, u32 ms)
 {
 	struct timeval res;
@@ -151,9 +134,9 @@ int rinoo_socket_timeout(t_rinoosocket *socket, u32 ms)
 }
 
 /**
- * Replacement to the connect(2) syscall.
+ * Connects a socket if possible by socket class.
  *
- * @param socket Pointer to the socket to connect.
+ * @param socket Pointer to the socket to connect
  * @param addr Pointer to a sockaddr structure (see man connect)
  * @param addrlen Sockaddr structure size (see man connect)
  *
@@ -161,60 +144,14 @@ int rinoo_socket_timeout(t_rinoosocket *socket, u32 ms)
  */
 int rinoo_socket_connect(t_rinoosocket *socket, const struct sockaddr *addr, socklen_t addrlen)
 {
-	int val;
-	int enabled;
-	socklen_t size;
-
 	XASSERT(socket != NULL, -1);
+	XASSERT(socket->class->connect != NULL, -1);
 
-	errno = 0;
-	enabled = 1;
-	if (setsockopt(socket->fd, SOL_SOCKET, SO_REUSEADDR, &enabled, sizeof(enabled)) != 0) {
-		return -1;
-	}
-	if (connect(socket->fd, addr, addrlen) == 0) {
-		return 0;
-	}
-	switch (errno) {
-	case EINPROGRESS:
-	case EALREADY:
-		break;
-	default:
-		return -1;
-	}
-	if (rinoo_socket_waitout(socket) != 0) {
-		return -1;
-	}
-	size = sizeof(val);
-	if (getsockopt(socket->fd, SOL_SOCKET, SO_ERROR, (void *) &val, &size) < 0) {
-		return -1;
-	}
-	if (val != 0) {
-		errno = val;
-		return -1;
-	}
-	return 0;
+	return socket->class->connect(socket, addr, addrlen);
 }
 
 /**
- * Assigns the address specified to by addr to the socket.
- * This is a replacement to the bind(2) syscall in this library.
- *
- * @param socket Pointer to the socket to bind
- * @param addr Address used for binding (see man bind)
- * @param addrlen Sockaddr structure size (see man bind)
- *
- * @return 0 on success or -1 if an error occurs
- */
-int rinoo_socket_bind(t_rinoosocket *socket, const struct sockaddr *addr, socklen_t addrlen)
-{
-	return bind(socket->fd, addr, addrlen);
-}
-
-/**
- * Marks the specified socket to be listening to new connection.
- * Additionally, this function will bind the socket to the specified addr info.
- * This is a replacement of the listen(2) syscall in this library.
+ * Marks the specified socket to be listening to new connection using socket class.
  *
  * @param socket Pointer to the socket to listen to
  * @param addr Pointer to a sockaddr structure (see man listen)
@@ -225,20 +162,14 @@ int rinoo_socket_bind(t_rinoosocket *socket, const struct sockaddr *addr, sockle
  */
 int rinoo_socket_listen(t_rinoosocket *socket, const struct sockaddr *addr, socklen_t addrlen, int backlog)
 {
-	int enabled;
+	XASSERT(socket != NULL, -1);
+	XASSERT(socket->class->listen != NULL, -1);
 
-	enabled = 1;
-	if (setsockopt(socket->fd, SOL_SOCKET, SO_REUSEADDR, &enabled, sizeof(enabled)) == -1 ||
-	    rinoo_socket_bind(socket, addr, addrlen) == -1 ||
-	    listen(socket->fd, backlog) == -1) {
-		return -1;
-	}
-	return 0;
+	return socket->class->listen(socket, addr, addrlen, backlog);
 }
 
 /**
  * Accepts a new connection from a listening socket.
- * This is a replacement to the accept(2) syscall in this library.
  *
  * @param socket Pointer to the socket which is listening to
  * @param addr Address to the peer socket (see man accept)
@@ -248,37 +179,14 @@ int rinoo_socket_listen(t_rinoosocket *socket, const struct sockaddr *addr, sock
  */
 t_rinoosocket *rinoo_socket_accept(t_rinoosocket *socket, struct sockaddr *addr, socklen_t *addrlen)
 {
-	int fd;
-	int enabled;
-	t_rinoosocket *new;
+	XASSERT(socket != NULL, NULL);
+	XASSERT(socket->class->accept != NULL, NULL);
 
-	if (rinoo_socket_waitin(socket) != 0) {
-		return NULL;
-	}
-	fd = accept(socket->fd, addr, addrlen);
-	if (fd == -1) {
-		return NULL;
-	}
-	new = calloc(1, sizeof(*new));
-	if (unlikely(new == NULL)) {
-		close(fd);
-		return NULL;
-	}
-	new->fd = fd;
-	new->parent = socket;
-	new->sched = socket->sched;
-	enabled = 1;
-	if (unlikely(ioctl(new->fd, FIONBIO, &enabled) == -1)) {
-		close(fd);
-		free(new);
-		return NULL;
-	}
-	return new;
+	return socket->class->accept(socket, addr, addrlen);
 }
 
 /**
- * Replacement to the read(2) syscall in this library.
- * This function waits for the socket to be available for read operations and calls the read(2) syscall.
+ * Calls the appropriate read function depending on socket class.
  *
  * @param socket Pointer to the socket to read
  * @param buf Buffer where to store the information read
@@ -288,22 +196,11 @@ t_rinoosocket *rinoo_socket_accept(t_rinoosocket *socket, struct sockaddr *addr,
  */
 ssize_t rinoo_socket_read(t_rinoosocket *socket, void *buf, size_t count)
 {
-	ssize_t ret;
-
-	if (rinoo_socket_waitin(socket) != 0) {
-		return -1;
-	}
-	ret = read(socket->fd, buf, count);
-	if (ret <= 0) {
-		return -1;
-	}
-	return ret;
+	return socket->class->read(socket, buf, count);
 }
 
 /**
- * Replacement to the write(2) syscall in this library.
- * This function waits for the socket to be available for write operations and calls write(2) syscall
- * as many time as needed.
+ * Calls the appropriate function depending on socket class.
  *
  * @param socket Pointer to the socket to read
  * @param buf Buffer which stores the information to write
@@ -313,21 +210,7 @@ ssize_t rinoo_socket_read(t_rinoosocket *socket, void *buf, size_t count)
  */
 ssize_t	rinoo_socket_write(t_rinoosocket *socket, const void *buf, size_t count)
 {
-	size_t sent;
-
-	sent = count;
-	while (count > 0) {
-		if (rinoo_socket_waitout(socket) != 0) {
-			return -1;
-		}
-		ret = write(socket->fd, buf, count);
-		if (ret <= 0) {
-			return -1;
-		}
-		count -= ret;
-		buf += ret;
-	}
-	return sent;
+	return socket->class->write(socket, buf, count);
 }
 
 /**
@@ -347,12 +230,9 @@ ssize_t rinoo_socket_readb(t_rinoosocket *socket, t_buffer *buffer)
 	if (buffer_isfull(buffer) && buffer_extend(buffer, 0) <= 0) {
 		return -1;
 	}
-	if (rinoo_socket_waitin(socket) != 0) {
-		return -1;
-	}
-	res = read(socket->fd,
-		   buffer_ptr(buffer) + buffer_size(buffer),
-		   buffer_msize(buffer) - buffer_size(buffer));
+	res = socket->class->read(socket,
+				  buffer_ptr(buffer) + buffer_size(buffer),
+				  buffer_msize(buffer) - buffer_size(buffer));
 	if (res <= 0) {
 		return -1;
 	}
@@ -398,12 +278,9 @@ ssize_t rinoo_socket_readline(t_rinoosocket *socket, t_buffer *buffer, const cha
 		if (buffer_isfull(buffer) && buffer_extend(buffer, 0) <= 0) {
 			return -1;
 		}
-		if (rinoo_socket_waitin(socket) != 0) {
-			return -1;
-		}
-		res = read(socket->fd,
-			   buffer_ptr(buffer) + buffer_size(buffer),
-			   buffer_msize(buffer) - buffer_size(buffer));
+		res = socket->class->read(socket,
+					  buffer_ptr(buffer) + buffer_size(buffer),
+					  buffer_msize(buffer) - buffer_size(buffer));
 		if (res <= 0) {
 			return -1;
 		}
@@ -455,10 +332,7 @@ ssize_t rinoo_socket_writeb(t_rinoosocket *socket, t_buffer *buffer)
 	total = 0;
 	len = buffer_size(buffer);
 	while (len > 0) {
-		if (rinoo_socket_waitout(socket) != 0) {
-			return -1;
-		}
-		res = write(socket->fd, buffer_ptr(buffer) + buffer_size(buffer) - len, len);
+		res = socket->class->write(socket, buffer_ptr(buffer) + buffer_size(buffer) - len, len);
 		if (res <= 0) {
 			return -1;
 		}

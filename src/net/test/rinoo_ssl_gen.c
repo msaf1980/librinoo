@@ -1,5 +1,5 @@
 /**
- * @file   rinoo_stcp_gen.c
+ * @file   rinoo_ssl_gen.c
  * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
  * @date   Tue Mar 20 16:59:54 2012
  *

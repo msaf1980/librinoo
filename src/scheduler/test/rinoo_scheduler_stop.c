@@ -1,6 +1,6 @@
 /**
  * @file   rinoo_scheduler_stop.c
- * @author reginaldl <reginald.l@gmail.com>
+ * @author reginaldl <reginald.l@gmail.com> - Copyright 2013
  * @date   Wed Jan  2 15:13:07 2013
  *
  * @brief  RiNOO Scheduler stop unit test

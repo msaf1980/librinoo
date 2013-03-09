@@ -1,6 +1,6 @@
 /**
  * @file   epoll.c
- * @author Reginald Lips <reginald.l@gmail.com>
+ * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
  * @date   Tue Mar 20 15:37:04 2012
  *
  * @brief  This file manages the poll API working with epoll.

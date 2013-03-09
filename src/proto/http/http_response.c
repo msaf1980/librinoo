@@ -1,6 +1,6 @@
 /**
  * @file   http_response.c
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2013
  * @date   Fri Nov 19 12:49:12 2010
  *
  * @brief  HTTP response functions

@@ -1,6 +1,6 @@
 /**
  * @file   http_request.c
- * @author Reginald Lips <reginald.l@gmail.com>
+ * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
  * @date   Sun Apr 22 22:52:38 2012
  *
  * @brief  HTTP request functions

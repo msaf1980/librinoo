@@ -1,6 +1,6 @@
 /**
  * @file   http.h
- * @author Reginald Lips <reginald.l@gmail.com>
+ * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
  * @date   Sun Apr 15 21:59:15 2012
  *
  * @brief  Header file for http service

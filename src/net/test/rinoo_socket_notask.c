@@ -1,6 +1,6 @@
 /**
  * @file rinoo_socket_notask.c
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2011
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2013
  * @date Sun Jan 3 15:34:47 2010
  *
  * @brief Running a socket in the main thread.
@@ -9,6 +9,8 @@
  */
 #include <sys/wait.h>
 #include "rinoo/rinoo.h"
+
+extern const t_rinoosocket_class socket_class_tcp;
 
 void server()
 {
@@ -20,7 +22,7 @@ void server()
 
 	sched = rinoo_sched();
 	XTEST(sched != NULL);
-	server = rinoo_socket(sched, AF_INET, SOCK_STREAM);
+	server = rinoo_socket(sched, &socket_class_tcp);
 	XTEST(server != NULL);
 	addr.sin_port = htons(4242);
 	addr.sin_family = AF_INET;
@@ -52,7 +54,7 @@ void client()
 
 	sched = rinoo_sched();
 	XTEST(sched != NULL);
-	socket = rinoo_socket(sched, AF_INET, SOCK_STREAM);
+	socket = rinoo_socket(sched, &socket_class_tcp);
 	XTEST(socket != NULL);
 	addr.sin_port = htons(4242);
 	addr.sin_family = AF_INET;
