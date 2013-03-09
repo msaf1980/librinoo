@@ -24,7 +24,7 @@ void process_client(void *arg)
 	XTEST(rinoo_ssl_read(ssl, &b, 1) == 1);
 	XTEST(b == 'b');
 	rinoo_log("server - receiving nothing");
-	XTEST(rinoo_ssl_read(ssl, &b, 1) == 0);
+	XTEST(rinoo_ssl_read(ssl, &b, 1) == -1);
 	rinoo_ssl_destroy(ssl);
 }
 
@@ -73,7 +73,7 @@ void client_func(void *arg)
 
 
 /**
- * This test will check if a scheduler is well initialized.
+ * Main function for this unit test.
  *
  * @return 0 if test passed
  */

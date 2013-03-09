@@ -41,6 +41,8 @@ t_buffer *buffer_dup(t_buffer *buffer);
 int buffer_cmp(t_buffer *buffer1, t_buffer *buffer2);
 int buffer_strcmp(t_buffer *buffer, const char *str);
 int buffer_strncmp(t_buffer *buffer, const char *str, size_t len);
+int buffer_strcasecmp(t_buffer *buffer, const char *str);
+int buffer_strncasecmp(t_buffer *buffer, const char *str, size_t len);
 long int buffer_tolong(t_buffer *buffer, size_t *len, int base);
 unsigned long int buffer_toulong(t_buffer *buffer, size_t *len, int base);
 float buffer_tofloat(t_buffer *buffer, size_t *len);

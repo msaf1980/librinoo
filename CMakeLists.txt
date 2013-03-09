@@ -16,6 +16,7 @@ include_directories(include)
 ## Library ##
 list_source_files(src_files "src/*.[cS]")
 add_library(${CMAKE_PROJECT_NAME} SHARED ${src_files})
+target_link_libraries(${CMAKE_PROJECT_NAME} ssl)
 add_library(${CMAKE_PROJECT_NAME}_static STATIC ${src_files})
 ## !Library ##
 
