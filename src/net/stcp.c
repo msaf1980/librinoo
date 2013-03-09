@@ -260,6 +260,7 @@ ssize_t rinoo_ssl_read(t_rinoossl *ssl, void *buf, size_t count)
 {
 	int ret;
 
+	/* Don't need to wait for input here as SSL is buffered */
 	while ((ret = SSL_read(ssl->ssl, buf, count)) < 0) {
 		switch(SSL_get_error(ssl->ssl, ret)) {
 		case SSL_ERROR_NONE:

@@ -10,18 +10,27 @@
 
 #include "rinoo/rinoo.h"
 
+/* Default is TCP */
+static t_rinoosocket_class default_socket_class = {
+	.domain = AF_INET,
+	.type = SOCK_STREAM,
+	.read = rinoo_socket_helper_read,
+	.write = rinoo_socket_helper_write,
+	.connect = rinoo_socket_helper_connect,
+	.accept = rinoo_socket_helper_accept
+}
+
 /**
  * Socket initialisation function. This function creates a socket file descriptor
  * and enables non-blocking IO.
  *
  * @param sched Pointer to a scheduler
  * @param sock Pointer to a socket structure to fill
- * @param domain Socket domain (see man socket)
- * @param type Socket type (see man socket)
+ * @param class Socket class
  *
  * @return 0 on success, otherwise -1
  */
-int rinoo_socket_set(t_rinoosched *sched, t_rinoosocket *sock, int domain, int type)
+int rinoo_socket_set(t_rinoosched *sched, t_rinoosocket *sock, t_rinoosocket_class *class)
 {
 	int fd;
 	int enabled;
@@ -29,7 +38,10 @@ int rinoo_socket_set(t_rinoosched *sched, t_rinoosocket *sock, int domain, int t
 	XASSERT(sched != NULL, -1);
 	XASSERT(sock != NULL, -1);
 
-	fd = socket(domain, type, 0);
+	if (class == NULL) {
+		class = &default_socket_class;
+	}
+	fd = socket(class->domain, class->type, 0);
 	if (unlikely(fd == -1)) {
 		return -1;
 	}
@@ -53,7 +65,7 @@ int rinoo_socket_set(t_rinoosched *sched, t_rinoosocket *sock, int domain, int t
  *
  * @return A pointer to the new socket or NULL if an error occurs
  */
-t_rinoosocket *rinoo_socket(t_rinoosched *sched, int domain, int type)
+t_rinoosocket *rinoo_socket(t_rinoosched *sched, t_rinoosocket_class *class)
 {
 	t_rinoosocket *new;
 
