@@ -117,7 +117,7 @@ int rinoo_socket_waitout(t_rinoosocket *socket)
  *
  * @return 0 on success or -1 if an error occurs
  */
-int rinoo_socket_timeout(t_rinoosocket *socket, u32 ms)
+int rinoo_socket_timeout(t_rinoosocket *socket, uint32_t ms)
 {
 	struct timeval res;
 	struct timeval toadd;

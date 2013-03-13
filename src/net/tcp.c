@@ -22,7 +22,7 @@ extern const t_rinoosocket_class socket_class_tcp;
  *
  * @return Socket pointer on success or NULL if an error occurs
  */
-t_rinoosocket *rinoo_tcp_client(t_rinoosched *sched, t_ip ip, u32 port, u32 timeout)
+t_rinoosocket *rinoo_tcp_client(t_rinoosched *sched, t_ip ip, uint32_t port, uint32_t timeout)
 {
 	t_rinoosocket *socket;
 	struct sockaddr_in addr;
@@ -54,7 +54,7 @@ t_rinoosocket *rinoo_tcp_client(t_rinoosched *sched, t_ip ip, u32 port, u32 time
  *
  * @return Socket pointer to the server on success or NULL if an error occurs
  */
-t_rinoosocket *rinoo_tcp_server(t_rinoosched *sched, t_ip ip, u32 port)
+t_rinoosocket *rinoo_tcp_server(t_rinoosched *sched, t_ip ip, uint32_t port)
 {
 	t_rinoosocket *socket;
 	struct sockaddr_in addr;
@@ -78,11 +78,11 @@ t_rinoosocket *rinoo_tcp_server(t_rinoosched *sched, t_ip ip, u32 port)
  *
  * @param socket Pointer to the socket which is listening to
  * @param fromip Pointer to a t_ip where to store the from_ip
- * @param fromport Pointer to a u32 where to store the from_port
+ * @param fromport Pointer to a uint32_t where to store the from_port
  *
  * @return A pointer to the new socket on success or NULL if an error occurs
  */
-t_rinoosocket *rinoo_tcp_accept(t_rinoosocket *socket, t_ip *fromip, u32 *fromport)
+t_rinoosocket *rinoo_tcp_accept(t_rinoosocket *socket, t_ip *fromip, uint32_t *fromport)
 {
 	t_rinoosocket *new;
 	struct sockaddr_in addr;

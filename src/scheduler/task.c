@@ -67,7 +67,7 @@ void rinoo_task_driver_destroy(t_rinoosched *sched)
  *
  * @return Time before next task in ms or 1000 if no task is queued
  */
-u32 rinoo_task_driver_run(t_rinoosched *sched)
+uint32_t rinoo_task_driver_run(t_rinoosched *sched)
 {
 	t_rinootask *task;
 	struct timeval tv;
@@ -95,7 +95,7 @@ u32 rinoo_task_driver_run(t_rinoosched *sched)
  *
  * @return Number of pending tasks.
  */
-u32 rinoo_task_driver_nbpending(t_rinoosched *sched)
+uint32_t rinoo_task_driver_nbpending(t_rinoosched *sched)
 {
 	return sched->driver.proc_tree.size;
 }
@@ -307,7 +307,7 @@ int rinoo_task_unschedule(t_rinootask *task)
  *
  * @return 0 on success or -1 if an error occurs
  */
-int rinoo_task_wait(t_rinoosched *sched, u32 ms)
+int rinoo_task_wait(t_rinoosched *sched, uint32_t ms)
 {
 	struct timeval res;
 	struct timeval toadd;

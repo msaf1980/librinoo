@@ -17,9 +17,9 @@
  */
 void rinoo_log(const char *format, ...)
 {
-	u32 i;
-	u32 res;
-	u32 offset;
+	uint32_t i;
+	uint32_t res;
+	uint32_t offset;
 	char *logline;
 	char *esclogline;
 	va_list ap;

@@ -146,7 +146,7 @@ int buffer_vprint(t_buffer *buffer, const char *format, va_list ap)
 	va_list ap2;
 
 	va_copy(ap2, ap);
-	while (((u32) (res = vsnprintf(buffer->ptr + buffer->size,
+	while (((uint32_t) (res = vsnprintf(buffer->ptr + buffer->size,
 				       buffer->msize - buffer->size,
 				       format, ap2)) >= buffer->msize - buffer->size) &&
 	       buffer_extend(buffer, buffer->size + res + 1) == 0) {

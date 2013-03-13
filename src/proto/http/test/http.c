@@ -44,7 +44,7 @@ void http_server_process(void *socket)
 void http_server(void *sched)
 {
 	t_ip ip;
-	u32 port;
+	uint32_t port;
 	t_rinoosocket *server;
 	t_rinoosocket *client;
 

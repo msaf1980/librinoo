@@ -172,7 +172,7 @@ void rinoo_sched_stop(t_rinoosched *sched)
  */
 int rinoo_sched_poll(t_rinoosched *sched)
 {
-	u32 timeout;
+	uint32_t timeout;
 
 	gettimeofday(&sched->clock, NULL);
 	timeout = rinoo_task_driver_run(sched);

@@ -31,7 +31,7 @@ void process_client(void *arg)
 void server_func(void *arg)
 {
 	t_ip fromip;
-	u32 fromport;
+	uint32_t fromport;
 	t_rinoosocket *client;
 	t_rinoosocket *server;
 	t_rinoossl_ctx *ctx = arg;

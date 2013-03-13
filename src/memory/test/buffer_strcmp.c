@@ -28,7 +28,7 @@ char *strings[] = {
  */
 int main()
 {
-	u32 i;
+	uint32_t i;
 	t_buffer *buffer1;
 
 	buffer1 = buffer_create(NULL);

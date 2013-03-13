@@ -22,7 +22,7 @@ typedef enum e_rinoosched_mode {
 typedef struct s_rinoosched {
 	int stop;
 	int error;
-	u32 nbpending;
+	uint32_t nbpending;
 	struct timeval clock;
 	t_rinootask_driver driver;
 	struct s_rinooepoll epoll;

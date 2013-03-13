@@ -132,7 +132,7 @@ t_rinoossl *rinoo_ssl_get(t_rinoosocket *socket)
  *
  * @return Socket pointer on success or NULL if an error occurs
  */
-t_rinoosocket *rinoo_ssl_client(t_rinoosched *sched, t_rinoossl_ctx *ctx, t_ip ip, u32 port, u32 timeout)
+t_rinoosocket *rinoo_ssl_client(t_rinoosched *sched, t_rinoossl_ctx *ctx, t_ip ip, uint32_t port, uint32_t timeout)
 {
 	t_rinoossl *ssl;
 	t_rinoosocket *socket;
@@ -168,7 +168,7 @@ t_rinoosocket *rinoo_ssl_client(t_rinoosched *sched, t_rinoossl_ctx *ctx, t_ip i
  *
  * @return Socket pointer on success or NULL if an error occurs
  */
-t_rinoosocket *rinoo_ssl_server(t_rinoosched *sched, t_rinoossl_ctx *ctx, t_ip ip, u32 port)
+t_rinoosocket *rinoo_ssl_server(t_rinoosched *sched, t_rinoossl_ctx *ctx, t_ip ip, uint32_t port)
 {
 	t_rinoossl *ssl;
 	t_rinoosocket *socket;
@@ -195,11 +195,11 @@ t_rinoosocket *rinoo_ssl_server(t_rinoosched *sched, t_rinoossl_ctx *ctx, t_ip i
  *
  * @param socket Pointer to the socket which is listening to
  * @param fromip Pointer to a t_ip where to store the from_ip
- * @param fromport Pointer to a u32 where to store the from_port
+ * @param fromport Pointer to a uint32_t where to store the from_port
  *
  * @return A pointer to the new socket on success or NULL if an error occurs
  */
-t_rinoosocket *rinoo_ssl_accept(t_rinoosocket *socket, t_ip *fromip, u32 *fromport)
+t_rinoosocket *rinoo_ssl_accept(t_rinoosocket *socket, t_ip *fromip, uint32_t *fromport)
 {
 	t_rinoosocket *new;
 	struct sockaddr_in addr;

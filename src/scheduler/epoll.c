@@ -127,7 +127,7 @@ int rinoo_epoll_remove(t_rinoosched *sched, int fd)
  *
  * @return 0 if succeeds, else -1.
  */
-int rinoo_epoll_poll(t_rinoosched *sched, u32 timeout)
+int rinoo_epoll_poll(t_rinoosched *sched, uint32_t timeout)
 {
 	int i;
 	int nbevents;

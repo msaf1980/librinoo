@@ -72,7 +72,7 @@ void rinoohttp_headers_flush(t_rinoorbtree *headertree)
  *
  * @return 0 on success, or -1 if an error occurs.
  */
-int rinoohttp_header_setdata(t_rinoorbtree *headertree, const char *key, const char *value, u32 size)
+int rinoohttp_header_setdata(t_rinoorbtree *headertree, const char *key, const char *value, uint32_t size)
 {
 	char *new_value;
 	t_rinoohttp_header *new;
