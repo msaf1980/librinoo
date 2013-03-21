@@ -122,9 +122,6 @@ ssize_t	rinoo_socket_class_ssl_write(t_rinoosocket *socket, const void *buf, siz
 
 	sent = count;
 	while (count > 0) {
-		if (rinoo_socket_waitout(socket) != 0) {
-			return -1;
-		}
 		while ((ret = SSL_write(ssl->ssl, buf, count)) < 0) {
 			switch(SSL_get_error(ssl->ssl, ret)) {
 			case SSL_ERROR_NONE:

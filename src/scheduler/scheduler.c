@@ -50,10 +50,10 @@ void rinoo_sched_destroy(t_rinoosched *sched)
 	/* Destroying all pending tasks. */
 	for (i = 0; i < RINOO_SCHEDULER_MAXFDS; i++)
 	{
-		if (sched->task_pool[i] != NULL)
+		if (sched->event_map[i].task != NULL)
 		{
 			errno = ECANCELED;
-			rinoo_task_resume(sched->task_pool[i]);
+			rinoo_task_resume(sched->event_map[i].task);
 		}
 	}
 	rinoo_task_driver_destroy(sched);
@@ -72,37 +72,55 @@ void rinoo_sched_destroy(t_rinoosched *sched)
  */
 int rinoo_sched_waitfor(t_rinoosched *sched, int fd, t_rinoosched_mode mode)
 {
-	XASSERT(fd < RINOO_SCHEDULER_MAXFDS, -1);
+	int error;
+	t_rinoosched_event *event;
 
-	if (sched->task_pool[fd] == NULL) {
-		if (unlikely(rinoo_epoll_insert(sched, fd, mode) != 0)) {
-			return -1;
-		}
-	} else {
-		if (unlikely(rinoo_epoll_addmode(sched, fd, mode) != 0)) {
-			return -1;
+	XASSERT(fd < RINOO_SCHEDULER_MAXFDS, -1);
+	XASSERT(mode != RINOO_MODE_NONE, -1);
+
+	event = &sched->event_map[fd];
+	if (event->error != 0) {
+		error = event->error;
+		rinoo_sched_remove(sched, fd);
+		errno = error;
+		return -1;
+	}
+	if ((event->received & mode) == mode) {
+		event->received -= mode;
+		return 0;
+	}
+	if ((event->waiting & mode) != mode) {
+		if (event->waiting == RINOO_MODE_NONE) {
+			if (unlikely(rinoo_epoll_insert(sched, fd, mode) != 0)) {
+				return -1;
+			}
+		} else {
+			if (unlikely(rinoo_epoll_addmode(sched, fd, mode) != 0)) {
+				return -1;
+			}
 		}
 	}
-	sched->task_pool[fd] = rinoo_task_driver_getcurrent(sched);
-	if (unlikely(sched->task_pool[fd] == &sched->driver.main)) {
+	event->waiting |= mode;
+	event->task = rinoo_task_driver_getcurrent(sched);
+	if (unlikely(event->task == &sched->driver.main)) {
 		return rinoo_sched_poll(sched);
 	}
 	sched->nbpending++;
 	rinoo_task_release(sched);
 	sched->nbpending--;
-	if (sched->error != 0) {
+	if (event->error != 0) {
+		error = event->error;
 		rinoo_sched_remove(sched, fd);
-		errno = sched->error;
+		errno = error;
 		return -1;
 	}
-	if (sched->lastmode != mode) {
+	if ((event->received & mode) != mode) {
 		rinoo_sched_remove(sched, fd);
-		/* Task has been resumed without setting lastmode */
+		/* Task has been resumed but no event received, this is a timeout */
 		errno = ETIMEDOUT;
 		return -1;
 	}
-	sched->error = 0;
-	sched->lastmode = RINOO_MODE_NONE;
+	event->received -= mode;
 	return 0;
 }
 
@@ -118,7 +136,7 @@ int rinoo_sched_remove(t_rinoosched *sched, int fd)
 {
 	XASSERT(fd < RINOO_SCHEDULER_MAXFDS, -1);
 
-	sched->task_pool[fd] = NULL;
+	memset(&sched->event_map[fd], 0, sizeof(sched->event_map[fd]));
 	if (rinoo_epoll_remove(sched, fd) != 0) {
 		return -1;
 	}
@@ -136,18 +154,16 @@ int rinoo_sched_remove(t_rinoosched *sched, int fd)
  */
 void rinoo_sched_wakeup(t_rinoosched *sched, int fd, t_rinoosched_mode mode, int error)
 {
-	t_rinootask *task;
+	t_rinoosched_event *event;
 
 	XASSERTN(fd < RINOO_SCHEDULER_MAXFDS);
 
-	task = sched->task_pool[fd];
-	sched->error = error;
-	sched->lastmode = mode;
-	if (task == NULL || task == &sched->driver.main) {
-		/* Nothing to wake */
-		return;
+	event = &sched->event_map[fd];
+	event->error = error;
+	event->received |= mode;
+	if (event->task != NULL && event->task != &sched->driver.main && (event->waiting & mode) == mode) {
+		rinoo_task_resume(event->task);
 	}
-	rinoo_task_resume(task);
 }
 
 /**

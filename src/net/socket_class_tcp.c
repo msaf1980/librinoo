@@ -108,12 +108,19 @@ ssize_t rinoo_socket_class_tcp_read(t_rinoosocket *socket, void *buf, size_t cou
 {
 	ssize_t ret;
 
-	if (rinoo_socket_waitin(socket) != 0) {
-		return -1;
-	}
+	errno = 0;
 	ret = read(socket->fd, buf, count);
 	if (ret <= 0) {
-		return -1;
+		if (errno != EAGAIN && errno != EWOULDBLOCK) {
+			return -1;
+		}
+		if (rinoo_socket_waitin(socket) != 0) {
+			return -1;
+		}
+		ret = read(socket->fd, buf, count);
+		if (ret <= 0) {
+			return -1;
+		}
 	}
 	return ret;
 }
@@ -135,12 +142,15 @@ ssize_t	rinoo_socket_class_tcp_write(t_rinoosocket *socket, const void *buf, siz
 
 	sent = count;
 	while (count > 0) {
-		if (rinoo_socket_waitout(socket) != 0) {
-			return -1;
-		}
+		errno = 0;
 		ret = write(socket->fd, buf, count);
 		if (ret <= 0) {
-			return -1;
+			if (errno != EAGAIN) {
+				return -1;
+			}
+			if (rinoo_socket_waitout(socket) != 0) {
+				return -1;
+			}
 		}
 		count -= ret;
 		buf += ret;

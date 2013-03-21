@@ -69,7 +69,7 @@ int rinoo_epoll_insert(t_rinoosched *sched, int fd, t_rinoosched_mode mode)
 	if ((mode & RINOO_MODE_OUT) == RINOO_MODE_OUT) {
 		ev.events |= EPOLLOUT;
 	}
-	ev.events |= EPOLLONESHOT | EPOLLRDHUP;
+	ev.events |= EPOLLET | EPOLLRDHUP;
 	ev.data.fd = fd;
 	if (unlikely(epoll_ctl(sched->epoll.fd, EPOLL_CTL_ADD, fd, &ev) != 0)) {
 		return -1;
@@ -96,7 +96,7 @@ int rinoo_epoll_addmode(t_rinoosched *sched, int fd, t_rinoosched_mode mode)
 	if ((mode & RINOO_MODE_OUT) == RINOO_MODE_OUT) {
 		ev.events |= EPOLLOUT;
 	}
-	ev.events |= EPOLLONESHOT | EPOLLRDHUP;
+	ev.events |= EPOLLET | EPOLLRDHUP;
 	ev.data.fd = fd;
 	if (unlikely(epoll_ctl(sched->epoll.fd, EPOLL_CTL_MOD, fd, &ev) != 0)) {
 		return -1;

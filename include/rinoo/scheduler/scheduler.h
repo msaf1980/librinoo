@@ -16,18 +16,23 @@
 typedef enum e_rinoosched_mode {
 	RINOO_MODE_NONE = 0,
 	RINOO_MODE_IN = 1,
-	RINOO_MODE_OUT = 2
+	RINOO_MODE_OUT = 2,
 } t_rinoosched_mode;
+
+typedef struct s_rinoosched_event {
+	int error;
+	t_rinootask *task;
+	t_rinoosched_mode waiting;
+	t_rinoosched_mode received;
+} t_rinoosched_event;
 
 typedef struct s_rinoosched {
 	int stop;
-	int error;
 	uint32_t nbpending;
 	struct timeval clock;
 	t_rinootask_driver driver;
 	struct s_rinooepoll epoll;
-	t_rinoosched_mode lastmode;
-	t_rinootask *task_pool[RINOO_SCHEDULER_MAXFDS];
+	t_rinoosched_event event_map[RINOO_SCHEDULER_MAXFDS];
 } t_rinoosched;
 
 t_rinoosched *rinoo_sched();
