@@ -48,7 +48,7 @@ typedef struct s_rinoorbtree_node {
 } t_rinoorbtree_node;
 
 typedef struct s_rinoorbtree {
-	u64 size;
+	uint64_t size;
 	t_rinoorbtree_node *root;
 	t_rinoorbtree_node *head;
 	int (*compare)(t_rinoorbtree_node *node1, t_rinoorbtree_node *node2);

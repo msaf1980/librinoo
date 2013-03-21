@@ -17,9 +17,9 @@
 #define LATENCY			10
 #endif /* !RINOO_DEBUG */
 
-int check_time(struct timeval *prev, u32 ms)
+int check_time(struct timeval *prev, uint32_t ms)
 {
-	u32 diffms;
+	uint32_t diffms;
 	struct timeval cur;
 	struct timeval diff;
 

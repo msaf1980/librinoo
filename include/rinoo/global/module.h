@@ -11,7 +11,6 @@
 #ifndef RINOO_MODULE_GLOBAL_H_
 #define RINOO_MODULE_GLOBAL_H_
 
-#include "rinoo/global/xtypes.h"
 #include "rinoo/global/macros.h"
 #include "rinoo/global/utils.h"
 
