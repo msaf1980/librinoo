@@ -10,9 +10,18 @@
 
 #include "rinoo/rinoo.h"
 
+/**
+ * Adds an element to a list
+ *
+ * @param list Pointer to the list
+ * @param node Pointer to the node to add
+ */
 void rinoolist_add(t_rinoolist *list, t_rinoolist_node *node)
 {
 	node->next = list->head;
+	if (list->head != NULL) {
+		list->head->prev = node;
+	}
 	list->head = node;
 	if (list->tail == NULL) {
 		list->tail = node;
@@ -20,6 +29,12 @@ void rinoolist_add(t_rinoolist *list, t_rinoolist_node *node)
 	list->count++;
 }
 
+/**
+ * Removes an element from a list
+ *
+ * @param list Pointer to the list
+ * @param node Pointer to the element to remove
+ */
 void rinoolist_remove(t_rinoolist *list, t_rinoolist_node *node)
 {
 	if (node->prev != NULL) {
@@ -27,12 +42,21 @@ void rinoolist_remove(t_rinoolist *list, t_rinoolist_node *node)
 	} else {
 		list->head = node->next;
 	}
-	if (list->tail == node) {
+	if (node->next != NULL) {
+		node->next->prev = node->prev;
+	} else {
 		list->tail = NULL;
 	}
 	list->count--;
 }
 
+/**
+ * Pops an element from a list
+ *
+ * @param list Pointer to the list
+ *
+ * @return First element in the list or NULL if empty
+ */
 t_rinoolist_node *rinoolist_pop(t_rinoolist *list)
 {
 	t_rinoolist_node *node;

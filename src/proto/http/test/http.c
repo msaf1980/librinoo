@@ -10,33 +10,39 @@
 
 #include "rinoo/rinoo.h"
 
+#define NB_REQUESTS	40000
+
 void http_client(void *sched)
 {
+	int i;
 	t_rinoohttp http;
 	t_rinoosocket *client;
 
 	client = rinoo_tcp_client(sched, 0, 4242, 0);
 	XTEST(client != NULL);
 	XTEST(rinoohttp_init(client, &http) == 0);
-	rinoo_log("client - sending request");
-	XTEST(rinoohttp_request_send(&http, RINOO_HTTP_METHOD_GET, "/", NULL) == 0);
-	rinoo_log("client - request sent");
-	XTEST(rinoohttp_response_get(&http) == 1);
-	XTEST(http.response.code == 200);
+	for (i = 0; i < NB_REQUESTS; i++) {
+		XTEST(rinoohttp_request_send(&http, RINOO_HTTP_METHOD_GET, "/", NULL) == 0);
+		XTEST(rinoohttp_response_get(&http) == 1);
+		XTEST(http.response.code == 200);
+		rinoohttp_reset(&http);
+	}
 	rinoohttp_destroy(&http);
 	rinoo_socket_destroy(client);
 }
 
 void http_server_process(void *socket)
 {
+	int i;
 	t_rinoohttp http;
 
 	XTEST(rinoohttp_init(socket, &http) == 0);
-	rinoo_log("server - accepting request");
-	XTEST(rinoohttp_request_get(&http) == 1);
-	rinoo_log("server - request accepted");
-	http.response.code = 200;
-	XTEST(rinoohttp_response_send(&http, NULL) == 0);
+	for (i = 0; i < NB_REQUESTS; i++) {
+		XTEST(rinoohttp_request_get(&http) == 1);
+		http.response.code = 200;
+		XTEST(rinoohttp_response_send(&http, NULL) == 0);
+		rinoohttp_reset(&http);
+	}
 	rinoohttp_destroy(&http);
 	rinoo_socket_destroy(socket);
 }

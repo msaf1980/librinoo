@@ -27,7 +27,7 @@ int rinoo_socket_init(t_rinoosched *sched, t_rinoosocket *sock, const t_rinoosoc
 	XASSERT(class != NULL, -1);
 
 	sock->class = class;
-	sock->sched = sched;
+	sock->node.sched = sched;
 	return class->open(sock);
 
 }
@@ -68,8 +68,9 @@ void rinoo_socket_close(t_rinoosocket *socket)
 {
 	XASSERTN(socket != NULL);
 
-	rinoo_sched_remove(socket->sched, socket->fd);
+	rinoo_sched_remove(&socket->node);
 	socket->class->close(socket);
+	memset(&socket->node, 0, sizeof(socket->node));
 }
 
 /**
@@ -94,7 +95,7 @@ void rinoo_socket_destroy(t_rinoosocket *socket)
  */
 int rinoo_socket_waitin(t_rinoosocket *socket)
 {
-	return rinoo_sched_waitfor(socket->sched, socket->fd, RINOO_MODE_IN);
+	return rinoo_sched_waitfor(&socket->node, RINOO_MODE_IN);
 }
 
 /**
@@ -106,7 +107,7 @@ int rinoo_socket_waitin(t_rinoosocket *socket)
  */
 int rinoo_socket_waitout(t_rinoosocket *socket)
 {
-	return rinoo_sched_waitfor(socket->sched, socket->fd, RINOO_MODE_OUT);
+	return rinoo_sched_waitfor(&socket->node, RINOO_MODE_OUT);
 }
 
 /**
@@ -125,12 +126,12 @@ int rinoo_socket_timeout(t_rinoosocket *socket, uint32_t ms)
 	XASSERT(socket != NULL, -1);
 
 	if (ms == 0) {
-		return rinoo_task_schedule(rinoo_task_driver_getcurrent(socket->sched), NULL);
+		return rinoo_task_schedule(rinoo_task_driver_getcurrent(socket->node.sched), NULL);
 	}
 	toadd.tv_sec = ms / 1000;
 	toadd.tv_usec = (ms % 1000) * 1000;
-	timeradd(&socket->sched->clock, &toadd, &res);
-	return rinoo_task_schedule(rinoo_task_driver_getcurrent(socket->sched), &res);
+	timeradd(&socket->node.sched->clock, &toadd, &res);
+	return rinoo_task_schedule(rinoo_task_driver_getcurrent(socket->node.sched), &res);
 }
 
 /**

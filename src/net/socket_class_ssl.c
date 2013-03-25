@@ -39,7 +39,7 @@ t_rinoosocket *rinoo_socket_class_ssl_create(t_rinoosched *sched)
 	if (unlikely(ssl == NULL)) {
 		return NULL;
 	}
-	ssl->socket.sched = sched;
+	ssl->socket.node.sched = sched;
 	return &ssl->socket;
 }
 
@@ -176,7 +176,7 @@ int rinoo_socket_class_ssl_connect(t_rinoosocket *socket, const struct sockaddr 
 	if (unlikely(ssl->ssl == NULL)) {
 		return -1;
 	}
-	sbio = BIO_new_socket(ssl->socket.fd, BIO_NOCLOSE);
+	sbio = BIO_new_socket(ssl->socket.node.fd, BIO_NOCLOSE);
 	if (unlikely(sbio == NULL)) {
 		return -1;
 	}
@@ -233,7 +233,7 @@ t_rinoosocket *rinoo_socket_class_ssl_accept(t_rinoosocket *socket, struct socka
 	if (rinoo_socket_waitin(socket) != 0) {
 		return NULL;
 	}
-	fd = accept(ssl->socket.fd, addr, addrlen);
+	fd = accept(ssl->socket.node.fd, addr, addrlen);
 	if (fd == -1) {
 		return NULL;
 	}
@@ -243,8 +243,8 @@ t_rinoosocket *rinoo_socket_class_ssl_accept(t_rinoosocket *socket, struct socka
 		return NULL;
 	}
 	new->ctx = ssl->ctx;
-	new->socket.fd = fd;
-	new->socket.sched = socket->sched;
+	new->socket.node.fd = fd;
+	new->socket.node.sched = socket->node.sched;
 	new->socket.class = socket->class;
 	enabled = 1;
 	if (unlikely(ioctl(fd, FIONBIO, &enabled) == -1)) {
@@ -253,7 +253,7 @@ t_rinoosocket *rinoo_socket_class_ssl_accept(t_rinoosocket *socket, struct socka
 		return NULL;
 	}
 	new->socket.parent = socket;
-	if (rinoo_sched_waitfor(new->socket.sched, new->socket.fd, RINOO_MODE_OUT) != 0) {
+	if (rinoo_socket_waitout(&new->socket) != 0) {
 		rinoo_socket_destroy(&new->socket);
 		return NULL;
 	}
@@ -262,7 +262,7 @@ t_rinoosocket *rinoo_socket_class_ssl_accept(t_rinoosocket *socket, struct socka
 		rinoo_socket_destroy(&new->socket);
 		return NULL;
 	}
-	sbio = BIO_new_socket(new->socket.fd, BIO_NOCLOSE);
+	sbio = BIO_new_socket(new->socket.node.fd, BIO_NOCLOSE);
 	if (unlikely(sbio == NULL)) {
 		rinoo_socket_destroy(&new->socket);
 		return NULL;

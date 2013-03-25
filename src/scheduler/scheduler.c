@@ -43,18 +43,16 @@ t_rinoosched *rinoo_sched()
  */
 void rinoo_sched_destroy(t_rinoosched *sched)
 {
-	int i;
+	t_rinoolist_node *cur;
+	t_rinoosched_node *node;
 
 	XASSERTN(sched != NULL);
 
 	/* Destroying all pending tasks. */
-	for (i = 0; i < RINOO_SCHEDULER_MAXFDS; i++)
-	{
-		if (sched->event_map[i].task != NULL)
-		{
-			errno = ECANCELED;
-			rinoo_task_resume(sched->event_map[i].task);
-		}
+	while ((cur = rinoolist_pop(&sched->nodes)) != NULL) {
+		node = container_of(cur, t_rinoosched_node, lnode);
+		errno = ECANCELED;
+		rinoo_task_resume(node->task);
 	}
 	rinoo_task_driver_destroy(sched);
 	rinoo_epoll_destroy(sched);
@@ -64,105 +62,98 @@ void rinoo_sched_destroy(t_rinoosched *sched)
 /**
  * Register a file descriptor in the scheduler and wait for IO.
  *
- * @param sched Pointer to the scheduler.
- * @param fd File descriptor to monitor.
+ * @param node Scheduler node to monitor.
  * @param mode Mode to enable (IN/OUT).
  *
  * @return 0 on success, or -1 if an error occurs.
  */
-int rinoo_sched_waitfor(t_rinoosched *sched, int fd, t_rinoosched_mode mode)
+int rinoo_sched_waitfor(t_rinoosched_node *node, t_rinoosched_mode mode)
 {
 	int error;
-	t_rinoosched_event *event;
 
-	XASSERT(fd < RINOO_SCHEDULER_MAXFDS, -1);
 	XASSERT(mode != RINOO_MODE_NONE, -1);
 
-	event = &sched->event_map[fd];
-	if (event->error != 0) {
-		error = event->error;
-		rinoo_sched_remove(sched, fd);
+	if (node->error != 0) {
+		error = node->error;
+		rinoo_sched_remove(node);
 		errno = error;
 		return -1;
 	}
-	if ((event->received & mode) == mode) {
-		event->received -= mode;
+	if ((node->received & mode) == mode) {
+		node->received -= mode;
 		return 0;
 	}
-	if ((event->waiting & mode) != mode) {
-		if (event->waiting == RINOO_MODE_NONE) {
-			if (unlikely(rinoo_epoll_insert(sched, fd, mode) != 0)) {
+	if ((node->waiting & mode) != mode) {
+		if (node->waiting == RINOO_MODE_NONE) {
+			if (unlikely(rinoo_epoll_insert(node, mode) != 0)) {
 				return -1;
 			}
+			rinoolist_add(&node->sched->nodes, &node->lnode);
 		} else {
-			if (unlikely(rinoo_epoll_addmode(sched, fd, mode) != 0)) {
+			if (unlikely(rinoo_epoll_addmode(node, mode) != 0)) {
 				return -1;
 			}
 		}
 	}
-	event->waiting |= mode;
-	event->task = rinoo_task_driver_getcurrent(sched);
-	if (unlikely(event->task == &sched->driver.main)) {
-		return rinoo_sched_poll(sched);
+	node->waiting |= mode;
+	node->task = rinoo_task_driver_getcurrent(node->sched);
+	if (unlikely(node->task == &node->sched->driver.main)) {
+		return rinoo_sched_poll(node->sched);
 	}
-	sched->nbpending++;
-	rinoo_task_release(sched);
-	sched->nbpending--;
-	if (event->error != 0) {
-		error = event->error;
-		rinoo_sched_remove(sched, fd);
+	node->sched->nbpending++;
+	rinoo_task_release(node->sched);
+	node->sched->nbpending--;
+	if (node->error != 0) {
+		error = node->error;
+		rinoo_sched_remove(node);
 		errno = error;
 		return -1;
 	}
-	if ((event->received & mode) != mode) {
-		rinoo_sched_remove(sched, fd);
+	if ((node->received & mode) != mode) {
+		rinoo_sched_remove(node);
 		/* Task has been resumed but no event received, this is a timeout */
 		errno = ETIMEDOUT;
 		return -1;
 	}
-	event->received -= mode;
+	node->received -= mode;
 	return 0;
 }
 
 /**
  * Unregister a file descriptor from the scheduler.
  *
- * @param sched Pointer to the scheduler.
- * @param fd File descriptor to remove.
+ * @param node Scheduler node to remove.
  *
  * @return 0 on success, otherwise -1.
  */
-int rinoo_sched_remove(t_rinoosched *sched, int fd)
+int rinoo_sched_remove(t_rinoosched_node *node)
 {
-	XASSERT(fd < RINOO_SCHEDULER_MAXFDS, -1);
-
-	memset(&sched->event_map[fd], 0, sizeof(sched->event_map[fd]));
-	if (rinoo_epoll_remove(sched, fd) != 0) {
+	if (node->sched == NULL) {
 		return -1;
 	}
+	if (rinoo_epoll_remove(node) != 0) {
+		return -1;
+	}
+	rinoolist_remove(&node->sched->nodes, &node->lnode);
+	node->task = NULL;
+	node->sched = NULL;
 	return 0;
 }
 
 /**
- * Wake up a file descriptor task.
+ * Wake up a scheduler node task.
  * This function should be called by the file descriptor monitoring layer (epoll).
  *
- * @param sched Pointer to the scheduler.
- * @param fd File descriptor which received IO event.
+ * @param node Scheduler node which received IO event.
  * @param mode IO Event.
  * @param error Error flag.
  */
-void rinoo_sched_wakeup(t_rinoosched *sched, int fd, t_rinoosched_mode mode, int error)
+void rinoo_sched_wakeup(t_rinoosched_node *node, t_rinoosched_mode mode, int error)
 {
-	t_rinoosched_event *event;
-
-	XASSERTN(fd < RINOO_SCHEDULER_MAXFDS);
-
-	event = &sched->event_map[fd];
-	event->error = error;
-	event->received |= mode;
-	if (event->task != NULL && event->task != &sched->driver.main && (event->waiting & mode) == mode) {
-		rinoo_task_resume(event->task);
+	node->error = error;
+	node->received |= mode;
+	if (node->task != NULL && node->task != &node->sched->driver.main && (node->waiting & mode) == mode) {
+		rinoo_task_resume(node->task);
 	}
 }
 

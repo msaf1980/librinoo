@@ -12,8 +12,7 @@
 #define RINOO_NET_SOCKET_H_
 
 typedef struct s_rinoosocket {
-	int fd;
-	t_rinoosched *sched;
+	t_rinoosched_node node;
 	struct s_rinoosocket *parent;
 	const t_rinoosocket_class *class;
 } t_rinoosocket;

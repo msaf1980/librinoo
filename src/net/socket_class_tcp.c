@@ -39,7 +39,7 @@ t_rinoosocket *rinoo_socket_class_tcp_create(t_rinoosched *sched)
 	if (unlikely(socket == NULL)) {
 		return NULL;
 	}
-	socket->sched = sched;
+	socket->node.sched = sched;
 	return socket;
 }
 
@@ -71,9 +71,9 @@ int rinoo_socket_class_tcp_open(t_rinoosocket *sock)
 	if (unlikely(fd == -1)) {
 		return -1;
 	}
-	sock->fd = fd;
+	sock->node.fd = fd;
 	enabled = 1;
-	if (unlikely(ioctl(sock->fd, FIONBIO, &enabled) == -1)) {
+	if (unlikely(ioctl(sock->node.fd, FIONBIO, &enabled) == -1)) {
 		close(fd);
 		return -1;
 	}
@@ -91,7 +91,7 @@ int rinoo_socket_class_tcp_close(t_rinoosocket *socket)
 {
 	XASSERT(socket != NULL, -1);
 
-	return close(socket->fd);
+	return close(socket->node.fd);
 }
 
 /**
@@ -109,7 +109,7 @@ ssize_t rinoo_socket_class_tcp_read(t_rinoosocket *socket, void *buf, size_t cou
 	ssize_t ret;
 
 	errno = 0;
-	ret = read(socket->fd, buf, count);
+	ret = read(socket->node.fd, buf, count);
 	if (ret <= 0) {
 		if (errno != EAGAIN && errno != EWOULDBLOCK) {
 			return -1;
@@ -117,7 +117,7 @@ ssize_t rinoo_socket_class_tcp_read(t_rinoosocket *socket, void *buf, size_t cou
 		if (rinoo_socket_waitin(socket) != 0) {
 			return -1;
 		}
-		ret = read(socket->fd, buf, count);
+		ret = read(socket->node.fd, buf, count);
 		if (ret <= 0) {
 			return -1;
 		}
@@ -143,7 +143,7 @@ ssize_t	rinoo_socket_class_tcp_write(t_rinoosocket *socket, const void *buf, siz
 	sent = count;
 	while (count > 0) {
 		errno = 0;
-		ret = write(socket->fd, buf, count);
+		ret = write(socket->node.fd, buf, count);
 		if (ret <= 0) {
 			if (errno != EAGAIN) {
 				return -1;
@@ -177,10 +177,10 @@ int rinoo_socket_class_tcp_connect(t_rinoosocket *socket, const struct sockaddr 
 
 	errno = 0;
 	enabled = 1;
-	if (setsockopt(socket->fd, SOL_SOCKET, SO_REUSEADDR, &enabled, sizeof(enabled)) != 0) {
+	if (setsockopt(socket->node.fd, SOL_SOCKET, SO_REUSEADDR, &enabled, sizeof(enabled)) != 0) {
 		return -1;
 	}
-	if (connect(socket->fd, addr, addrlen) == 0) {
+	if (connect(socket->node.fd, addr, addrlen) == 0) {
 		return 0;
 	}
 	switch (errno) {
@@ -194,7 +194,7 @@ int rinoo_socket_class_tcp_connect(t_rinoosocket *socket, const struct sockaddr 
 		return -1;
 	}
 	size = sizeof(val);
-	if (getsockopt(socket->fd, SOL_SOCKET, SO_ERROR, (void *) &val, &size) < 0) {
+	if (getsockopt(socket->node.fd, SOL_SOCKET, SO_ERROR, (void *) &val, &size) < 0) {
 		return -1;
 	}
 	if (val != 0) {
@@ -221,9 +221,9 @@ int rinoo_socket_class_tcp_listen(t_rinoosocket *socket, const struct sockaddr *
 	int enabled;
 
 	enabled = 1;
-	if (setsockopt(socket->fd, SOL_SOCKET, SO_REUSEADDR, &enabled, sizeof(enabled)) == -1 ||
-	    bind(socket->fd, addr, addrlen) == -1 ||
-	    listen(socket->fd, backlog) == -1) {
+	if (setsockopt(socket->node.fd, SOL_SOCKET, SO_REUSEADDR, &enabled, sizeof(enabled)) == -1 ||
+	    bind(socket->node.fd, addr, addrlen) == -1 ||
+	    listen(socket->node.fd, backlog) == -1) {
 		return -1;
 	}
 	return 0;
@@ -248,7 +248,7 @@ t_rinoosocket *rinoo_socket_class_tcp_accept(t_rinoosocket *socket, struct socka
 	if (rinoo_socket_waitin(socket) != 0) {
 		return NULL;
 	}
-	fd = accept(socket->fd, addr, addrlen);
+	fd = accept(socket->node.fd, addr, addrlen);
 	if (fd == -1) {
 		return NULL;
 	}
@@ -257,12 +257,12 @@ t_rinoosocket *rinoo_socket_class_tcp_accept(t_rinoosocket *socket, struct socka
 		close(fd);
 		return NULL;
 	}
-	new->fd = fd;
+	new->node.fd = fd;
+	new->node.sched = socket->node.sched;
 	new->parent = socket;
-	new->sched = socket->sched;
 	new->class = socket->class;
 	enabled = 1;
-	if (unlikely(ioctl(new->fd, FIONBIO, &enabled) == -1)) {
+	if (unlikely(ioctl(new->node.fd, FIONBIO, &enabled) == -1)) {
 		close(fd);
 		free(new);
 		return NULL;
