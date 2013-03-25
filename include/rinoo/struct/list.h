@@ -1,6 +1,6 @@
 /**
  * @file   list.h
- * @author reginaldl <reginald.@gmail.com>
+ * @author reginaldl <reginald.@gmail.com> - Copyright 2013
  * @date   Sun Mar 24 23:18:12 2013
  *
  * @brief  LIST structure
