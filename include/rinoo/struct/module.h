@@ -12,5 +12,6 @@
 #define RINOO_MODULE_STRUCT_H_
 
 #include "rinoo/struct/rbtree.h"
+#include "rinoo/struct/list.h"
 
 #endif /* !RINOO_MODULE_STRUCT_H_ */
