@@ -18,14 +18,14 @@
  */
 void rinoolist_add(t_rinoolist *list, t_rinoolist_node *node)
 {
+	node->prev = NULL;
 	node->next = list->head;
 	if (list->head != NULL) {
 		list->head->prev = node;
-	}
-	list->head = node;
-	if (list->tail == NULL) {
+	} else {
 		list->tail = node;
 	}
+	list->head = node;
 	list->count++;
 }
 
@@ -45,7 +45,7 @@ void rinoolist_remove(t_rinoolist *list, t_rinoolist_node *node)
 	if (node->next != NULL) {
 		node->next->prev = node->prev;
 	} else {
-		list->tail = NULL;
+		list->tail = node->prev;
 	}
 	list->count--;
 }

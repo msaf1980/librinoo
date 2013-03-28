@@ -103,6 +103,8 @@ int rinoo_sched_waitfor(t_rinoosched_node *node, t_rinoosched_mode mode)
 	node->sched->nbpending++;
 	rinoo_task_release(node->sched);
 	node->sched->nbpending--;
+	/* Detach task */
+	node->task = NULL;
 	if (node->error != 0) {
 		error = node->error;
 		rinoo_sched_remove(node);
@@ -150,7 +152,9 @@ int rinoo_sched_remove(t_rinoosched_node *node)
  */
 void rinoo_sched_wakeup(t_rinoosched_node *node, t_rinoosched_mode mode, int error)
 {
-	node->error = error;
+	if (node->error == 0) {
+		node->error = error;
+	}
 	node->received |= mode;
 	if (node->task != NULL && node->task != &node->sched->driver.main && (node->waiting & mode) == mode) {
 		rinoo_task_resume(node->task);

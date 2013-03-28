@@ -109,18 +109,17 @@ ssize_t rinoo_socket_class_tcp_read(t_rinoosocket *socket, void *buf, size_t cou
 	ssize_t ret;
 
 	errno = 0;
-	ret = read(socket->node.fd, buf, count);
-	if (ret <= 0) {
+	while ((ret = read(socket->node.fd, buf, count)) < 0) {
 		if (errno != EAGAIN && errno != EWOULDBLOCK) {
 			return -1;
 		}
 		if (rinoo_socket_waitin(socket) != 0) {
 			return -1;
 		}
-		ret = read(socket->node.fd, buf, count);
-		if (ret <= 0) {
-			return -1;
-		}
+		errno = 0;
+	}
+	if (ret <= 0) {
+		return -1;
 	}
 	return ret;
 }
@@ -144,13 +143,16 @@ ssize_t	rinoo_socket_class_tcp_write(t_rinoosocket *socket, const void *buf, siz
 	while (count > 0) {
 		errno = 0;
 		ret = write(socket->node.fd, buf, count);
-		if (ret <= 0) {
-			if (errno != EAGAIN) {
+		if (ret == 0) {
+			return -1;
+		} else if (ret < 0) {
+			if (errno != EAGAIN && errno != EWOULDBLOCK) {
 				return -1;
 			}
 			if (rinoo_socket_waitout(socket) != 0) {
 				return -1;
 			}
+			ret = 0;
 		}
 		count -= ret;
 		buf += ret;
@@ -245,12 +247,15 @@ t_rinoosocket *rinoo_socket_class_tcp_accept(t_rinoosocket *socket, struct socka
 	int enabled;
 	t_rinoosocket *new;
 
-	if (rinoo_socket_waitin(socket) != 0) {
-		return NULL;
-	}
-	fd = accept(socket->node.fd, addr, addrlen);
-	if (fd == -1) {
-		return NULL;
+	errno = 0;
+	while ((fd = accept(socket->node.fd, addr, addrlen)) < 0) {
+		if (errno != EAGAIN && errno != EWOULDBLOCK) {
+			return NULL;
+		}
+		if (rinoo_socket_waitin(socket) != 0) {
+			return NULL;
+		}
+		errno = 0;
 	}
 	new = calloc(1, sizeof(*new));
 	if (unlikely(new == NULL)) {

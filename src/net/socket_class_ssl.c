@@ -230,12 +230,15 @@ t_rinoosocket *rinoo_socket_class_ssl_accept(t_rinoosocket *socket, struct socka
 	t_rinoossl *new;
 	t_rinoossl *ssl = rinoo_ssl_get(socket);
 
-	if (rinoo_socket_waitin(socket) != 0) {
-		return NULL;
-	}
-	fd = accept(ssl->socket.node.fd, addr, addrlen);
-	if (fd == -1) {
-		return NULL;
+	errno = 0;
+	while ((fd = accept(ssl->socket.node.fd, addr, addrlen)) < 0) {
+		if (errno != EAGAIN && errno != EWOULDBLOCK) {
+			return NULL;
+		}
+		if (rinoo_socket_waitin(socket) != 0) {
+			return NULL;
+		}
+		errno = 0;
 	}
 	new = calloc(1, sizeof(*new));
 	if (unlikely(new == NULL)) {
@@ -253,10 +256,6 @@ t_rinoosocket *rinoo_socket_class_ssl_accept(t_rinoosocket *socket, struct socka
 		return NULL;
 	}
 	new->socket.parent = socket;
-	if (rinoo_socket_waitout(&new->socket) != 0) {
-		rinoo_socket_destroy(&new->socket);
-		return NULL;
-	}
 	new->ssl = SSL_new(new->ctx->ctx);
 	if (unlikely(new->ssl == NULL)) {
 		rinoo_socket_destroy(&new->socket);
