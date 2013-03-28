@@ -7,7 +7,7 @@ RiNOO is a simple way to create high scalability client/server applications.
 
 ## Example
 
-(({
+
     #include "rinoo/rinoo.h"
 
     void task_client(void *socket)
@@ -41,11 +41,9 @@ RiNOO is a simple way to create high scalability client/server applications.
     	rinoo_sched_destroy(sched);
     	return 0;
     }
-}))
 
 ## Example with HTTP
 
-(({
     #include "rinoo/rinoo.h"
 
     void http_client(void *sched)
@@ -72,4 +70,3 @@ RiNOO is a simple way to create high scalability client/server applications.
         rinoo_sched_destroy(sched);
         return 0;
     }
-}))
