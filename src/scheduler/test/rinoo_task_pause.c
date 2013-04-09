@@ -20,6 +20,7 @@ void task1(void *sched)
 	for (i = 0; i < 10; i++) {
 		check++;
 		printf("%s - %d\n", __FUNCTION__, check);
+		XTEST(check == 1);
 		rinoo_task_pause(sched);
 	}
 	printf("%s end\n", __FUNCTION__);
@@ -33,6 +34,7 @@ void task2(void *sched)
 	for (i = 0; i < 10; i++) {
 		check++;
 		printf("%s - %d\n", __FUNCTION__, check);
+		XTEST(check == 2);
 		rinoo_task_pause(sched);
 	}
 	printf("%s end\n", __FUNCTION__);
@@ -46,6 +48,8 @@ void task3(void *sched)
 	for (i = 0; i < 10; i++) {
 		check++;
 		printf("%s - %d\n", __FUNCTION__, check);
+		XTEST(check == 3);
+		check = 0;
 		rinoo_task_pause(sched);
 	}
 	printf("%s end\n", __FUNCTION__);
