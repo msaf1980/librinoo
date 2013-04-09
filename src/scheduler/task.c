@@ -61,19 +61,19 @@ void rinoo_task_driver_destroy(t_rinoosched *sched)
 
 /**
  * Runs pending tasks and returns time before next task (in ms).
- * If no task is queued, a default timeout of 1000ms is returned.
+ * If no task is queued, -1 is returned.
  *
  * @param sched Pointer to the scheduler to use
  *
- * @return Time before next task in ms or 1000 if no task is queued
+ * @return Time before next task in ms or -1 if no task is queued
  */
-uint32_t rinoo_task_driver_run(t_rinoosched *sched)
+int rinoo_task_driver_run(t_rinoosched *sched)
 {
 	t_rinootask *task;
 	struct timeval tv;
 	t_rinoorbtree_node *head;
 
-	XASSERT(sched != NULL, 1000);
+	XASSERT(sched != NULL, -1);
 
 	while ((head = rinoorbtree_head(&sched->driver.proc_tree)) != NULL) {
 		task = container_of(head, t_rinootask, proc_node);
@@ -85,7 +85,7 @@ uint32_t rinoo_task_driver_run(t_rinoosched *sched)
 			return (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
 		}
 	}
-	return 1000;
+	return -1;
 }
 
 /**
@@ -325,5 +325,40 @@ int rinoo_task_wait(t_rinoosched *sched, uint32_t ms)
 		}
 	}
 	rinoo_task_release(sched);
+	return 0;
+}
+
+/**
+ * Release a task to be re-scheduled as soon as possible.
+ * This can be called by a busy task to give processing back to the scheduler.
+ *
+ * @param sched Pointer to the scheduler to use
+ *
+ * @return 0 on success or -1 if an error occurs
+ */
+int rinoo_task_pause(t_rinoosched *sched)
+{
+	t_rinootask *task;
+	struct timeval tv;
+
+	task = rinoo_task_driver_getcurrent(sched);
+	if (task == &sched->driver.main) {
+		return 0;
+	}
+	if (task->scheduled == true) {
+		tv = task->tv;
+		if (rinoo_task_schedule(task, NULL) != 0) {
+			return -1;
+		}
+		rinoo_task_release(sched);
+		if (rinoo_task_schedule(task, &tv) != 0) {
+			return -1;
+		}
+	} else {
+		if (rinoo_task_schedule(task, NULL) != 0) {
+			return -1;
+		}
+		rinoo_task_release(sched);
+	}
 	return 0;
 }

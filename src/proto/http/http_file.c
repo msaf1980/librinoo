@@ -56,7 +56,7 @@ int rinoohttp_send_dir(t_rinoohttp *http, const char *path)
 		     "      .dl_en { float: left; width: 500px; }\n"
 		     "      .dl_ed { float: left; width: 130px; text-align: center; }\n"
 		     "      .dl_es { float: left; width: 120px; text-align: right; }\n"
-		     "      .dl_hl { box-shadow: 0 0px 1px 0 rgba(0, 0, 0, .2); background-color: #fff; }\n"
+		     "      .dl_hl { box-shadow: 0 0px 2px 0 rgba(0, 0, 0, .2); background-color: #fff; }\n"
 		     "    </style>\n"
 		     "  </head>\n"
 		     "  <body>\n"

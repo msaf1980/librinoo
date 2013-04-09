@@ -183,11 +183,11 @@ void rinoo_sched_stop(t_rinoosched *sched)
  */
 int rinoo_sched_poll(t_rinoosched *sched)
 {
-	uint32_t timeout;
+	int timeout;
 
 	gettimeofday(&sched->clock, NULL);
 	timeout = rinoo_task_driver_run(sched);
-	if (sched->stop == 0) {
+	if (sched->stop == 0 && sched->nbpending > 0) {
 		return rinoo_epoll_poll(sched, timeout);
 	}
 	return 0;

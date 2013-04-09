@@ -125,10 +125,11 @@ int rinoo_epoll_remove(t_rinoosched_node *node)
  * Start polling. It calls epoll_wait.
  *
  * @param sched Pointer to the scheduler to use.
+ * @param timeout Maximum time to wait in milliseconds (-1 for no timeout)
  *
  * @return 0 if succeeds, else -1.
  */
-int rinoo_epoll_poll(t_rinoosched *sched, uint32_t timeout)
+int rinoo_epoll_poll(t_rinoosched *sched, int timeout)
 {
 	int nbevents;
 	struct epoll_event *event;

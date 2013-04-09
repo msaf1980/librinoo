@@ -31,6 +31,6 @@ void rinoo_epoll_destroy(struct s_rinoosched *sched);
 int rinoo_epoll_insert(struct s_rinoosched_node *node, enum e_rinoosched_mode mode);
 int rinoo_epoll_addmode(struct s_rinoosched_node *node, enum e_rinoosched_mode mode);
 int rinoo_epoll_remove(struct s_rinoosched_node *node);
-int rinoo_epoll_poll(struct s_rinoosched *sched, uint32_t timeout);
+int rinoo_epoll_poll(struct s_rinoosched *sched, int timeout);
 
 #endif /* !RINOO_RINOO_EPOLL_H_ */
