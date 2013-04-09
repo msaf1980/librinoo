@@ -95,6 +95,7 @@ void rinoo_socket_destroy(t_rinoosocket *socket)
  */
 int rinoo_socket_waitin(t_rinoosocket *socket)
 {
+	socket->io_calls = 0;
 	return rinoo_sched_waitfor(&socket->node, RINOO_MODE_IN);
 }
 
@@ -107,7 +108,28 @@ int rinoo_socket_waitin(t_rinoosocket *socket)
  */
 int rinoo_socket_waitout(t_rinoosocket *socket)
 {
+	socket->io_calls = 0;
 	return rinoo_sched_waitfor(&socket->node, RINOO_MODE_OUT);
+}
+
+/**
+ * Increments internal io counter and releases the socket if too many io operations
+ * have been done consecutively.
+ *
+ * @param socket Pointer to the socket to wait for
+ *
+ * @return 0 on success or -1 if an error occurs
+ */
+int rinoo_socket_waitio(t_rinoosocket *socket)
+{
+	socket->io_calls++;
+	if (socket->io_calls > MAX_IO_CALLS) {
+		socket->io_calls = 0;
+		if (rinoo_task_pause(socket->node.sched) != 0) {
+			return -1;
+		}
+	}
+	return 0;
 }
 
 /**

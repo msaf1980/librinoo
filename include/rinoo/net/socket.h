@@ -11,7 +11,10 @@
 #ifndef RINOO_NET_SOCKET_H_
 #define RINOO_NET_SOCKET_H_
 
+#define MAX_IO_CALLS	10
+
 typedef struct s_rinoosocket {
+	int io_calls;
 	t_rinoosched_node node;
 	struct s_rinoosocket *parent;
 	const t_rinoosocket_class *class;
@@ -28,6 +31,7 @@ int rinoo_socket_resume(t_rinoosocket *socket);
 int rinoo_socket_release(t_rinoosocket *socket);
 int rinoo_socket_waitin(t_rinoosocket *socket);
 int rinoo_socket_waitout(t_rinoosocket *socket);
+int rinoo_socket_waitio(t_rinoosocket *socket);
 int rinoo_socket_timeout(t_rinoosocket *socket, uint32_t ms);
 
 int rinoo_socket_connect(t_rinoosocket *socket, const struct sockaddr *addr, socklen_t addrlen);

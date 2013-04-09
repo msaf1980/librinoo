@@ -108,6 +108,9 @@ ssize_t rinoo_socket_class_tcp_read(t_rinoosocket *socket, void *buf, size_t cou
 {
 	ssize_t ret;
 
+	if (rinoo_socket_waitio(socket) != 0) {
+		return -1;
+	}
 	errno = 0;
 	while ((ret = read(socket->node.fd, buf, count)) < 0) {
 		if (errno != EAGAIN && errno != EWOULDBLOCK) {
@@ -139,6 +142,9 @@ ssize_t	rinoo_socket_class_tcp_write(t_rinoosocket *socket, const void *buf, siz
 	size_t sent;
 	ssize_t ret;
 
+	if (rinoo_socket_waitio(socket) != 0) {
+		return -1;
+	}
 	sent = count;
 	while (count > 0) {
 		errno = 0;
@@ -153,6 +159,8 @@ ssize_t	rinoo_socket_class_tcp_write(t_rinoosocket *socket, const void *buf, siz
 				return -1;
 			}
 			ret = 0;
+		} else if (rinoo_socket_waitio(socket) != 0) {
+			return -1;
 		}
 		count -= ret;
 		buf += ret;
@@ -247,6 +255,9 @@ t_rinoosocket *rinoo_socket_class_tcp_accept(t_rinoosocket *socket, struct socka
 	int enabled;
 	t_rinoosocket *new;
 
+	if (rinoo_socket_waitio(socket) != 0) {
+		return NULL;
+	}
 	errno = 0;
 	while ((fd = accept(socket->node.fd, addr, addrlen)) < 0) {
 		if (errno != EAGAIN && errno != EWOULDBLOCK) {

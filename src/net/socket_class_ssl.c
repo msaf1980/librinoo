@@ -73,6 +73,9 @@ ssize_t rinoo_socket_class_ssl_read(t_rinoosocket *socket, void *buf, size_t cou
 	int ret;
 	t_rinoossl *ssl = rinoo_ssl_get(socket);
 
+	if (rinoo_socket_waitio(socket) != 0) {
+		return -1;
+	}
 	/* Don't need to wait for input here as SSL is buffered */
 	while ((ret = SSL_read(ssl->ssl, buf, count)) < 0) {
 		switch(SSL_get_error(ssl->ssl, ret)) {
@@ -122,6 +125,9 @@ ssize_t	rinoo_socket_class_ssl_write(t_rinoosocket *socket, const void *buf, siz
 
 	sent = count;
 	while (count > 0) {
+		if (rinoo_socket_waitio(socket) != 0) {
+			return -1;
+		}
 		while ((ret = SSL_write(ssl->ssl, buf, count)) < 0) {
 			switch(SSL_get_error(ssl->ssl, ret)) {
 			case SSL_ERROR_NONE:
