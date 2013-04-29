@@ -22,6 +22,7 @@ int rinoohttp_request_get(t_rinoohttp *http)
 	int ret;
 
 	rinoohttp_reset(http);
+	errno = 0;
 	while (rinoo_socket_readb(http->socket, http->request.buffer) > 0) {
 		ret = rinoohttp_request_parse(http);
 		if (ret == 1) {
@@ -33,6 +34,7 @@ int rinoohttp_request_get(t_rinoohttp *http)
 			}
 			rinoohttp_reset(http);
 		}
+		errno = 0;
 	}
 	return 0;
 }

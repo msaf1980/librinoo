@@ -1,5 +1,5 @@
 
-#line 1 "./http_response_parse.rl"
+#line 1 "http_response_parse.rl"
 /**
  * @file   http_response_parse.rl
  * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
@@ -13,7 +13,7 @@
 #include "rinoo/rinoo.h"
 
 
-#line 17 "./http_response_parse.c"
+#line 17 "http_response_parse.c"
 static const char _httpres_reader_actions[] = {
 	0, 1, 0, 1, 1, 1, 2, 1, 
 	5, 1, 6, 1, 7, 1, 8, 1, 
@@ -26,9 +26,9 @@ static const unsigned char _httpres_reader_key_offsets[] = {
 	0, 0, 1, 2, 3, 4, 5, 6, 
 	7, 9, 10, 12, 14, 16, 17, 20, 
 	23, 27, 32, 33, 36, 40, 43, 46, 
-	50, 55, 60, 65, 70, 75, 80, 84, 
-	89, 94, 99, 104, 109, 114, 117, 121, 
-	128, 135, 136
+	50, 57, 60, 65, 70, 75, 80, 85, 
+	90, 95, 99, 104, 109, 114, 119, 124, 
+	129, 132, 136, 143, 150, 151
 };
 
 static const char _httpres_reader_trans_keys[] = {
@@ -38,45 +38,46 @@ static const char _httpres_reader_trans_keys[] = {
 	13, 0, 127, 13, 67, 99, 33, 126, 
 	10, 58, 33, 126, 32, 58, 33, 126, 
 	13, 0, 127, 13, 0, 127, 10, 13, 
-	0, 127, 58, 79, 111, 33, 126, 58, 
-	78, 110, 33, 126, 58, 84, 116, 33, 
-	126, 58, 69, 101, 33, 126, 58, 78, 
+	0, 127, 9, 13, 32, 67, 99, 33, 
+	126, 13, 0, 127, 13, 0, 9, 11, 
+	127, 58, 79, 111, 33, 126, 58, 78, 
 	110, 33, 126, 58, 84, 116, 33, 126, 
-	45, 58, 33, 126, 58, 76, 108, 33, 
-	126, 58, 69, 101, 33, 126, 58, 78, 
-	110, 33, 126, 58, 71, 103, 33, 126, 
-	58, 84, 116, 33, 126, 58, 72, 104, 
-	33, 126, 58, 33, 126, 32, 58, 33, 
-	126, 13, 0, 47, 48, 57, 58, 127, 
-	13, 0, 47, 48, 57, 58, 127, 32, 
-	0
+	58, 69, 101, 33, 126, 58, 78, 110, 
+	33, 126, 58, 84, 116, 33, 126, 45, 
+	58, 33, 126, 58, 76, 108, 33, 126, 
+	58, 69, 101, 33, 126, 58, 78, 110, 
+	33, 126, 58, 71, 103, 33, 126, 58, 
+	84, 116, 33, 126, 58, 72, 104, 33, 
+	126, 58, 33, 126, 32, 58, 33, 126, 
+	13, 0, 47, 48, 57, 58, 127, 13, 
+	0, 47, 48, 57, 58, 127, 32, 0
 };
 
 static const char _httpres_reader_single_lengths[] = {
 	0, 1, 1, 1, 1, 1, 1, 1, 
 	2, 1, 0, 0, 0, 1, 1, 1, 
 	2, 3, 1, 1, 2, 1, 1, 2, 
-	3, 3, 3, 3, 3, 3, 2, 3, 
-	3, 3, 3, 3, 3, 1, 2, 1, 
-	1, 1, 0
+	5, 1, 1, 3, 3, 3, 3, 3, 
+	3, 2, 3, 3, 3, 3, 3, 3, 
+	1, 2, 1, 1, 1, 0
 };
 
 static const char _httpres_reader_range_lengths[] = {
 	0, 0, 0, 0, 0, 0, 0, 0, 
 	0, 0, 1, 1, 1, 0, 1, 1, 
 	1, 1, 0, 1, 1, 1, 1, 1, 
+	1, 1, 2, 1, 1, 1, 1, 1, 
 	1, 1, 1, 1, 1, 1, 1, 1, 
-	1, 1, 1, 1, 1, 1, 1, 3, 
-	3, 0, 0
+	1, 1, 3, 3, 0, 0
 };
 
 static const unsigned char _httpres_reader_index_offsets[] = {
 	0, 0, 2, 4, 6, 8, 10, 12, 
 	14, 17, 19, 21, 23, 25, 27, 30, 
 	33, 37, 42, 44, 47, 51, 54, 57, 
-	61, 66, 71, 76, 81, 86, 91, 95, 
-	100, 105, 110, 115, 120, 125, 128, 132, 
-	137, 142, 144
+	61, 68, 71, 75, 80, 85, 90, 95, 
+	100, 105, 109, 114, 119, 124, 129, 134, 
+	139, 142, 146, 151, 156, 158
 };
 
 static const char _httpres_reader_indicies[] = {
@@ -87,28 +88,29 @@ static const char _httpres_reader_indicies[] = {
 	0, 19, 18, 17, 0, 20, 22, 22, 
 	21, 0, 23, 0, 25, 24, 0, 26, 
 	25, 24, 0, 28, 27, 0, 30, 29, 
-	0, 19, 30, 29, 0, 25, 31, 31, 
-	24, 0, 25, 32, 32, 24, 0, 25, 
-	33, 33, 24, 0, 25, 34, 34, 24, 
-	0, 25, 35, 35, 24, 0, 25, 36, 
-	36, 24, 0, 37, 25, 24, 0, 25, 
+	0, 31, 30, 29, 0, 32, 20, 32, 
+	22, 22, 21, 0, 33, 29, 0, 30, 
+	29, 29, 0, 25, 34, 34, 24, 0, 
+	25, 35, 35, 24, 0, 25, 36, 36, 
+	24, 0, 25, 37, 37, 24, 0, 25, 
 	38, 38, 24, 0, 25, 39, 39, 24, 
-	0, 25, 40, 40, 24, 0, 25, 41, 
-	41, 24, 0, 25, 42, 42, 24, 0, 
-	25, 43, 43, 24, 0, 44, 24, 0, 
-	45, 25, 24, 0, 28, 27, 46, 27, 
-	0, 47, 29, 48, 29, 0, 49, 0, 
-	0, 0
+	0, 40, 25, 24, 0, 25, 41, 41, 
+	24, 0, 25, 42, 42, 24, 0, 25, 
+	43, 43, 24, 0, 25, 44, 44, 24, 
+	0, 25, 45, 45, 24, 0, 25, 46, 
+	46, 24, 0, 47, 24, 0, 48, 25, 
+	24, 0, 28, 27, 49, 27, 0, 50, 
+	29, 51, 29, 0, 52, 0, 0, 0
 };
 
 static const char _httpres_reader_trans_targs[] = {
 	0, 2, 3, 4, 5, 6, 7, 8, 
-	9, 41, 10, 11, 12, 13, 14, 15, 
-	16, 15, 16, 17, 18, 19, 24, 42, 
-	19, 20, 21, 22, 23, 22, 23, 25, 
-	26, 27, 28, 29, 30, 31, 32, 33, 
-	34, 35, 36, 37, 38, 39, 40, 23, 
-	40, 10
+	9, 44, 10, 11, 12, 13, 14, 15, 
+	16, 15, 16, 17, 18, 19, 27, 45, 
+	19, 20, 21, 22, 23, 22, 23, 24, 
+	25, 26, 28, 29, 30, 31, 32, 33, 
+	34, 35, 36, 37, 38, 39, 40, 41, 
+	42, 43, 23, 43, 10
 };
 
 static const char _httpres_reader_trans_actions[] = {
@@ -117,8 +119,8 @@ static const char _httpres_reader_trans_actions[] = {
 	23, 0, 5, 0, 0, 7, 7, 15, 
 	0, 9, 0, 11, 29, 0, 13, 0, 
 	0, 0, 0, 0, 0, 0, 0, 0, 
-	0, 0, 0, 0, 9, 0, 26, 32, 
-	0, 21
+	0, 0, 0, 0, 0, 0, 0, 9, 
+	0, 26, 32, 0, 21
 };
 
 static const char _httpres_reader_eof_actions[] = {
@@ -127,17 +129,17 @@ static const char _httpres_reader_eof_actions[] = {
 	17, 17, 17, 17, 17, 17, 17, 17, 
 	17, 17, 17, 17, 17, 17, 17, 17, 
 	17, 17, 17, 17, 17, 17, 17, 17, 
-	17, 17, 0
+	17, 17, 17, 17, 17, 0
 };
 
 static const int httpres_reader_start = 1;
-static const int httpres_reader_first_final = 42;
+static const int httpres_reader_first_final = 45;
 static const int httpres_reader_error = 0;
 
 static const int httpres_reader_en_main = 1;
 
 
-#line 64 "./http_response_parse.rl"
+#line 64 "http_response_parse.rl"
 
 
 
@@ -159,14 +161,14 @@ int rinoohttp_response_parse(t_rinoohttp *http)
 	char tmp;
 
 	
-#line 163 "./http_response_parse.c"
+#line 165 "http_response_parse.c"
 	{
 	cs = httpres_reader_start;
 	}
 
-#line 85 "./http_response_parse.rl"
+#line 85 "http_response_parse.rl"
 	
-#line 170 "./http_response_parse.c"
+#line 172 "http_response_parse.c"
 	{
 	int _klen;
 	unsigned int _trans;
@@ -241,39 +243,39 @@ _match:
 		switch ( *_acts++ )
 		{
 	case 0:
-#line 17 "./http_response_parse.rl"
+#line 17 "http_response_parse.rl"
 	{ code_start = p; }
 	break;
 	case 1:
-#line 18 "./http_response_parse.rl"
+#line 18 "http_response_parse.rl"
 	{ msg_start = p; }
 	break;
 	case 2:
-#line 19 "./http_response_parse.rl"
+#line 19 "http_response_parse.rl"
 	{ msg_end = p; }
 	break;
 	case 3:
-#line 20 "./http_response_parse.rl"
+#line 20 "http_response_parse.rl"
 	{ cl_start = p; }
 	break;
 	case 4:
-#line 21 "./http_response_parse.rl"
+#line 21 "http_response_parse.rl"
 	{ cl_end = p; }
 	break;
 	case 5:
-#line 22 "./http_response_parse.rl"
+#line 22 "http_response_parse.rl"
 	{ hd_start = p; }
 	break;
 	case 6:
-#line 23 "./http_response_parse.rl"
+#line 23 "http_response_parse.rl"
 	{ hd_end = p; }
 	break;
 	case 7:
-#line 24 "./http_response_parse.rl"
+#line 24 "http_response_parse.rl"
 	{ hdv_start = p; }
 	break;
 	case 8:
-#line 25 "./http_response_parse.rl"
+#line 25 "http_response_parse.rl"
 	{
 	  hdv_end = p;
 	  if (hd_start != NULL && hd_end != NULL && hdv_start != NULL) {
@@ -285,7 +287,7 @@ _match:
   }
 	break;
 	case 9:
-#line 34 "./http_response_parse.rl"
+#line 34 "http_response_parse.rl"
 	{
 	  http->response.code = atoi(code_start);
 	  buffer_static(&http->response.msg, msg_start, msg_end - msg_start);
@@ -301,18 +303,18 @@ _match:
   }
 	break;
 	case 10:
-#line 47 "./http_response_parse.rl"
+#line 47 "http_response_parse.rl"
 	{ return -1; }
 	break;
 	case 11:
-#line 54 "./http_response_parse.rl"
+#line 54 "http_response_parse.rl"
 	{ http->version = RINOO_HTTP_VERSION_10; }
 	break;
 	case 12:
-#line 55 "./http_response_parse.rl"
+#line 55 "http_response_parse.rl"
 	{ http->version = RINOO_HTTP_VERSION_11; }
 	break;
-#line 316 "./http_response_parse.c"
+#line 318 "http_response_parse.c"
 		}
 	}
 
@@ -329,10 +331,10 @@ _again:
 	while ( __nacts-- > 0 ) {
 		switch ( *__acts++ ) {
 	case 10:
-#line 47 "./http_response_parse.rl"
+#line 47 "http_response_parse.rl"
 	{ return -1; }
 	break;
-#line 336 "./http_response_parse.c"
+#line 338 "http_response_parse.c"
 		}
 	}
 	}
@@ -340,7 +342,7 @@ _again:
 	_out: {}
 	}
 
-#line 86 "./http_response_parse.rl"
+#line 86 "http_response_parse.rl"
 
 	(void) httpres_reader_en_main;
 	(void) httpres_reader_error;

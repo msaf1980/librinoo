@@ -51,7 +51,7 @@
   http = 'HTTP/1.' ('0' %{ http->version = RINOO_HTTP_VERSION_10; } |
 		    '1' %{ http->version = RINOO_HTTP_VERSION_11; });
   contentlength = 'Content-length: 'i (digit+) >startcl %endcl crlf;
-  header = (alnum | punct)+ >starthead %endhead ': ' (ascii* -- crlf) >startheadv %endheadv crlf;
+  header = (alnum | punct)+ >starthead %endhead ': ' ((ascii* -- crlf) (crlf (' ' | '\t')+ (ascii+ -- crlf))*) >startheadv %endheadv crlf;
   main := (method ' ' uri >starturi %enduri ' ' http crlf
 	   header*
 	   contentlength?
