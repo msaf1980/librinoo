@@ -45,8 +45,14 @@
   action parseerror	{ return -1; }
 
   crlf = '\r\n';
-  method = ('GET' %{ http->request.method = RINOO_HTTP_METHOD_GET; } |
-	    'POST' %{ http->request.method = RINOO_HTTP_METHOD_POST; });
+  method = ( 'OPTIONS'i %{ http->request.method = RINOO_HTTP_METHOD_OPTIONS; } |
+	     'GET'i %{ http->request.method = RINOO_HTTP_METHOD_GET; } |
+	     'HEAD'i %{ http->request.method = RINOO_HTTP_METHOD_HEAD; } |
+	     'POST'i %{ http->request.method = RINOO_HTTP_METHOD_POST; } |
+	     'PUT'i %{ http->request.method = RINOO_HTTP_METHOD_PUT; } |
+	     'DELETE'i %{ http->request.method = RINOO_HTTP_METHOD_DELETE; } |
+	     'TRACE'i %{ http->request.method = RINOO_HTTP_METHOD_TRACE; } |
+	     'CONNECT'i %{ http->request.method = RINOO_HTTP_METHOD_CONNECT; } );
   uri = (ascii* -- crlf);
   http = 'HTTP/1.' ('0' %{ http->version = RINOO_HTTP_VERSION_10; } |
 		    '1' %{ http->version = RINOO_HTTP_VERSION_11; });

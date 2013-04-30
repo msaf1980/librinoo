@@ -53,8 +53,18 @@ void rinoohttp_destroy(t_rinoohttp *http)
 
 void rinoohttp_reset(t_rinoohttp *http)
 {
+	/* Reset request */
+	memset(&http->request.uri, 0, sizeof(http->request.uri));
+	http->request.length = 0;
+	http->request.content_length = 0;
+	http->request.method = RINOO_HTTP_METHOD_UNKNOWN;
 	buffer_erase(http->request.buffer, buffer_size(http->request.buffer));
-	buffer_erase(http->response.buffer, buffer_size(http->response.buffer));
 	rinoohttp_headers_flush(&http->request.headers);
+	/* Reset response */
+	memset(&http->response.msg, 0, sizeof(http->response.msg));
+	http->response.code = 0;
+	http->response.length = 0;
+	http->response.content_length = 0;
+	buffer_erase(http->response.buffer, buffer_size(http->response.buffer));
 	rinoohttp_headers_flush(&http->response.headers);
 }

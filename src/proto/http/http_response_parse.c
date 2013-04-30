@@ -139,7 +139,7 @@ static const int httpres_reader_error = 0;
 static const int httpres_reader_en_main = 1;
 
 
-#line 64 "http_response_parse.rl"
+#line 62 "http_response_parse.rl"
 
 
 
@@ -166,7 +166,7 @@ int rinoohttp_response_parse(t_rinoohttp *http)
 	cs = httpres_reader_start;
 	}
 
-#line 85 "http_response_parse.rl"
+#line 83 "http_response_parse.rl"
 	
 #line 172 "http_response_parse.c"
 	{
@@ -307,11 +307,11 @@ _match:
 	{ return -1; }
 	break;
 	case 11:
-#line 54 "http_response_parse.rl"
+#line 52 "http_response_parse.rl"
 	{ http->version = RINOO_HTTP_VERSION_10; }
 	break;
 	case 12:
-#line 55 "http_response_parse.rl"
+#line 53 "http_response_parse.rl"
 	{ http->version = RINOO_HTTP_VERSION_11; }
 	break;
 #line 318 "http_response_parse.c"
@@ -342,7 +342,7 @@ _again:
 	_out: {}
 	}
 
-#line 86 "http_response_parse.rl"
+#line 84 "http_response_parse.rl"
 
 	(void) httpres_reader_en_main;
 	(void) httpres_reader_error;

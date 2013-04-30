@@ -48,8 +48,6 @@
 
   crlf = '\r\n';
   code = digit{3};
-  method = ('GET' %{ http->response.method = RINOO_HTTP_METHOD_GET; } |
-	    'POST' %{ http->response.method = RINOO_HTTP_METHOD_POST; });
   msg = (ascii* -- crlf);
   http = 'HTTP/1.' ('0' %{ http->version = RINOO_HTTP_VERSION_10; } |
 		    '1' %{ http->version = RINOO_HTTP_VERSION_11; });

@@ -90,7 +90,7 @@ void http_server_process(void *socket)
 void http_server(void *sched)
 {
 	t_ip ip;
-	uint32_t port;
+	uint16_t port;
 	t_rinoosocket *server;
 	t_rinoosocket *client;
 

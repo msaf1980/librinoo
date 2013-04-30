@@ -79,11 +79,29 @@ int rinoohttp_request_send(t_rinoohttp *http, t_rinoohttp_method method, const c
 	}
 	http->request.method = method;
 	switch (http->request.method) {
+	case RINOO_HTTP_METHOD_OPTIONS:
+		buffer_add(http->request.buffer, "OPTIONS ", 8);
+		break;
 	case RINOO_HTTP_METHOD_GET:
 		buffer_add(http->request.buffer, "GET ", 4);
 		break;
+	case RINOO_HTTP_METHOD_HEAD:
+		buffer_add(http->request.buffer, "HEAD ", 5);
+		break;
 	case RINOO_HTTP_METHOD_POST:
 		buffer_add(http->request.buffer, "POST ", 5);
+		break;
+	case RINOO_HTTP_METHOD_PUT:
+		buffer_add(http->request.buffer, "PUT ", 4);
+		break;
+	case RINOO_HTTP_METHOD_DELETE:
+		buffer_add(http->request.buffer, "DELETE ", 7);
+		break;
+	case RINOO_HTTP_METHOD_TRACE:
+		buffer_add(http->request.buffer, "TRACE ", 6);
+		break;
+	case RINOO_HTTP_METHOD_CONNECT:
+		buffer_add(http->request.buffer, "CONNECT ", 8);
 		break;
 	case RINOO_HTTP_METHOD_UNKNOWN:
 		return -1;
