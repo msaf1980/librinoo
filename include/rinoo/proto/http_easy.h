@@ -20,7 +20,6 @@ typedef enum e_rinoohttp_route_type {
 
 typedef struct s_rinoohttp_route {
 	const char *uri;
-	t_rinoohttp_method method;
 	int code;
 	t_rinoohttp_route_type type;
 	union {

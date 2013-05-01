@@ -246,12 +246,20 @@ int rinoohttp_response_send(t_rinoohttp *http, t_buffer *body)
 			     buffer_ptr(&cur_header->value));
 	}
 	buffer_add(http->response.buffer, "\r\n", 2);
-	ret = rinoo_socket_writeb(http->socket, http->response.buffer);
-	if (ret != (ssize_t) buffer_size(http->response.buffer)) {
-		return -1;
-	}
-	if (body != NULL && rinoo_socket_writeb(http->socket, body) != (ssize_t) buffer_size(body)) {
-		return -1;
+	if (body != NULL && buffer_size(http->response.buffer) > buffer_size(body)) {
+		buffer_add(http->response.buffer, buffer_ptr(body), buffer_size(body));
+		ret = rinoo_socket_writeb(http->socket, http->response.buffer);
+		if (ret != (ssize_t) buffer_size(http->response.buffer)) {
+			return -1;
+		}
+	} else {
+		ret = rinoo_socket_writeb(http->socket, http->response.buffer);
+		if (ret != (ssize_t) buffer_size(http->response.buffer)) {
+			return -1;
+		}
+		if (body != NULL && rinoo_socket_writeb(http->socket, body) != (ssize_t) buffer_size(body)) {
+			return -1;
+		}
 	}
 	return 0;
 }

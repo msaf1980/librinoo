@@ -20,11 +20,6 @@ static void rinoohttp_easy_route_call(t_rinoohttp *http, t_rinoohttp_route *rout
 {
 	t_buffer body;
 
-	if ((http->request.method & route->method) != http->request.method) {
-		http->response.code = 404;
-		rinoohttp_response_send(http, NULL);
-		return;
-	}
 	http->response.code = route->code;
 	switch (route->type) {
 	case RINOO_HTTP_ROUTE_STATIC:
