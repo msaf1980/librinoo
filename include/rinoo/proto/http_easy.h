@@ -11,6 +11,9 @@
 #ifndef RINOO_PROTO_HTTP_EASY_H_
 #define RINOO_PROTO_HTTP_EASY_H_
 
+#define RINOO_HTTP_ERROR_500	"<div style=\"display: inline-block; border-radius: 4px; border: 1px solid red; width: 16px; height: 16px; color: red; font-size: 14px; text-align: center;\">&#10060;</div> <span style=\"font-family: Arial;\">500 - Internal server error</span>"
+#define RINOO_HTTP_ERROR_404	"<div style=\"display: inline-block; border-radius: 4px; border: 1px solid orange; width: 16px; height: 16px; color: orange; font-size: 14px; text-align: center;\">?</div> <span style=\"font-family: Arial;\">404 - Not found</span>"
+
 typedef enum e_rinoohttp_route_type {
 	RINOO_HTTP_ROUTE_STATIC = 0,
 	RINOO_HTTP_ROUTE_FUNC,

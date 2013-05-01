@@ -29,14 +29,14 @@ static void rinoohttp_easy_route_call(t_rinoohttp *http, t_rinoohttp_route *rout
 	case RINOO_HTTP_ROUTE_FUNC:
 		if (route->func(http, route) != 0) {
 			http->response.code = 500;
-			strtobuffer(&body, "<div style=\"display: inline-block; border-radius: 4px; border: 1px solid red; width: 16px; height: 16px; color: red; font-size: 14px; text-align: center;\">&#10060;</div> <span style=\"font-family: Arial;\">500 - Internal server error</span>");
+			strtobuffer(&body, RINOO_HTTP_ERROR_500);
 			rinoohttp_response_send(http, &body);
 		}
 		break;
 	case RINOO_HTTP_ROUTE_FILE:
 		if (rinoohttp_send_file(http, route->file) != 0) {
 			http->response.code = 404;
-			strtobuffer(&body, "<div style=\"display: inline-block; border-radius: 4px; border: 1px solid orange; width: 16px; height: 16px; color: orange; font-size: 14px; text-align: center;\">?</div> <span style=\"font-family: Arial;\">404 - Not found</span>");
+			strtobuffer(&body, RINOO_HTTP_ERROR_404);
 			rinoohttp_response_send(http, &body);
 		}
 		break;
@@ -56,6 +56,7 @@ static void rinoohttp_easy_client_process(void *context)
 {
 	int i;
 	bool found;
+	t_buffer body;
 	t_rinoohttp http;
 	t_rinoohttp_easy_context *econtext = context;
 
@@ -70,7 +71,8 @@ static void rinoohttp_easy_client_process(void *context)
 		}
 		if (found == false) {
 			http.response.code = 404;
-			rinoohttp_response_send(&http, NULL);
+			strtobuffer(&body, RINOO_HTTP_ERROR_404);
+			rinoohttp_response_send(&http, &body);
 		}
 		rinoohttp_reset(&http);
 	}
