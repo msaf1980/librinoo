@@ -75,3 +75,24 @@ RiNOO is a simple way to create high scalability client/server applications.
         rinoo_sched_destroy(sched);
         return 0;
     }
+
+## Example with HTTP easy server
+
+    #include "rinoo/rinoo.h"
+
+    t_rinoohttp_route routes[] = {
+        { "/", 200, RINOO_HTTP_ROUTE_STATIC, .content = "<html><body><center>Welcome to RiNOO HTTP server!<br/><br/><a href=\"/motd\">motd</a></center><body></html>" },
+        { "/motd", 200, RINOO_HTTP_ROUTE_FILE, .file = "/etc/motd" },
+        { NULL, 302, RINOO_HTTP_ROUTE_REDIRECT, .location = "/" }
+    };
+
+    int main()
+    {
+        t_rinoosched *sched;
+
+        sched = rinoo_sched();
+        rinoohttp_easy_server(sched, 0, 4242, routes, sizeof(routes) / sizeof(*routes));
+        rinoo_sched_loop(sched);
+        rinoo_sched_destroy(sched);
+        return 0;
+    }
