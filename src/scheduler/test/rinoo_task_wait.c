@@ -1,6 +1,6 @@
 /**
  * @file   rinoo_task_wait.c
- * @author reginaldl <reginald.l@gmail.com> - Copyright 2013
+ * @author Reginad Lips <reginald.l@gmail.com> - Copyright 2013
  * @date   Wed Feb 27 15:25:13 2013
  *
  * @brief  rinoo_task_wait unit test

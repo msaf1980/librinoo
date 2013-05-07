@@ -23,7 +23,7 @@ typedef struct s_rinoossl {
 	t_rinoosocket socket;
 } t_rinoossl;
 
-t_rinoossl_ctx *rinoo_ssl_context();
+t_rinoossl_ctx *rinoo_ssl_context(void);
 void rinoo_ssl_context_destroy(t_rinoossl_ctx *ctx);
 t_rinoossl *rinoo_ssl_get(t_rinoosocket *socket);
 t_rinoosocket *rinoo_ssl_client(t_rinoosched *sched, t_rinoossl_ctx *ctx, t_ip ip, uint32_t port, uint32_t timeout);

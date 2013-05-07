@@ -36,8 +36,9 @@ typedef struct s_rinoosched_node {
 	t_rinoosched_mode received;
 } t_rinoosched_node;
 
-t_rinoosched *rinoo_sched();
+t_rinoosched *rinoo_sched(void);
 void rinoo_sched_destroy(t_rinoosched *sched);
+t_rinoosched *rinoo_sched_self(void);
 void rinoo_sched_stop(t_rinoosched *sched);
 int rinoo_sched_waitfor(t_rinoosched_node *node,  t_rinoosched_mode mode);
 int rinoo_sched_remove(t_rinoosched_node *node);

@@ -52,5 +52,6 @@ int rinoo_task_unschedule(t_rinootask *task);
 int rinoo_task_start(struct s_rinoosched *sched, void (*function)(void *arg), void *arg);
 int rinoo_task_wait(struct s_rinoosched *sched, uint32_t ms);
 int rinoo_task_pause(struct s_rinoosched *sched);
+t_rinootask *rinoo_task_self(void);
 
 #endif /* RINOO_SCHEDULER_TASK_H_ */

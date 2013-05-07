@@ -18,7 +18,7 @@ extern const t_rinoosocket_class socket_class_ssl;
  *
  * @return SSL context pointer
  */
-t_rinoossl_ctx *rinoo_ssl_context()
+t_rinoossl_ctx *rinoo_ssl_context(void)
 {
 	RSA *rsa;
 	X509 *x509;

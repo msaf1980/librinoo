@@ -16,7 +16,7 @@
  *
  * @return Pointer to the new scheduler, or NULL if an error occurs
  */
-t_rinoosched *rinoo_sched()
+t_rinoosched *rinoo_sched(void)
 {
 	t_rinoosched *sched;
 
@@ -57,6 +57,23 @@ void rinoo_sched_destroy(t_rinoosched *sched)
 	rinoo_task_driver_destroy(sched);
 	rinoo_epoll_destroy(sched);
 	free(sched);
+}
+
+/**
+ * Get active scheduler.
+ *
+ *
+ * @return Pointer to the active scheduler or NULL if none.
+ */
+t_rinoosched *rinoo_sched_self(void)
+{
+	t_rinootask *task;
+
+	task = rinoo_task_self();
+	if (task == NULL) {
+		return NULL;
+	}
+	return task->sched;
 }
 
 /**

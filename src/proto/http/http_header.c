@@ -32,7 +32,7 @@ static int rinoohttp_header_cmp(t_rinoorbtree_node *node1, t_rinoorbtree_node *n
  *
  * @param node Pointer to the HTTP header.
  */
-void rinoohttp_header_free(t_rinoorbtree_node *node)
+static void rinoohttp_header_free(t_rinoorbtree_node *node)
 {
 	t_rinoohttp_header *header = container_of(node, t_rinoohttp_header, node);
 
@@ -42,10 +42,11 @@ void rinoohttp_header_free(t_rinoorbtree_node *node)
 }
 
 /**
- * Creates a new HTTP header tree.
+ * Initializes a HTTP header tree.
  *
+ * @param tree HTTP header tree to initialize
  *
- * @return A pointer to the created table or NULL if an error occurs.
+ * @return 0 on success, otherwise -1
  */
 int rinoohttp_headers_init(t_rinoorbtree *tree)
 {

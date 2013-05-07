@@ -17,7 +17,7 @@ typedef struct s_rinoohttp_header {
 	t_rinoorbtree_node node;
 } t_rinoohttp_header;
 
-int rinoohttp_headers_init();
+int rinoohttp_headers_init(t_rinoorbtree *tree);
 void rinoohttp_headers_flush(t_rinoorbtree *headertree);
 int rinoohttp_header_setdata(t_rinoorbtree *headertree, const char *key, const char *value, uint32_t size);
 int rinoohttp_header_set(t_rinoorbtree *headertree, const char *key, const char *value);

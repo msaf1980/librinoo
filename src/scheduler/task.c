@@ -14,6 +14,8 @@
 # include <valgrind/valgrind.h>
 #endif
 
+static __thread t_rinootask *current_task = NULL;
+
 static int rinoo_task_cmp(t_rinoorbtree_node *node1, t_rinoorbtree_node *node2)
 {
 	t_rinootask *task1 = container_of(node1, t_rinootask, proc_node);
@@ -43,7 +45,9 @@ int rinoo_task_driver_init(t_rinoosched *sched)
 	if (rinoorbtree(&sched->driver.proc_tree, rinoo_task_cmp, NULL) != 0) {
 		return -1;
 	}
+	sched->driver.main.sched = sched;
 	sched->driver.current = &sched->driver.main;
+	current_task = &sched->driver.main;
 	return 0;
 }
 
@@ -227,8 +231,10 @@ int rinoo_task_resume(t_rinootask *task)
 	driver = &task->sched->driver;
 	old = driver->current;
 	driver->current = task;
+	current_task = task;
 	ret = fcontext_swap(&old->context, &task->context);
 	driver->current = old;
+	current_task = old;
 	if (ret == 0) {
 		/* This task is finished */
 		rinoo_task_destroy(task);
@@ -361,4 +367,15 @@ int rinoo_task_pause(t_rinoosched *sched)
 		rinoo_task_release(sched);
 	}
 	return 0;
+}
+
+/**
+ * Gets current running task.
+ *
+ *
+ * @return Pointer to the active task or NULL if no task is running
+ */
+t_rinootask *rinoo_task_self(void)
+{
+	return current_task;
 }
