@@ -1,5 +1,5 @@
 
-#line 1 "http_response_parse.rl"
+#line 1 "./http_response_parse.rl"
 /**
  * @file   http_response_parse.rl
  * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
@@ -13,7 +13,7 @@
 #include "rinoo/rinoo.h"
 
 
-#line 17 "http_response_parse.c"
+#line 17 "./http_response_parse.c"
 static const char _httpres_reader_actions[] = {
 	0, 1, 0, 1, 1, 1, 2, 1, 
 	5, 1, 6, 1, 7, 1, 8, 1, 
@@ -139,7 +139,7 @@ static const int httpres_reader_error = 0;
 static const int httpres_reader_en_main = 1;
 
 
-#line 62 "http_response_parse.rl"
+#line 62 "./http_response_parse.rl"
 
 
 
@@ -161,14 +161,14 @@ int rinoohttp_response_parse(t_rinoohttp *http)
 	char tmp;
 
 	
-#line 165 "http_response_parse.c"
+#line 165 "./http_response_parse.c"
 	{
 	cs = httpres_reader_start;
 	}
 
-#line 83 "http_response_parse.rl"
+#line 83 "./http_response_parse.rl"
 	
-#line 172 "http_response_parse.c"
+#line 172 "./http_response_parse.c"
 	{
 	int _klen;
 	unsigned int _trans;
@@ -243,39 +243,39 @@ _match:
 		switch ( *_acts++ )
 		{
 	case 0:
-#line 17 "http_response_parse.rl"
+#line 17 "./http_response_parse.rl"
 	{ code_start = p; }
 	break;
 	case 1:
-#line 18 "http_response_parse.rl"
+#line 18 "./http_response_parse.rl"
 	{ msg_start = p; }
 	break;
 	case 2:
-#line 19 "http_response_parse.rl"
+#line 19 "./http_response_parse.rl"
 	{ msg_end = p; }
 	break;
 	case 3:
-#line 20 "http_response_parse.rl"
+#line 20 "./http_response_parse.rl"
 	{ cl_start = p; }
 	break;
 	case 4:
-#line 21 "http_response_parse.rl"
+#line 21 "./http_response_parse.rl"
 	{ cl_end = p; }
 	break;
 	case 5:
-#line 22 "http_response_parse.rl"
+#line 22 "./http_response_parse.rl"
 	{ hd_start = p; }
 	break;
 	case 6:
-#line 23 "http_response_parse.rl"
+#line 23 "./http_response_parse.rl"
 	{ hd_end = p; }
 	break;
 	case 7:
-#line 24 "http_response_parse.rl"
+#line 24 "./http_response_parse.rl"
 	{ hdv_start = p; }
 	break;
 	case 8:
-#line 25 "http_response_parse.rl"
+#line 25 "./http_response_parse.rl"
 	{
 	  hdv_end = p;
 	  if (hd_start != NULL && hd_end != NULL && hdv_start != NULL) {
@@ -287,7 +287,7 @@ _match:
   }
 	break;
 	case 9:
-#line 34 "http_response_parse.rl"
+#line 34 "./http_response_parse.rl"
 	{
 	  http->response.code = atoi(code_start);
 	  buffer_static(&http->response.msg, msg_start, msg_end - msg_start);
@@ -298,23 +298,23 @@ _match:
 		  http->response.content_length = atoi(cl_start);
 		  *cl_end = tmp;
 	  }
-	  http->response.length = p - ((char *) buffer_ptr(http->response.buffer)) + 1;
+	  http->response.headers_length = p - ((char *) buffer_ptr(http->response.buffer)) + 1;
 	  return 1;
   }
 	break;
 	case 10:
-#line 47 "http_response_parse.rl"
+#line 47 "./http_response_parse.rl"
 	{ return -1; }
 	break;
 	case 11:
-#line 52 "http_response_parse.rl"
+#line 52 "./http_response_parse.rl"
 	{ http->version = RINOO_HTTP_VERSION_10; }
 	break;
 	case 12:
-#line 53 "http_response_parse.rl"
+#line 53 "./http_response_parse.rl"
 	{ http->version = RINOO_HTTP_VERSION_11; }
 	break;
-#line 318 "http_response_parse.c"
+#line 318 "./http_response_parse.c"
 		}
 	}
 
@@ -331,10 +331,10 @@ _again:
 	while ( __nacts-- > 0 ) {
 		switch ( *__acts++ ) {
 	case 10:
-#line 47 "http_response_parse.rl"
+#line 47 "./http_response_parse.rl"
 	{ return -1; }
 	break;
-#line 338 "http_response_parse.c"
+#line 338 "./http_response_parse.c"
 		}
 	}
 	}
@@ -342,7 +342,7 @@ _again:
 	_out: {}
 	}
 
-#line 84 "http_response_parse.rl"
+#line 84 "./http_response_parse.rl"
 
 	(void) httpres_reader_en_main;
 	(void) httpres_reader_error;

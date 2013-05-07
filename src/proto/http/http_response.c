@@ -15,9 +15,9 @@
  *
  * @param http Pointer to a http structure
  *
- * @return 1 if a response has been correctly read, otherwise 0
+ * @return true if a response has been correctly read, otherwise false
  */
-int rinoohttp_response_get(t_rinoohttp *http)
+bool rinoohttp_response_get(t_rinoohttp *http)
 {
 	int ret;
 
@@ -25,13 +25,19 @@ int rinoohttp_response_get(t_rinoohttp *http)
 	while (rinoo_socket_readb(http->socket, http->response.buffer) > 0) {
 		ret = rinoohttp_response_parse(http);
 		if (ret == 1) {
-			return 1;
+			while (buffer_size(http->response.buffer) < http->response.headers_length + http->response.content_length) {
+				if (rinoo_socket_readb(http->socket, http->response.buffer) <= 0) {
+					return false;
+				}
+			}
+			buffer_static(&http->response.content, buffer_ptr(http->response.buffer) + http->response.headers_length, http->response.content_length);
+			return true;
 		} else if (ret == -1) {
 			rinoohttp_reset(http);
-			return 0;
+			return false;
 		}
 	}
-	return 0;
+	return false;
 }
 
 /**

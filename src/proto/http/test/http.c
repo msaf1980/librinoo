@@ -10,6 +10,8 @@
 
 #include "rinoo/rinoo.h"
 
+#define HTTP_CONTENT	"This content is for test purpose\n"
+
 void http_client(void *sched)
 {
 	t_rinoohttp http;
@@ -19,7 +21,8 @@ void http_client(void *sched)
 	XTEST(client != NULL);
 	XTEST(rinoohttp_init(client, &http) == 0);
 	XTEST(rinoohttp_request_send(&http, RINOO_HTTP_METHOD_GET, "/", NULL) == 0);
-	XTEST(rinoohttp_response_get(&http) == 1);
+	XTEST(rinoohttp_response_get(&http));
+	XTEST(buffer_size(&http.response.content) == strlen(HTTP_CONTENT));
 	XTEST(http.response.code == 200);
 	rinoohttp_destroy(&http);
 	rinoo_socket_destroy(client);
@@ -27,12 +30,14 @@ void http_client(void *sched)
 
 void http_server_process(void *socket)
 {
+	t_buffer content;
 	t_rinoohttp http;
 
 	XTEST(rinoohttp_init(socket, &http) == 0);
-	XTEST(rinoohttp_request_get(&http) == 1);
+	XTEST(rinoohttp_request_get(&http));
 	http.response.code = 200;
-	XTEST(rinoohttp_response_send(&http, NULL) == 0);
+	strtobuffer(&content, HTTP_CONTENT);
+	XTEST(rinoohttp_response_send(&http, &content) == 0);
 	rinoohttp_destroy(&http);
 	rinoo_socket_destroy(socket);
 }

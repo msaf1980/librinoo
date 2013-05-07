@@ -28,15 +28,16 @@ typedef enum e_rinoohttp_method {
 
 typedef struct s_rinoohttp_request {
 	t_buffer uri;
-	size_t length;
-	size_t content_length;
+	t_buffer content;
 	t_buffer *buffer;
+	size_t headers_length;
+	size_t content_length;
 	t_rinoorbtree headers;
 	t_rinoohttp_method method;
 } t_rinoohttp_request;
 
 int rinoohttp_request_parse(struct s_rinoohttp *http);
-int rinoohttp_request_get(struct s_rinoohttp *http);
+bool rinoohttp_request_get(struct s_rinoohttp *http);
 void rinoohttp_request_setdefaultheaders(struct s_rinoohttp *http);
 int rinoohttp_request_send(struct s_rinoohttp *http, t_rinoohttp_method method, const char *uri, t_buffer *body);
 

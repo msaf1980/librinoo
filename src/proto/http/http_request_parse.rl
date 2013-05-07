@@ -39,7 +39,7 @@
 		  http->request.content_length = atoi(cl_start);
 		  *cl_end = tmp;
 	  }
-	  http->request.length = fpc - ((char *) buffer_ptr(http->request.buffer)) + 1;
+	  http->request.headers_length = fpc - ((char *) buffer_ptr(http->request.buffer)) + 1;
 	  return 1;
   }
   action parseerror	{ return -1; }

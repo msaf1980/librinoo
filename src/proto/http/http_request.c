@@ -17,7 +17,7 @@
  *
  * @return 1 if a request has been correctly read, otherwise 0
  */
-int rinoohttp_request_get(t_rinoohttp *http)
+bool rinoohttp_request_get(t_rinoohttp *http)
 {
 	int ret;
 
@@ -26,17 +26,23 @@ int rinoohttp_request_get(t_rinoohttp *http)
 	while (rinoo_socket_readb(http->socket, http->request.buffer) > 0) {
 		ret = rinoohttp_request_parse(http);
 		if (ret == 1) {
-			return 1;
+			while (buffer_size(http->request.buffer) < http->request.headers_length + http->request.content_length) {
+				if (rinoo_socket_readb(http->socket, http->request.buffer) <= 0) {
+					return false;
+				}
+			}
+			buffer_static(&http->request.content, buffer_ptr(http->request.buffer) + http->request.headers_length, http->request.content_length);
+			return true;
 		} else if (ret == -1) {
 			http->response.code = 400;
 			if (rinoohttp_response_send(http, NULL) != 0 && errno == ESHUTDOWN) {
-				return 0;
+				return false;
 			}
 			rinoohttp_reset(http);
 		}
 		errno = 0;
 	}
-	return 0;
+	return false;
 }
 
 /**

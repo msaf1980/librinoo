@@ -30,7 +30,7 @@ void http_client_send(t_rinoohttp *http, const char *header_value, int expected_
 		     "Content-Length: 0\r\n"
 		     "\r\n", header_value);
 	XTEST(rinoo_socket_writeb(http->socket, buffer) > 0);
-	XTEST(rinoohttp_response_get(http) == 1);
+	XTEST(rinoohttp_response_get(http));
 	XTEST(http->response.code == expected_code);
 	if (expected_code == 200) {
 		header = rinoohttp_header_get(&http->response.headers, "X-Test");
@@ -63,7 +63,7 @@ void http_server_recv(t_rinoohttp *http, const char *header_value)
 	t_rinoohttp_header *header;
 
 	rinoo_log("Receiving: %s", header_value);
-	XTEST(rinoohttp_request_get(http) == 1);
+	XTEST(rinoohttp_request_get(http));
 	header = rinoohttp_header_get(&http->request.headers, "X-Test");
 	XTEST(header != NULL);
 	XTEST(buffer_strcmp(&header->value, header_value) == 0);
@@ -82,7 +82,7 @@ void http_server_process(void *socket)
 	http_server_recv(&http, HEADER2);
 	http_server_recv(&http, HEADER3);
 	http_server_recv(&http, HEADER4);
-	XTEST(rinoohttp_request_get(&http) == 0);
+	XTEST(rinoohttp_request_get(&http) == false);
 	rinoohttp_destroy(&http);
 	rinoo_socket_destroy(socket);
 }
