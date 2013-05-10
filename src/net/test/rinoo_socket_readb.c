@@ -12,6 +12,8 @@
 
 #define TRANSFER_SIZE	(1024 * 1000)
 
+static char *str;
+
 void process_client(void *socket)
 {
 	t_buffer *buffer;
@@ -22,7 +24,9 @@ void process_client(void *socket)
 		rinoo_log("receiving...");
 	}
 	XTEST(buffer_size(buffer) == TRANSFER_SIZE);
+	XTEST(buffer_strncmp(buffer, str, TRANSFER_SIZE) == 0);
 	buffer_destroy(buffer);
+	free(str);
 	rinoo_socket_destroy(socket);
 }
 
@@ -42,7 +46,6 @@ void server_func(void *unused(arg))
 
 void client_func(void *unused(arg))
 {
-	char *str;
 	t_buffer buffer;
 	t_rinoosocket *client;
 
@@ -53,7 +56,6 @@ void client_func(void *unused(arg))
 	memset(str, 'a', TRANSFER_SIZE);
 	buffer_static(&buffer, str, TRANSFER_SIZE);
 	XTEST(rinoo_socket_writeb(client, &buffer) == TRANSFER_SIZE);
-	free(str);
 	rinoo_socket_destroy(client);
 }
 
