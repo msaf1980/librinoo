@@ -250,7 +250,7 @@ ssize_t rinoo_socket_readb(t_rinoosocket *socket, t_buffer *buffer)
 {
 	ssize_t res;
 
-	if (buffer_isfull(buffer) && buffer_extend(buffer, 0) <= 0) {
+	if (buffer_isfull(buffer) && buffer_extend(buffer, buffer_size(buffer)) != 0) {
 		return -1;
 	}
 	res = socket->class->read(socket,
@@ -298,7 +298,7 @@ ssize_t rinoo_socket_readline(t_rinoosocket *socket, t_buffer *buffer, const cha
 			}
 			offset = buffer_size(buffer) - dlen;
 		}
-		if (buffer_isfull(buffer) && buffer_extend(buffer, 0) <= 0) {
+		if (buffer_isfull(buffer) && buffer_extend(buffer, buffer_size(buffer)) != 0) {
 			return -1;
 		}
 		res = socket->class->read(socket,
