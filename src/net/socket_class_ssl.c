@@ -19,6 +19,7 @@ const t_rinoosocket_class socket_class_ssl = {
 	.close = rinoo_socket_class_tcp_close,
 	.read = rinoo_socket_class_ssl_read,
 	.write = rinoo_socket_class_ssl_write,
+	.sendfile = NULL,
 	.connect = rinoo_socket_class_ssl_connect,
 	.listen = rinoo_socket_class_tcp_listen,
 	.accept = rinoo_socket_class_ssl_accept

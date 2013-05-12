@@ -19,6 +19,7 @@ const t_rinoosocket_class socket_class_tcp = {
 	.close = rinoo_socket_class_tcp_close,
 	.read = rinoo_socket_class_tcp_read,
 	.write = rinoo_socket_class_tcp_write,
+	.sendfile = rinoo_socket_class_tcp_sendfile,
 	.connect = rinoo_socket_class_tcp_connect,
 	.listen = rinoo_socket_class_tcp_listen,
 	.accept = rinoo_socket_class_tcp_accept
@@ -168,6 +169,47 @@ ssize_t	rinoo_socket_class_tcp_write(t_rinoosocket *socket, const void *buf, siz
 	return sent;
 }
 
+
+/**
+ * Replacement function for sendfile(2).
+ *
+ * @param socket Pointer to the socket to send the file to
+ * @param in_fd File descriptor of file to send
+ * @param offset File offset
+ * @param count Number of bytes to send
+ *
+ * @return Number of bytes correctly sent or -1 if an error occurs
+ */
+ssize_t rinoo_socket_class_tcp_sendfile(t_rinoosocket *socket, int in_fd, off_t offset, size_t count)
+{
+	size_t sent;
+	ssize_t ret;
+
+	if (rinoo_socket_waitio(socket) != 0) {
+		return -1;
+	}
+	sent = count;
+	while (count > 0) {
+		errno = 0;
+		ret = sendfile(socket->node.fd, in_fd, &offset, count);
+		if (ret == 0) {
+			return -1;
+		} else if (ret < 0) {
+			if (errno != EAGAIN && errno != EWOULDBLOCK) {
+				return -1;
+			}
+			if (rinoo_socket_waitout(socket) != 0) {
+				return -1;
+			}
+			ret = 0;
+		} else if (rinoo_socket_waitio(socket) != 0) {
+			return -1;
+		}
+		count -= ret;
+	}
+	return sent;
+}
+
 /**
  * Replacement to the connect(2) syscall.
  *
@@ -285,4 +327,3 @@ t_rinoosocket *rinoo_socket_class_tcp_accept(t_rinoosocket *socket, struct socka
 	}
 	return new;
 }
-

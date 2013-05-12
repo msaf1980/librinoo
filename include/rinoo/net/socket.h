@@ -43,5 +43,6 @@ ssize_t rinoo_socket_readb(t_rinoosocket *socket, t_buffer *buffer);
 ssize_t rinoo_socket_readline(t_rinoosocket *socket, t_buffer *buffer, const char *delim, size_t maxsize);
 ssize_t rinoo_socket_expect(t_rinoosocket *socket, t_buffer *buffer, const char *expected);
 ssize_t rinoo_socket_writeb(t_rinoosocket *socket, t_buffer *buffer);
+ssize_t rinoo_socket_sendfile(t_rinoosocket *socket, int in_fd, off_t offset, size_t count);
 
 #endif /* !RINOO_NET_SOCKET */

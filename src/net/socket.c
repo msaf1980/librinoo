@@ -364,3 +364,35 @@ ssize_t rinoo_socket_writeb(t_rinoosocket *socket, t_buffer *buffer)
 	}
 	return total;
 }
+
+/**
+ * Send a file through a socket.
+ * This function waits for the socket to be available for write operations and attempt to send file content.
+ *
+ * @param socket Pointer to the socket to write to
+ * @param in_fd File descriptor of the file to send
+ * @param offset File offset
+ * @param count Number of bytes to send
+ *
+ * @return Number of bytes sent or -1 if an error occurs
+ */
+ssize_t rinoo_socket_sendfile(t_rinoosocket *socket, int in_fd, off_t offset, size_t count)
+{
+	if (unlikely(socket->class->sendfile == NULL)) {
+		void *ptr;
+		int pagesize;
+		ssize_t result;
+		t_buffer dummy;
+
+		pagesize = getpagesize();
+		ptr = mmap(NULL, count + (offset % pagesize), PROT_READ, MAP_PRIVATE, in_fd, pagesize * (offset / pagesize));
+		if (ptr == MAP_FAILED) {
+			return -1;
+		}
+		buffer_static(&dummy, ptr + (offset % pagesize), count);
+		result = rinoo_socket_writeb(socket, &dummy);
+		munmap(ptr, count + (offset % pagesize));
+		return result;
+	}
+	return socket->class->sendfile(socket, in_fd, offset, count);
+}
