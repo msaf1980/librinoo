@@ -16,6 +16,7 @@ const t_rinoosocket_class socket_class_tcp = {
 	.create = rinoo_socket_class_tcp_create,
 	.destroy = rinoo_socket_class_tcp_destroy,
 	.open = rinoo_socket_class_tcp_open,
+	.dup = rinoo_socket_class_tcp_dup,
 	.close = rinoo_socket_class_tcp_close,
 	.read = rinoo_socket_class_tcp_read,
 	.write = rinoo_socket_class_tcp_write,
@@ -79,6 +80,32 @@ int rinoo_socket_class_tcp_open(t_rinoosocket *sock)
 		return -1;
 	}
 	return 0;
+}
+
+/**
+ * Duplicates a TCP socket.
+ *
+ * @param destination Destination scheduler
+ * @param socket Socket to duplicate
+ *
+ * @return Pointer to the new socket or NULL if an error occurs
+ */
+t_rinoosocket *rinoo_socket_class_tcp_dup(t_rinoosched *destination, t_rinoosocket *socket)
+{
+	t_rinoosocket *new;
+
+	new = calloc(1, sizeof(*new));
+	if (unlikely(new == NULL)) {
+		return NULL;
+	}
+	*new = *socket;
+	new->node.fd = dup(socket->node.fd);
+	if (unlikely(new->node.fd < 0)) {
+		free(new);
+		return NULL;
+	}
+	new->node.sched = destination;
+	return new;
 }
 
 /**

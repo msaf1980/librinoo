@@ -14,6 +14,7 @@
 t_rinoosocket *rinoo_socket_class_tcp_create(t_rinoosched *sched);
 void rinoo_socket_class_tcp_destroy(t_rinoosocket *socket);
 int rinoo_socket_class_tcp_open(t_rinoosocket *sock);
+t_rinoosocket *rinoo_socket_class_tcp_dup(t_rinoosched *destination, t_rinoosocket *socket);
 int rinoo_socket_class_tcp_close(t_rinoosocket *socket);
 ssize_t rinoo_socket_class_tcp_read(t_rinoosocket *socket, void *buf, size_t count);
 ssize_t	rinoo_socket_class_tcp_write(t_rinoosocket *socket, const void *buf, size_t count);

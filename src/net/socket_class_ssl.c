@@ -16,6 +16,7 @@ const t_rinoosocket_class socket_class_ssl = {
 	.create = rinoo_socket_class_ssl_create,
 	.destroy = rinoo_socket_class_ssl_destroy,
 	.open = rinoo_socket_class_tcp_open,
+	.dup = NULL,
 	.close = rinoo_socket_class_tcp_close,
 	.read = rinoo_socket_class_ssl_read,
 	.write = rinoo_socket_class_ssl_write,

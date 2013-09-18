@@ -60,6 +60,22 @@ t_rinoosocket *rinoo_socket(t_rinoosched *sched, const t_rinoosocket_class *clas
 }
 
 /**
+ * Socket dup function.
+ *
+ * @param destination Pointer to a scheduler
+ * @param socket Socket to duplicate
+ *
+ * @return A pointer to the new socket or NULL if an error occurs
+ */
+t_rinoosocket *rinoo_socket_dup(t_rinoosched *destination, t_rinoosocket *socket)
+{
+	XASSERT(destination != NULL, NULL);
+	XASSERT(socket != NULL, NULL);
+
+	return socket->class->dup(destination, socket);
+}
+
+/**
  * Close a socket only (does not free memory).
  *
  * @param socket Pointer to the socket to close

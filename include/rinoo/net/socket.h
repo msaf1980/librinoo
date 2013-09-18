@@ -24,6 +24,7 @@ typedef in_addr_t t_ip;
 
 int rinoo_socket_init(t_rinoosched *sched, t_rinoosocket *sock, const t_rinoosocket_class *class);
 t_rinoosocket *rinoo_socket(t_rinoosched *sched, const t_rinoosocket_class *class);
+t_rinoosocket *rinoo_socket_dup(t_rinoosched *destination, t_rinoosocket *socket);
 void rinoo_socket_close(t_rinoosocket *socket);
 void rinoo_socket_destroy(t_rinoosocket *socket);
 

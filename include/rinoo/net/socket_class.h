@@ -19,6 +19,7 @@ typedef struct s_rinoosocket_class {
 	struct s_rinoosocket *(*create)(t_rinoosched *sched);
 	void (*destroy)(struct s_rinoosocket *socket);
 	int (*open)(struct s_rinoosocket *socket);
+	struct s_rinoosocket *(*dup)(t_rinoosched *destination, struct s_rinoosocket *socket);
 	int (*close)(struct s_rinoosocket *socket);
 	ssize_t (*read)(struct s_rinoosocket *socket, void *buf, size_t count);
 	ssize_t (*write)(struct s_rinoosocket *socket, const void *buf, size_t count);
