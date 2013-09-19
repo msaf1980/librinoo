@@ -28,6 +28,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include <limits.h>
+#include <pthread.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/time.h>

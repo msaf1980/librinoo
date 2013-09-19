@@ -69,10 +69,17 @@ t_rinoosocket *rinoo_socket(t_rinoosched *sched, const t_rinoosocket_class *clas
  */
 t_rinoosocket *rinoo_socket_dup(t_rinoosched *destination, t_rinoosocket *socket)
 {
+	t_rinoosocket *new;
+
 	XASSERT(destination != NULL, NULL);
 	XASSERT(socket != NULL, NULL);
 
-	return socket->class->dup(destination, socket);
+	new = socket->class->dup(destination, socket);
+	if (unlikely(new == NULL)) {
+		return NULL;
+	}
+	new->node.sched = destination;
+	return new;
 }
 
 /**

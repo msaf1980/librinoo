@@ -17,13 +17,23 @@ typedef enum e_rinoosched_mode {
 	RINOO_MODE_OUT = 2,
 } t_rinoosched_mode;
 
+struct s_rinoosched;
+
+typedef struct s_rinoosched_spawns {
+	int count;
+	pthread_t *thread;
+	struct s_rinoosched **sched;
+} t_rinoosched_spawns;
+
 typedef struct s_rinoosched {
+	int id;
 	int stop;
 	t_rinoolist nodes;
 	uint32_t nbpending;
 	struct timeval clock;
 	t_rinootask_driver driver;
 	struct s_rinooepoll epoll;
+	t_rinoosched_spawns spawns;
 } t_rinoosched;
 
 typedef struct s_rinoosched_node {
@@ -38,6 +48,8 @@ typedef struct s_rinoosched_node {
 
 t_rinoosched *rinoo_sched(void);
 void rinoo_sched_destroy(t_rinoosched *sched);
+int rinoo_sched_spawn(t_rinoosched *sched, int count);
+t_rinoosched *rinoo_sched_spawn_get(t_rinoosched *sched, int id);
 t_rinoosched *rinoo_sched_self(void);
 void rinoo_sched_stop(t_rinoosched *sched);
 int rinoo_sched_waitfor(t_rinoosched_node *node,  t_rinoosched_mode mode);
