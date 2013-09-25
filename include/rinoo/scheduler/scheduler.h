@@ -17,17 +17,9 @@ typedef enum e_rinoosched_mode {
 	RINOO_MODE_OUT = 2,
 } t_rinoosched_mode;
 
-struct s_rinoosched;
-
-typedef struct s_rinoosched_spawns {
-	int count;
-	pthread_t *thread;
-	struct s_rinoosched **sched;
-} t_rinoosched_spawns;
-
 typedef struct s_rinoosched {
 	int id;
-	int stop;
+	bool stop;
 	t_rinoolist nodes;
 	uint32_t nbpending;
 	struct timeval clock;

@@ -43,105 +43,26 @@ t_rinoosched *rinoo_sched(void)
  */
 void rinoo_sched_destroy(t_rinoosched *sched)
 {
-	int i;
 	t_rinoolist_node *cur;
 	t_rinoosched_node *node;
 
 	XASSERTN(sched != NULL);
 
-	if (sched->spawns.sched != NULL) {
-		for (i = 0; i < sched->spawns.count; i++) {
-			rinoo_sched_destroy(sched->spawns.sched[i]);
-		}
-		free(sched->spawns.sched);
-	}
-	if (sched->spawns.thread != NULL) {
-		free(sched->spawns.thread);
-	}
+	rinoo_spawn_destroy(sched);
+	rinoo_sched_stop(sched);
 	/* Destroying all pending tasks. */
+	rinoo_task_driver_stop(sched);
 	while ((cur = rinoolist_pop(&sched->nodes)) != NULL) {
 		node = container_of(cur, t_rinoosched_node, lnode);
-		errno = ECANCELED;
-		if (rinoo_task_resume(node->task) != 0) {
+		node->error = ECANCELED;
+		errno = node->error;
+		if (rinoo_task_resume(node->task) != 0 && node->task != NULL) {
 			rinoo_task_destroy(node->task);
 		}
 	}
 	rinoo_task_driver_destroy(sched);
 	rinoo_epoll_destroy(sched);
 	free(sched);
-}
-
-/**
- * Spawns a number of children schedulers.
- *
- * @param sched Parent scheduler
- * @param count Number of children to create
- *
- * @return 0 on success, otherwise -1
- */
-int rinoo_sched_spawn(t_rinoosched *sched, int count)
-{
-	int i;
-	pthread_t *thread;
-	t_rinoosched *child;
-	t_rinoosched **children;
-
-	if (sched->spawns.count == 0) {
-		children = calloc(count, sizeof(*children));
-		if (children == NULL) {
-			return -1;
-		}
-		thread = calloc(count, sizeof(*thread));
-		if (thread == NULL) {
-			free(children);
-			return -1;
-		}
-	} else {
-		children = realloc(sched->spawns.sched, sizeof(*children) * (sched->spawns.count + count));
-		if (children == NULL) {
-			return -1;
-		}
-		thread = realloc(sched->spawns.thread, sizeof(*thread) * (sched->spawns.count + count));
-		if (thread == NULL) {
-			/* Hopefullu, this won't be lost */
-			sched->spawns.sched = children;
-			return -1;
-		}
-	}
-	sched->spawns.sched = children;
-	sched->spawns.thread = thread;
-	for (i = sched->spawns.count; i < sched->spawns.count + count; i++) {
-		child = rinoo_sched();
-		if (child == NULL) {
-			sched->spawns.count = i;
-			return -1;
-		}
-		child->id = i + 1;
-		sched->spawns.sched[i] = child;
-		sched->spawns.thread[i] = 0;
-	}
-	sched->spawns.count = i;
-	return 0;
-}
-
-/**
- * Get a scheduler spawn from its id.
- * Id 0 returns sched itself.
- *
- * @param sched Scheduler to use
- * @param id Spawn id
- *
- * @return Pointer to the spawn or NULL if an error occured
- */
-t_rinoosched *rinoo_sched_spawn_get(t_rinoosched *sched, int id)
-{
-	if (id < 0 || id > sched->spawns.count) {
-		return NULL;
-	}
-	if (id == 0) {
-		return sched;
-	}
-	return sched->spawns.sched[id];
 }
 
 /**
@@ -203,7 +124,9 @@ int rinoo_sched_waitfor(t_rinoosched_node *node, t_rinoosched_mode mode)
 		return rinoo_sched_poll(node->sched);
 	}
 	node->sched->nbpending++;
-	rinoo_task_release(node->sched);
+	if (rinoo_task_release(node->sched) != 0 && node->error == 0) {
+		node->error = errno;
+	}
 	node->sched->nbpending--;
 	/* Detach task */
 	node->task = NULL;
@@ -232,15 +155,14 @@ int rinoo_sched_waitfor(t_rinoosched_node *node, t_rinoosched_mode mode)
  */
 int rinoo_sched_remove(t_rinoosched_node *node)
 {
-	if (node->sched == NULL) {
+	if (rinoolist_remove(&node->sched->nodes, &node->lnode) != 0) {
+		/* Node already removed */
 		return -1;
 	}
 	if (rinoo_epoll_remove(node) != 0) {
 		return -1;
 	}
-	rinoolist_remove(&node->sched->nodes, &node->lnode);
 	node->task = NULL;
-	node->sched = NULL;
 	return 0;
 }
 
@@ -273,7 +195,10 @@ void rinoo_sched_stop(t_rinoosched *sched)
 {
 	XASSERTN(sched != NULL);
 
-	sched->stop = 1;
+	if (sched->stop == false) {
+		sched->stop = true;
+		rinoo_spawn_stop(sched);
+	}
 }
 
 /**
@@ -289,16 +214,10 @@ int rinoo_sched_poll(t_rinoosched *sched)
 
 	gettimeofday(&sched->clock, NULL);
 	timeout = rinoo_task_driver_run(sched);
-	if (sched->stop == 0 && sched->nbpending > 0) {
+	if (sched->stop == false && sched->nbpending > 0) {
 		return rinoo_epoll_poll(sched, timeout);
 	}
 	return 0;
-}
-
-static void *rinoo_sched_spawn_loop(void *arg)
-{
-	rinoo_sched_loop(arg);
-	return NULL;
 }
 
 /**
@@ -310,22 +229,13 @@ static void *rinoo_sched_spawn_loop(void *arg)
  */
 void rinoo_sched_loop(t_rinoosched *sched)
 {
-	int i;
-
-	sched->stop = 0;
-	for (i = 0; i < sched->spawns.count; i++) {
-		if (pthread_create(&sched->spawns.thread[i], NULL, rinoo_sched_spawn_loop, sched->spawns.sched[i]) != 0) {
-			goto start_stop;
-		}
+	sched->stop = false;
+	if (rinoo_spawn_start(sched) != 0) {
+		goto loop_stop;
 	}
-	while (sched->stop == 0 && (sched->nbpending > 0 || rinoo_task_driver_nbpending(sched) > 0)) {
+	while (sched->stop == false && (sched->nbpending > 0 || rinoo_task_driver_nbpending(sched) > 0)) {
 		rinoo_sched_poll(sched);
 	}
-start_stop:
-	for (i = 0; i < sched->spawns.count; i++) {
-		if (sched->spawns.thread[i] != 0) {
-			rinoo_sched_stop(sched->spawns.sched[i]);
-			pthread_join(sched->spawns.thread[i], NULL);
-		}
-	}
+loop_stop:
+	rinoo_spawn_join(sched);
 }

@@ -10,6 +10,16 @@
 
 #include "rinoo/rinoo.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <execinfo.h>
+
+static void rinoo_epoll_handler_ignore(int unused(sig))
+{
+	/* This handler is used to interrupt epoll when receiving a signal */
+}
+
+
 /**
  * Epoll initialization. It calls epoll_create and
  * initializes internal structures.
@@ -25,15 +35,14 @@ int rinoo_epoll_init(t_rinoosched *sched)
 	sched->epoll.fd = epoll_create(42); /* Size does not matter any more ;) */
 	XASSERT(sched->epoll.fd != -1, -1);
 	sched->epoll.curevent = -1;
-	if (sigemptyset(&sched->epoll.sigmask) < 0) {
+	if (sigaction(SIGPIPE, &(struct sigaction){ .sa_handler = SIG_IGN }, NULL) != 0) {
 		close(sched->epoll.fd);
 		return -1;
 	}
-	if (sigaddset(&sched->epoll.sigmask, SIGPIPE) < 0) {
+	if (sigaction(SIGUSR2, &(struct sigaction){ .sa_handler = rinoo_epoll_handler_ignore }, NULL) != 0) {
 		close(sched->epoll.fd);
 		return -1;
 	}
-	sigaction(SIGPIPE, &(struct sigaction){ .sa_handler = SIG_IGN }, NULL);
 	return 0;
 }
 
@@ -136,7 +145,7 @@ int rinoo_epoll_poll(t_rinoosched *sched, int timeout)
 
 	XASSERT(sched != NULL, -1);
 
-	nbevents = epoll_pwait(sched->epoll.fd, sched->epoll.events, RINOO_EPOLL_MAX_EVENTS, timeout, &sched->epoll.sigmask);
+	nbevents = epoll_wait(sched->epoll.fd, sched->epoll.events, RINOO_EPOLL_MAX_EVENTS, timeout);
 	if (unlikely(nbevents == -1)) {
 		/* We don't want to raise an error in this case */
 		return 0;

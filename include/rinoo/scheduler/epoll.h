@@ -22,7 +22,6 @@ enum e_rinoosched_mode;		/* Defined in scheduler.h */
 typedef struct s_rinooepoll {
 	int fd;
 	int curevent;
-	sigset_t sigmask;
 	struct epoll_event events[RINOO_EPOLL_MAX_EVENTS];
 } t_rinooepoll;
 

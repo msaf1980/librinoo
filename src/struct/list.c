@@ -34,9 +34,15 @@ void rinoolist_add(t_rinoolist *list, t_rinoolist_node *node)
  *
  * @param list Pointer to the list
  * @param node Pointer to the element to remove
+ *
+ * @return 0 on success otherwise -1 if an error occurs
  */
-void rinoolist_remove(t_rinoolist *list, t_rinoolist_node *node)
+int rinoolist_remove(t_rinoolist *list, t_rinoolist_node *node)
 {
+	if (node->prev == NULL && node->next == NULL && list->head != node) {
+		/* Node already removed */
+		return -1;
+	}
 	if (node->prev != NULL) {
 		node->prev->next = node->next;
 	} else {
@@ -48,6 +54,9 @@ void rinoolist_remove(t_rinoolist *list, t_rinoolist_node *node)
 		list->tail = node->prev;
 	}
 	list->count--;
+	node->prev = NULL;
+	node->next = NULL;
+	return 0;
 }
 
 /**

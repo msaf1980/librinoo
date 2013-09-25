@@ -93,6 +93,29 @@ int rinoo_task_driver_run(t_rinoosched *sched)
 }
 
 /**
+ * Attempts to stop all pending tasks
+ *
+ * @param sched Pointer to the scheduler to use
+ *
+ * @return 0 on success otherwise -1 if an error occurs
+ */
+int rinoo_task_driver_stop(t_rinoosched *sched)
+{
+	t_rinootask *task;
+	t_rinoorbtree_node *head;
+
+	XASSERT(sched != NULL, -1);
+	XASSERT(sched->stop == true, -1);
+
+	while ((head = rinoorbtree_head(&sched->driver.proc_tree)) != NULL) {
+		task = container_of(head, t_rinootask, proc_node);
+		rinoo_task_unschedule(task);
+		rinoo_task_resume(task);
+	}
+	return 0;
+}
+
+/**
  * Returns number of pending tasks.
  *
  * @param sched Pointer to the schedulter to use
@@ -163,6 +186,8 @@ t_rinootask *rinoo_task(t_rinoosched *sched, t_rinootask *parent, void (*functio
  */
 void rinoo_task_destroy(t_rinootask *task)
 {
+	XASSERTN(task != NULL);
+
 #ifdef RINOO_DEBUG
 	VALGRIND_STACK_DEREGISTER(task->valgrind_stackid);
 #endif /* !RINOO_DEBUG */
@@ -247,13 +272,18 @@ int rinoo_task_resume(t_rinootask *task)
  *
  * @param sched Pointer to the scheduler to use
  *
- * @return 0 on success or errno if an error occurs
+ * @return 0 on success or -1 if an error occurs
  */
-void rinoo_task_release(t_rinoosched *sched)
+int rinoo_task_release(t_rinoosched *sched)
 {
-	XASSERTN(sched != NULL);
+	XASSERT(sched != NULL, -1);
 
 	fcontext_swap(&sched->driver.current->context, &sched->driver.main.context);
+	if (sched->stop == true) {
+		errno = ECANCELED;
+		return -1;
+	}
+	return 0;
 }
 
 /**
@@ -330,8 +360,7 @@ int rinoo_task_wait(t_rinoosched *sched, uint32_t ms)
 			return -1;
 		}
 	}
-	rinoo_task_release(sched);
-	return 0;
+	return rinoo_task_release(sched);
 }
 
 /**
@@ -356,7 +385,9 @@ int rinoo_task_pause(t_rinoosched *sched)
 		if (rinoo_task_schedule(task, NULL) != 0) {
 			return -1;
 		}
-		rinoo_task_release(sched);
+		if (rinoo_task_release(sched) != 0) {
+			return -1;
+		}
 		if (rinoo_task_schedule(task, &tv) != 0) {
 			return -1;
 		}
@@ -364,7 +395,9 @@ int rinoo_task_pause(t_rinoosched *sched)
 		if (rinoo_task_schedule(task, NULL) != 0) {
 			return -1;
 		}
-		rinoo_task_release(sched);
+		if (rinoo_task_release(sched) != 0) {
+			return -1;
+		}
 	}
 	return 0;
 }
