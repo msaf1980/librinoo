@@ -1,6 +1,6 @@
 /**
  * @file   spawn.h
- * @author reginaldl <reginald.l@gmail.com>
+ * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
  * @date   Tue Sep 22 16:58:02 2013
  *
  * @brief  RiNOO scheduler spawning functions

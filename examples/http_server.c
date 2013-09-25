@@ -1,0 +1,109 @@
+/**
+ * @file   http_server.c
+ * @author reginaldl <reginald.l@gmail.com>
+ * @date   Tue Sep 22 17:22:40 2013
+ *
+ * @brief  Example of a multi-threaded HTTP server.
+ *	   $ gcc ./examples/http_server.c -o rinoo_httpserv -I./include -L. -lrinoo_static -lpthread
+ *
+ */
+
+#include "rinoo/rinoo.h"
+
+t_rinoosched *master;
+
+/**
+ * Process HTTP requests for each client.
+ *
+ * @param arg Client socket
+ */
+void process_http_client(void *arg)
+{
+	t_rinoohttp http;
+	t_rinoosocket *client = arg;
+
+	rinoohttp_init(client, &http);
+	while (rinoohttp_request_get(&http)) {
+		rinoo_log("Request uri=%.*s thread=%d", buffer_size(&http.request.uri), buffer_ptr(&http.request.uri), rinoo_sched_self()->id);
+		http.response.code = 200;
+		if (rinoohttp_response_send(&http, NULL) != 0) {
+			goto error;
+		}
+		rinoohttp_reset(&http);
+	}
+	rinoohttp_destroy(&http);
+	rinoo_socket_destroy(client);
+	return;
+error:
+	rinoohttp_destroy(&http);
+	rinoo_socket_destroy(client);
+}
+
+/**
+ * Accepts incoming connection on the HTTP server
+ *
+ * @param arg Server socket
+ */
+void process_http_server(void *arg)
+{
+	t_rinoosocket *client;
+	t_rinoosocket *socket = arg;
+
+	rinoo_log("Thread %d started.", rinoo_sched_self()->id);
+	while ((client = rinoo_tcp_accept(socket, NULL, NULL)) != NULL) {
+		rinoo_task_start(rinoo_sched_self(), process_http_client, client);
+	}
+	rinoo_socket_destroy(socket);
+	rinoo_log("Thread %d stopped.", rinoo_sched_self()->id);
+}
+
+void signal_handler(int unused(signal))
+{
+	rinoo_log("Exiting...");
+	rinoo_sched_stop(master);
+}
+
+/**
+ * Main function.
+ *
+ *
+ * @return It should return 0
+ */
+int main(int argc, char **argv)
+{
+	int i;
+	t_rinoosched *cur;
+	t_rinoosocket *server;
+
+	if (argc != 2) {
+		printf("Usage: %s <port>\n", argv[0]);
+		return -1;
+	}
+	master = rinoo_sched();
+	if (master == NULL) {
+		return -1;
+	}
+	server = rinoo_tcp_server(master, 0, atoi(argv[1]));
+	if (server == NULL) {
+		rinoo_log("Could not create server socket on port %s.", argv[1]);
+		rinoo_sched_destroy(master);
+		return -1;
+	}
+	if (sigaction(SIGINT, &(struct sigaction){ .sa_handler = signal_handler }, NULL) != 0) {
+		rinoo_sched_destroy(master);
+		return -1;
+	}
+	/* Spawning 10 threads */
+	if (rinoo_spawn(master, 10) != 0) {
+		rinoo_log("Could not spawn threads.");
+		rinoo_sched_destroy(master);
+	}
+	for (i = 1; i <= 10; i++) {
+		cur = rinoo_spawn_get(master, i);
+		rinoo_task_start(cur, process_http_server, rinoo_socket_dup(cur, server));
+	}
+	rinoo_task_start(master, process_http_server, server);
+	rinoo_sched_loop(master);
+	rinoo_sched_destroy(master);
+	return 0;
+}
