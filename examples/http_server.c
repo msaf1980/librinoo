@@ -1,6 +1,6 @@
 /**
  * @file   http_server.c
- * @author reginaldl <reginald.l@gmail.com>
+ * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
  * @date   Tue Sep 22 17:22:40 2013
  *
  * @brief  Example of a multi-threaded HTTP server.
@@ -35,6 +35,7 @@ void process_http_client(void *arg)
 	rinoo_socket_destroy(client);
 	return;
 error:
+	rinoo_log("error");
 	rinoohttp_destroy(&http);
 	rinoo_socket_destroy(client);
 }
@@ -64,10 +65,12 @@ void signal_handler(int unused(signal))
 }
 
 /**
- * Main function.
+ * Main function
  *
+ * @param argc Number of parameters
+ * @param argv Parameters
  *
- * @return It should return 0
+ * @return Should return 0
  */
 int main(int argc, char **argv)
 {
@@ -97,6 +100,7 @@ int main(int argc, char **argv)
 	if (rinoo_spawn(master, 10) != 0) {
 		rinoo_log("Could not spawn threads.");
 		rinoo_sched_destroy(master);
+		return -1;
 	}
 	for (i = 1; i <= 10; i++) {
 		cur = rinoo_spawn_get(master, i);
