@@ -102,7 +102,7 @@ void rinoo_log(const char *format, ...)
 		}
 	}
 	esclogline[offset++] = '\n';
-	res = write(1, esclogline, offset);
+	printf("%.*s", offset, esclogline);
 	free(logline);
 	free(esclogline);
 }
