@@ -170,11 +170,11 @@ ssize_t	rinoo_socket_class_tcp_write(t_rinoosocket *socket, const void *buf, siz
 	size_t sent;
 	ssize_t ret;
 
-	if (rinoo_socket_waitio(socket) != 0) {
-		return -1;
-	}
 	sent = count;
 	while (count > 0) {
+		if (rinoo_socket_waitio(socket) != 0) {
+			return -1;
+		}
 		errno = 0;
 		ret = write(socket->node.fd, buf, count);
 		if (ret == 0) {
@@ -187,8 +187,6 @@ ssize_t	rinoo_socket_class_tcp_write(t_rinoosocket *socket, const void *buf, siz
 				return -1;
 			}
 			ret = 0;
-		} else if (rinoo_socket_waitio(socket) != 0) {
-			return -1;
 		}
 		count -= ret;
 		buf += ret;
