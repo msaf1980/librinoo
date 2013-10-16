@@ -1,6 +1,6 @@
 # RiNOO
 
-RiNOO is a socket management libray. RiNOO sockets are asynchronous but "appear" synchronous.
+RiNOO is a socket management library. RiNOO sockets are asynchronous but "appear" synchronous.
 This is possible by using fast-contexts (see fcontext project). Code looks simple. The complexity
 of asynchronous sockets is hidden.
 RiNOO is a simple way to create high scalability client/server applications.
