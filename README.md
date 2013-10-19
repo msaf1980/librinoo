@@ -68,8 +68,8 @@ RiNOO is a simple way to create high scalability client/server applications.
 
         sched = rinoo_sched_self();
     	while ((client = rinoo_tcp_accept(server, NULL, NULL)) != NULL) {
-		rinoo_log("Accepted connection on thread %d", sched->id);
-    		rinoo_task_start(sched, task_client, client);
+                rinoo_log("Accepted connection on thread %d", sched->id);
+                rinoo_task_start(sched, task_client, client);
     	}
     	rinoo_socket_destroy(server);
     }
@@ -86,8 +86,8 @@ RiNOO is a simple way to create high scalability client/server applications.
         /* Spawning 10 schedulers, each running in a separate thread */
         rinoo_spawn(sched, 10);
         for (i = 1; i <= 10; i++) {
-		spawn = rinoo_spawn_get(sched, i);
-		rinoo_task_start(spawn, task_server, rinoo_socket_dup(spawn, server));
+                spawn = rinoo_spawn_get(sched, i);
+                rinoo_task_start(spawn, task_server, rinoo_socket_dup(spawn, server));
         }
         rinoo_task_start(sched, task_server, server);
     	rinoo_sched_loop(sched);
