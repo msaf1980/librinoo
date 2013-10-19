@@ -22,7 +22,9 @@ typedef struct s_rinoosocket_class {
 	struct s_rinoosocket *(*dup)(t_rinoosched *destination, struct s_rinoosocket *socket);
 	int (*close)(struct s_rinoosocket *socket);
 	ssize_t (*read)(struct s_rinoosocket *socket, void *buf, size_t count);
+	ssize_t (*recvfrom)(struct s_rinoosocket *socket, void *buf, size_t count, struct sockaddr *addrfrom, socklen_t *addrlen);
 	ssize_t (*write)(struct s_rinoosocket *socket, const void *buf, size_t count);
+	ssize_t (*sendto)(struct s_rinoosocket *socket, void *buf, size_t count, const struct sockaddr *addrto, socklen_t addrlen);
 	ssize_t (*sendfile)(struct s_rinoosocket *socket, int in_fd, off_t offset, size_t count);
 	int (*connect)(struct s_rinoosocket *socket, const struct sockaddr *addr, socklen_t addrlen);
 	int (*listen)(struct s_rinoosocket *socket, const struct sockaddr *addr, socklen_t addrlen, int backlog);

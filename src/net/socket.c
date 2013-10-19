@@ -246,6 +246,24 @@ ssize_t rinoo_socket_read(t_rinoosocket *socket, void *buf, size_t count)
 }
 
 /**
+ * Calls the appropriate recvfrom function depending on socket class.
+ *
+ * @param socket Pointer to the socket to read
+ * @param buf Buffer where to store the information read
+ * @param count Buffer size
+ * @param addrfrom Sockaddr where to store the source address
+ * @param addrlen Sockaddr length
+ *
+ * @return The number of bytes read on success or -1 if an error occurs
+ */
+ssize_t rinoo_socket_recvfrom(t_rinoosocket *socket, void *buf, size_t count, struct sockaddr *addrfrom, socklen_t *addrlen)
+{
+	XASSERT(socket->class->recvfrom != NULL, -1);
+
+	return socket->class->recvfrom(socket, buf, count, addrfrom, addrlen);
+}
+
+/**
  * Calls the appropriate function depending on socket class.
  *
  * @param socket Pointer to the socket to read
@@ -257,6 +275,24 @@ ssize_t rinoo_socket_read(t_rinoosocket *socket, void *buf, size_t count)
 ssize_t	rinoo_socket_write(t_rinoosocket *socket, const void *buf, size_t count)
 {
 	return socket->class->write(socket, buf, count);
+}
+
+/**
+ * Calls the appropriate sendto function depending on socket class.
+ *
+ * @param socket Pointer to the socket to read
+ * @param buf Buffer which stores the information to write
+ * @param count Buffer size
+ * @param addrto Address to send to
+ * @param addrlen Sockaddr length
+ *
+ * @return The number of bytes written on success or -1 if an error occurs
+ */
+ssize_t rinoo_socket_sendto(t_rinoosocket *socket, void *buf, size_t count, const struct sockaddr *addrto, socklen_t addrlen)
+{
+	XASSERT(socket->class->sendto != NULL, -1);
+
+	return socket->class->sendto(socket, buf, count, addrto, addrlen);
 }
 
 /**
