@@ -14,10 +14,14 @@
 /* Defined in scheduler.h */
 struct s_rinoosched;
 
+typedef struct s_rinoothread {
+	pthread_t id;
+	struct s_rinoosched *sched;
+} t_rinoothread;
+
 typedef struct s_rinoosched_spawns {
 	int count;
-	pthread_t *thread;
-	struct s_rinoosched **sched;
+	t_rinoothread *thread;
 } t_rinoosched_spawns;
 
 int rinoo_spawn(struct s_rinoosched *sched, int count);

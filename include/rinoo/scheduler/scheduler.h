@@ -11,12 +11,6 @@
 #ifndef RINOO_SCHEDULER_SCHEDULER_H_
 #define RINOO_SCHEDULER_SCHEDULER_H_
 
-typedef enum e_rinoosched_mode {
-	RINOO_MODE_NONE = 0,
-	RINOO_MODE_IN = 1,
-	RINOO_MODE_OUT = 2,
-} t_rinoosched_mode;
-
 typedef struct s_rinoosched {
 	int id;
 	bool stop;
@@ -27,16 +21,6 @@ typedef struct s_rinoosched {
 	struct s_rinooepoll epoll;
 	t_rinoosched_spawns spawns;
 } t_rinoosched;
-
-typedef struct s_rinoosched_node {
-	int fd;
-	int error;
-	t_rinootask *task;
-	t_rinoosched *sched;
-	t_rinoolist_node lnode;
-	t_rinoosched_mode waiting;
-	t_rinoosched_mode received;
-} t_rinoosched_node;
 
 t_rinoosched *rinoo_sched(void);
 void rinoo_sched_destroy(t_rinoosched *sched);
