@@ -114,6 +114,21 @@ static void *rinoo_spawn_loop(void *sched)
 }
 
 /**
+ * Signal handler called when killing threads.
+ * This will stop the running scheduler.
+ *
+ * @param unused Signal number
+ */
+static void rinoo_spawn_handler_stop(int unused(sig))
+{
+	t_rinoosched *sched = rinoo_sched_self();
+
+	if (sched != NULL) {
+		rinoo_sched_stop(sched);
+	}
+}
+
+/**
  * Starts spawns. It creates a thread for each spawn.
  *
  * @param sched Main scheduler
@@ -128,6 +143,9 @@ int rinoo_spawn_start(t_rinoosched *sched)
 
         sigemptyset(&newset);
         if (sigaddset(&newset, SIGINT) < 0) {
+		return -1;
+	}
+	if (sigaction(SIGUSR2, &(struct sigaction){ .sa_handler = rinoo_spawn_handler_stop }, NULL) != 0) {
 		return -1;
 	}
         pthread_sigmask(SIG_BLOCK, &newset, &oldset);
@@ -152,7 +170,6 @@ void rinoo_spawn_stop(t_rinoosched *sched)
 
 	for (i = 0; i < sched->spawns.count; i++) {
 		if (sched->spawns.thread[i] != 0) {
-			rinoo_sched_stop(sched->spawns.sched[i]);
 			pthread_kill(sched->spawns.thread[i], SIGUSR2);
 		}
 	}

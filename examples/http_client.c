@@ -74,12 +74,12 @@ int main(int argc, char **argv)
 	if (sched == NULL) {
 		return -1;
 	}
-	if (rinoo_spawn(sched, 4) != 0) {
+	if (rinoo_spawn(sched, 9) != 0) {
 		rinoo_log("Could not spawn threads.");
 		rinoo_sched_destroy(sched);
 		return -1;
 	}
-	for (i = 0; i <= 4; i++) {
+	for (i = 0; i <= 9; i++) {
 		cur = rinoo_spawn_get(sched, i);
 		/* 100 parallel connections per thread */
 		for (j = 0; j < 100; j++) {
