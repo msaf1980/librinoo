@@ -36,7 +36,7 @@ int rinoo_socket_waitio(t_rinoosocket *socket);
 int rinoo_socket_timeout(t_rinoosocket *socket, uint32_t ms);
 
 int rinoo_socket_connect(t_rinoosocket *socket, const struct sockaddr *addr, socklen_t addrlen);
-int rinoo_socket_listen(t_rinoosocket *socket, const struct sockaddr *addr, socklen_t addrlen, int backlog);
+int rinoo_socket_bind(t_rinoosocket *socket, const struct sockaddr *addr, socklen_t addrlen, int backlog);
 t_rinoosocket *rinoo_socket_accept(t_rinoosocket *socket, struct sockaddr *addr, socklen_t *addrlen);
 ssize_t rinoo_socket_read(t_rinoosocket *socket, void *buf, size_t count);
 ssize_t rinoo_socket_recvfrom(t_rinoosocket *socket, void *buf, size_t count, struct sockaddr *addrfrom, socklen_t *addrlen);

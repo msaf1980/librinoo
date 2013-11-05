@@ -206,12 +206,12 @@ int rinoo_socket_connect(t_rinoosocket *socket, const struct sockaddr *addr, soc
  *
  * @return 0 on success or -1 if an error occurs
  */
-int rinoo_socket_listen(t_rinoosocket *socket, const struct sockaddr *addr, socklen_t addrlen, int backlog)
+int rinoo_socket_bind(t_rinoosocket *socket, const struct sockaddr *addr, socklen_t addrlen, int backlog)
 {
 	XASSERT(socket != NULL, -1);
-	XASSERT(socket->class->listen != NULL, -1);
+	XASSERT(socket->class->bind != NULL, -1);
 
-	return socket->class->listen(socket, addr, addrlen, backlog);
+	return socket->class->bind(socket, addr, addrlen, backlog);
 }
 
 /**

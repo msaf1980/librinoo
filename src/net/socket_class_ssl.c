@@ -24,7 +24,7 @@ const t_rinoosocket_class socket_class_ssl = {
 	.sendto = NULL,
 	.sendfile = NULL,
 	.connect = rinoo_socket_class_ssl_connect,
-	.listen = rinoo_socket_class_tcp_listen,
+	.bind = rinoo_socket_class_tcp_bind,
 	.accept = rinoo_socket_class_ssl_accept
 };
 

@@ -24,7 +24,7 @@ const t_rinoosocket_class socket_class_udp = {
 	.sendto = rinoo_socket_class_udp_sendto,
 	.sendfile = NULL,
 	.connect = rinoo_socket_class_udp_connect,
-	.listen = rinoo_socket_class_udp_bind,
+	.bind = rinoo_socket_class_udp_bind,
 	.accept = NULL
 };
 

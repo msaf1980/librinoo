@@ -17,6 +17,7 @@
 #include "rinoo/net/socket_class_udp.h"
 #include "rinoo/net/socket_class_ssl.h"
 #include "rinoo/net/tcp.h"
+#include "rinoo/net/udp.h"
 #include "rinoo/net/ssl.h"
 
 #endif /* !RINOO_MODULE_NET_H_ */

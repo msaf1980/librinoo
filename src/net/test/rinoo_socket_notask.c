@@ -27,7 +27,7 @@ void server()
 	addr.sin_port = htons(4242);
 	addr.sin_family = AF_INET;
 	addr.sin_addr.s_addr = 0;
-	XTEST(rinoo_socket_listen(server, (struct sockaddr *) &addr, sizeof(addr), 42) == 0);
+	XTEST(rinoo_socket_bind(server, (struct sockaddr *) &addr, sizeof(addr), 42) == 0);
 	rinoo_log("server listening...");
 	client = rinoo_socket_accept(server, (struct sockaddr *) &addr, (socklen_t *)(int[]){(sizeof(struct sockaddr))});
 	XTEST(client != NULL);

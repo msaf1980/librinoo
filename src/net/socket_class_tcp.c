@@ -24,7 +24,7 @@ const t_rinoosocket_class socket_class_tcp = {
 	.sendto = rinoo_socket_class_tcp_sendto,
 	.sendfile = rinoo_socket_class_tcp_sendfile,
 	.connect = rinoo_socket_class_tcp_connect,
-	.listen = rinoo_socket_class_tcp_listen,
+	.bind = rinoo_socket_class_tcp_bind,
 	.accept = rinoo_socket_class_tcp_accept
 };
 
@@ -345,7 +345,7 @@ int rinoo_socket_class_tcp_connect(t_rinoosocket *socket, const struct sockaddr 
  *
  * @return 0 on success or -1 if an error occurs
  */
-int rinoo_socket_class_tcp_listen(t_rinoosocket *socket, const struct sockaddr *addr, socklen_t addrlen, int backlog)
+int rinoo_socket_class_tcp_bind(t_rinoosocket *socket, const struct sockaddr *addr, socklen_t addrlen, int backlog)
 {
 	int enabled;
 

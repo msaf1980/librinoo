@@ -183,7 +183,7 @@ t_rinoosocket *rinoo_ssl_server(t_rinoosched *sched, t_rinoossl_ctx *ctx, t_ip i
 	addr.sin_port = htons(port);
 	addr.sin_family = AF_INET;
 	addr.sin_addr.s_addr = ip;
-	if (rinoo_socket_listen(socket, (struct sockaddr *) &addr, sizeof(addr), RINOO_TCP_BACKLOG) != 0) {
+	if (rinoo_socket_bind(socket, (struct sockaddr *) &addr, sizeof(addr), RINOO_TCP_BACKLOG) != 0) {
 		rinoo_socket_destroy(socket);
 		return NULL;
 	}

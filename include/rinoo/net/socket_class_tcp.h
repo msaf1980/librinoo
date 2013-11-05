@@ -22,7 +22,7 @@ ssize_t	rinoo_socket_class_tcp_write(t_rinoosocket *socket, const void *buf, siz
 ssize_t rinoo_socket_class_tcp_sendto(t_rinoosocket *socket, void *buf, size_t count, const struct sockaddr *addrto, socklen_t addrlen);
 ssize_t rinoo_socket_class_tcp_sendfile(t_rinoosocket *socket, int in_fd, off_t offset, size_t count);
 int rinoo_socket_class_tcp_connect(t_rinoosocket *socket, const struct sockaddr *addr, socklen_t addrlen);
-int rinoo_socket_class_tcp_listen(t_rinoosocket *socket, const struct sockaddr *addr, socklen_t addrlen, int backlog);
+int rinoo_socket_class_tcp_bind(t_rinoosocket *socket, const struct sockaddr *addr, socklen_t addrlen, int backlog);
 t_rinoosocket *rinoo_socket_class_tcp_accept(t_rinoosocket *socket, struct sockaddr *addr, socklen_t *addrlen);
 
 #endif /* !RINOO_NET_SOCKET_CLASS_TCP_H_ */

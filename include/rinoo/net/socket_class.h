@@ -27,7 +27,7 @@ typedef struct s_rinoosocket_class {
 	ssize_t (*sendto)(struct s_rinoosocket *socket, void *buf, size_t count, const struct sockaddr *addrto, socklen_t addrlen);
 	ssize_t (*sendfile)(struct s_rinoosocket *socket, int in_fd, off_t offset, size_t count);
 	int (*connect)(struct s_rinoosocket *socket, const struct sockaddr *addr, socklen_t addrlen);
-	int (*listen)(struct s_rinoosocket *socket, const struct sockaddr *addr, socklen_t addrlen, int backlog);
+	int (*bind)(struct s_rinoosocket *socket, const struct sockaddr *addr, socklen_t addrlen, int backlog);
 	struct s_rinoosocket *(*accept)(struct s_rinoosocket *socket, struct sockaddr *addr, socklen_t *addrlen);
 } t_rinoosocket_class;
 
