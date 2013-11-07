@@ -11,6 +11,7 @@
 #ifndef RINOO_MODULE_PROTO_H_
 #define RINOO_MODULE_PROTO_H_
 
+#include "rinoo/proto/dns/module.h"
 #include "rinoo/proto/http/module.h"
 
 #endif /* !RINOO_MODULE_PROTO_H_ */
