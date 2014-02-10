@@ -29,6 +29,7 @@ typedef struct s_buffer {
 
 t_buffer *buffer_create(t_buffer_class *class);
 void buffer_static(t_buffer *buffer, void *ptr, size_t size);
+void buffer_set(t_buffer *buffer, void *ptr, size_t msize);
 int buffer_destroy(t_buffer *buffer);
 int buffer_extend(t_buffer *buffer, size_t size);
 int buffer_vprint(t_buffer *buffer, const char *format, va_list ap);

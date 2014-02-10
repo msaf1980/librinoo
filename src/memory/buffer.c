@@ -81,6 +81,23 @@ void buffer_static(t_buffer *buffer, void *ptr, size_t size)
 }
 
 /**
+ * Initializes a buffer to use a specific memory segment.
+ * This memory segment needs read & write access.
+ * This memory segment won't be extended (reallocated).
+ *
+ * @param buffer Pointer to the buffer to init.
+ * @param ptr Pointer to the memory segment to use.
+ * @param msize Size of the memory segment.
+ */
+void buffer_set(t_buffer *buffer, void *ptr, size_t msize)
+{
+	buffer->ptr = ptr;
+	buffer->size = 0;
+	buffer->msize = msize;
+	buffer->class = &static_class;
+}
+
+/**
  * Destroys a buffer.
  *
  * @param buffer Pointer to the buffer to destroy.
