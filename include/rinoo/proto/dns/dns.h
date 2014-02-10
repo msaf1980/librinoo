@@ -28,13 +28,13 @@ typedef struct s_rinoodns_header {
 } t_rinoodns_header;
 
 typedef struct s_rinoodns_query {
-	char *name;
+	t_buffer *name;
 	unsigned short type;
 	unsigned short qclass;
 } t_rinoodns_query;
 
 typedef struct s_rinoodns_answer {
-	char *name;
+	t_buffer *name;
 	unsigned short type;
 	unsigned short aclass;
 	unsigned short ttl;
@@ -43,6 +43,7 @@ typedef struct s_rinoodns_answer {
 } t_rinoodns_answer;
 
 typedef struct s_rinoodns {
+	const char *host;
 	t_buffer *buffer;
 	t_rinoosocket *socket;
 	t_rinoodns_header header;
@@ -68,7 +69,10 @@ typedef struct s_rinoodns {
 #define DNS_QUERY_GET_Z(flags)			(flags & 0x0070)
 #define DNS_QUERY_GET_RCODE(flags)		(flags & 0x000f)
 
+#define DNS_QUERY_NAME_IS_COMPRESSED(byte)	(byte & 0xC0)
+#define DNS_QUERY_NAME_GET_OFFSET(offset)	(offset & 0x3FFF)
+
 int rinoo_dns(t_rinoosched *sched, const char *host, t_ip *ip);
-int rinoo_dns_query(t_rinoodns *dns, t_rinoodns_query_type type, const char *host);
+int rinoo_dns_query(t_rinoodns *dns, t_rinoodns_query_type type);
 
 #endif /* !RINOO_PROTO_DNS_DNS_H_ */

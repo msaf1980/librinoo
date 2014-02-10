@@ -10,10 +10,11 @@
 
 #include "rinoo/rinoo.h"
 
-int rinoo_dns_query(t_rinoodns *dns, t_rinoodns_query_type type, const char *host)
+int rinoo_dns_query(t_rinoodns *dns, t_rinoodns_query_type type)
 {
 	char len;
 	char *point;
+	const char *host;
 
 	dns->header.id = htons((unsigned short) ((unsigned long long) dns % USHRT_MAX));
 	DNS_QUERY_SET_QR(dns->header.flags, 0);
@@ -32,6 +33,7 @@ int rinoo_dns_query(t_rinoodns *dns, t_rinoodns_query_type type, const char *hos
 	dns->query.type = htons(type);
 	dns->query.qclass = htons(1);
 	buffer_add(dns->buffer, (char *) &dns->header, sizeof(dns->header));
+	host = dns->host;
 	while (*host) {
 		point = strchrnul(host, '.');
 		len = point - host;
@@ -52,7 +54,7 @@ int rinoo_dns_query(t_rinoodns *dns, t_rinoodns_query_type type, const char *hos
 	return 0;
 }
 
-static int rinoo_dns_getshort(t_buffer *buffer, off_t *offset, unsigned short *value)
+static int rinoo_dns_getshort(t_buffer *buffer, size_t *offset, unsigned short *value)
 {
 	if (*offset + sizeof(unsigned short) > buffer_size(buffer)) {
 		return -1;
@@ -62,9 +64,52 @@ static int rinoo_dns_getshort(t_buffer *buffer, off_t *offset, unsigned short *v
 	return 0;
 }
 
+static int rinoo_dns_getname(t_buffer *buffer, size_t *offset, t_buffer *name)
+{
+	char *label;
+	size_t coffset;
+	unsigned char size;
+	unsigned short tmp;
+
+	if (*offset + 1 >= buffer_size(buffer)) {
+		return -1;
+	}
+	size = *(unsigned char *)(buffer_ptr(buffer) + *offset);
+	while (size > 0) {
+		if (DNS_QUERY_NAME_IS_COMPRESSED(size)) {
+			if (rinoo_dns_getshort(buffer, offset, &tmp) != 0) {
+				return -1;
+			}
+			coffset = DNS_QUERY_NAME_GET_OFFSET(tmp);
+			if (rinoo_dns_getname(buffer, &coffset, name) != 0) {
+				return -1;
+			}
+			*offset += 2;
+		} else {
+			(*offset)++;
+			label = buffer_ptr(buffer) + *offset;
+			if (*offset + size >= buffer_size(buffer)) {
+				return -1;
+			}
+			if (buffer_size(name) > 0) {
+				buffer_addstr(name, ".");
+			}
+			buffer_add(name, label, size);
+			*offset += size;
+		}
+		if (*offset + 1 >= buffer_size(buffer)) {
+			return -1;
+		}
+		size = *(unsigned char *)(buffer_ptr(buffer) + *offset);
+	}
+	(*offset)++;
+	buffer_addnull(name);
+	return 0;
+}
+
 int rinoo_dns_reply_parse(t_rinoodns *dns, uint32_t timeout)
 {
-	off_t offset;
+	size_t offset;
 
 	buffer_erase(dns->buffer, 0);
 	if (rinoo_socket_timeout(dns->socket, timeout) != 0) {
@@ -92,13 +137,30 @@ int rinoo_dns_reply_parse(t_rinoodns *dns, uint32_t timeout)
 	if (rinoo_dns_getshort(dns->buffer, &offset, &dns->header.arcount) != 0) {
 		return -1;
 	}
+	if (rinoo_dns_getname(dns->buffer, &offset, dns->query.name) != 0) {
+		return -1;
+	}
 	if (rinoo_dns_getshort(dns->buffer, &offset, &dns->query.type) != 0) {
 		return -1;
 	}
 	if (rinoo_dns_getshort(dns->buffer, &offset, &dns->query.qclass) != 0) {
 		return -1;
 	}
-
+	if (rinoo_dns_getname(dns->buffer, &offset, dns->answer.name) != 0) {
+		return -1;
+	}
+	if (rinoo_dns_getshort(dns->buffer, &offset, &dns->answer.type) != 0) {
+		return -1;
+	}
+	if (rinoo_dns_getshort(dns->buffer, &offset, &dns->answer.aclass) != 0) {
+		return -1;
+	}
+	if (rinoo_dns_getshort(dns->buffer, &offset, &dns->answer.ttl) != 0) {
+		return -1;
+	}
+	if (rinoo_dns_getshort(dns->buffer, &offset, &dns->answer.rdlength) != 0) {
+		return -1;
+	}
 	return 0;
 }
 
@@ -107,14 +169,20 @@ int rinoo_dns(t_rinoosched *sched, const char *host, t_ip *ip)
 	t_rinoodns dns;
 
 	res_init();
+	dns.host = host;
 	dns.socket = rinoo_udp_client(sched, _res.nsaddr_list[0].sin_addr.s_addr, ntohs(_res.nsaddr_list[0].sin_port));
 	dns.buffer = buffer_create(NULL);
-	rinoo_dns_query(&dns, DNS_QUERY_A, host);
+	dns.query.name = buffer_create(NULL);
+	dns.answer.name = buffer_create(NULL);
+	rinoo_dns_query(&dns, DNS_QUERY_A);
 	if (rinoo_dns_reply_parse(&dns, 1000) != 0) {
 		rinoo_log("Error");
 	}
 	rinoo_log("Results: %d", dns.header.ancount);
 	rinoo_socket_destroy(dns.socket);
+	buffer_destroy(dns.answer.name);
+	buffer_destroy(dns.query.name);
+	buffer_destroy(dns.buffer);
 	*ip = 0;
 	return 0;
 }
