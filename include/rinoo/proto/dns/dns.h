@@ -28,13 +28,15 @@ typedef struct s_rinoodns_header {
 } t_rinoodns_header;
 
 typedef struct s_rinoodns_query {
-	t_buffer *name;
+	t_buffer buffer;
+	char name[256];
 	unsigned short type;
 	unsigned short qclass;
 } t_rinoodns_query;
 
 typedef struct s_rinoodns_answer {
-	t_buffer *name;
+	t_buffer buffer;
+	char name[256];
 	unsigned short type;
 	unsigned short aclass;
 	unsigned short ttl;
@@ -44,7 +46,8 @@ typedef struct s_rinoodns_answer {
 
 typedef struct s_rinoodns {
 	const char *host;
-	t_buffer *buffer;
+	t_buffer buffer;
+	char packet[512];
 	t_rinoosocket *socket;
 	t_rinoodns_header header;
 	t_rinoodns_query query;
