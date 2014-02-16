@@ -14,5 +14,6 @@
 #include "rinoo/memory/buffer_class.h"
 #include "rinoo/memory/buffer.h"
 #include "rinoo/memory/buffer_helper.h"
+#include "rinoo/memory/buffer_iterator.h"
 
 #endif /* !RINOO_MODULE_MEMORY_H_ */
