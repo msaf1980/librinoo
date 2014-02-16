@@ -119,8 +119,6 @@ typedef struct s_rinoodns {
 	t_buffer buffer;
 	char packet[512];
 	t_rinoosocket *socket;
-	t_rinoodns_header header;
-	t_rinoodns_query query;
 	t_rinoodns_answer answer;
 } t_rinoodns;
 
@@ -146,6 +144,11 @@ typedef struct s_rinoodns {
 #define DNS_QUERY_NAME_GET_OFFSET(offset)	(offset & 0x3fff)
 
 int rinoo_dns(t_rinoosched *sched, const char *host, t_ip *ip);
-int rinoo_dns_query(t_rinoodns *dns);
+int rinoo_dns_query(t_rinoodns *dns, t_rinoodns_type type, const char *host);
+int rinoo_dns_getheader(t_buffer_iterator *iterator, t_rinoodns_header *header);
+int rinoo_dns_getname(t_buffer_iterator *iterator, t_buffer *name);
+int rinoo_dns_getrdata(t_buffer_iterator *iterator, size_t rdlength, t_rinoodns_type type, t_rinoodns_rdata *rdata);
+int rinoo_dns_getquery(t_buffer_iterator *iterator, t_rinoodns_query *query);
+int rinoo_dns_getanswer(t_buffer_iterator *iterator, t_rinoodns_type type, t_rinoodns_answer *answer);
 
 #endif /* !RINOO_PROTO_DNS_DNS_H_ */
