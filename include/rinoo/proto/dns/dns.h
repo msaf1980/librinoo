@@ -12,23 +12,23 @@
 #define RINOO_PROTO_DNS_DNS_H_
 
 typedef enum s_rinoodns_type{
-	DNS_QUERY_A = 0x01,
-	DNS_QUERY_NS = 0x02,
-	/* DNS_QUERY_MD = 0x03, Obsolete */
-	/* DNS_QUERY_MF = 0x04, Obsolete */
-	DNS_QUERY_CNAME = 0x05,
-	DNS_QUERY_SOA = 0x06,
-	/* DNS_QUERY_MB = 0x07 Experimental */
-	/* DNS_QUERY_MG = 0x08 Experimental */
-	/* DNS_QUERY_MR = 0x09 Experimental */
-	/* DNS_QUERY_NULL = 0x0a Experimental */
-	/* DNS_QUERY_WKS = 0x0b Unused */
-	DNS_QUERY_PTR = 0x0c,
-	DNS_QUERY_HINFO = 0x0d,
-	/* DNS_QUERY_MINFO = 0x0e, Experimental */
-	DNS_QUERY_MX = 0x0f,
-	DNS_QUERY_TXT = 0x10,
-	DNS_QUERY_AAAA = 0x1c
+	DNS_TYPE_A = 0x01,
+	DNS_TYPE_NS = 0x02,
+	/* DNS_TYPE_MD = 0x03, Obsolete */
+	/* DNS_TYPE_MF = 0x04, Obsolete */
+	DNS_TYPE_CNAME = 0x05,
+	DNS_TYPE_SOA = 0x06,
+	/* DNS_TYPE_MB = 0x07 Experimental */
+	/* DNS_TYPE_MG = 0x08 Experimental */
+	/* DNS_TYPE_MR = 0x09 Experimental */
+	/* DNS_TYPE_NULL = 0x0a Experimental */
+	/* DNS_TYPE_WKS = 0x0b Unused */
+	DNS_TYPE_PTR = 0x0c,
+	DNS_TYPE_HINFO = 0x0d,
+	/* DNS_TYPE_MINFO = 0x0e, Experimental */
+	DNS_TYPE_MX = 0x0f,
+	DNS_TYPE_TXT = 0x10,
+	DNS_TYPE_AAAA = 0x1c
 } t_rinoodns_type;
 
 typedef struct s_rinoodns_name {
@@ -152,12 +152,14 @@ typedef struct s_rinoodns {
 #define DNS_QUERY_NAME_IS_COMPRESSED(byte)	((byte & 0xc0) == 0xc0)
 #define DNS_QUERY_NAME_GET_OFFSET(offset)	(offset & 0x3fff)
 
-int rinoo_dns(t_rinoosched *sched, const char *host, t_ip *ip);
+void rinoo_dns_init(t_rinoosched *sched, t_rinoodns *dns, t_rinoodns_type type, const char *host);
+void rinoo_dns_destroy(t_rinoodns *dns);
+int rinoo_dns_ip_get(t_rinoosched *sched, const char *host, t_ip *ip);
 int rinoo_dns_query(t_rinoodns *dns, t_rinoodns_type type, const char *host);
-int rinoo_dns_getheader(t_buffer_iterator *iterator, t_rinoodns_header *header);
-int rinoo_dns_getname(t_buffer_iterator *iterator, t_buffer *name);
-int rinoo_dns_getrdata(t_buffer_iterator *iterator, size_t rdlength, t_rinoodns_type type, t_rinoodns_rdata *rdata);
-int rinoo_dns_getquery(t_buffer_iterator *iterator, t_rinoodns_query *query);
-int rinoo_dns_getrecord(t_buffer_iterator *iterator, t_rinoodns_record *record);
+int rinoo_dns_header_get(t_buffer_iterator *iterator, t_rinoodns_header *header);
+int rinoo_dns_name_get(t_buffer_iterator *iterator, t_buffer *name);
+int rinoo_dns_rdata_get(t_buffer_iterator *iterator, size_t rdlength, t_rinoodns_type type, t_rinoodns_rdata *rdata);
+int rinoo_dns_query_get(t_buffer_iterator *iterator, t_rinoodns_query *query);
+int rinoo_dns_record_get(t_buffer_iterator *iterator, t_rinoodns_record *record);
 
 #endif /* !RINOO_PROTO_DNS_DNS_H_ */

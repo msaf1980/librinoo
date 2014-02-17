@@ -10,6 +10,32 @@
 
 #include "rinoo/rinoo.h"
 
+void rinoo_dns_init(t_rinoosched *sched, t_rinoodns *dns, t_rinoodns_type type, const char *host)
+{
+	res_init();
+	dns->socket = rinoo_udp_client(sched, _res.nsaddr_list[0].sin_addr.s_addr, ntohs(_res.nsaddr_list[0].sin_port));
+	dns->host = host;
+	dns->answer = NULL;
+	dns->authority = NULL;
+	dns->additional = NULL;
+	buffer_set(&dns->buffer, dns->packet, sizeof(dns->packet));
+	dns->type = type;
+}
+
+void rinoo_dns_destroy(t_rinoodns *dns)
+{
+	if (dns->answer != NULL) {
+		free(dns->answer);
+	}
+	if (dns->authority != NULL) {
+		free(dns->authority);
+	}
+	if (dns->additional != NULL) {
+		free(dns->additional);
+	}
+	rinoo_socket_destroy(dns->socket);
+}
+
 int rinoo_dns_query(t_rinoodns *dns, t_rinoodns_type type, const char *host)
 {
 	char len;
@@ -71,13 +97,13 @@ int rinoo_dns_reply_get(t_rinoodns *dns, uint32_t timeout)
 		return -1;
 	}
 	buffer_iterator_set(&iterator, &dns->buffer);
-	if (rinoo_dns_getheader(&iterator, &dns->header) != 0) {
+	if (rinoo_dns_header_get(&iterator, &dns->header) != 0) {
 		return -1;
 	}
 	if (dns->header.id != (unsigned short) ((unsigned long long) dns % USHRT_MAX)) {
 		return -1;
 	}
-	if (rinoo_dns_getquery(&iterator, &query) != 0) {
+	if (rinoo_dns_query_get(&iterator, &query) != 0) {
 		return -1;
 	}
 	if (query.type != dns->type) {
@@ -98,7 +124,7 @@ int rinoo_dns_reply_get(t_rinoodns *dns, uint32_t timeout)
 			return -1;
 		}
 		for (i = 0; i < dns->header.ancount && !buffer_iterator_end(&iterator); i++) {
-			if (rinoo_dns_getrecord(&iterator, &dns->answer[i]) != 0) {
+			if (rinoo_dns_record_get(&iterator, &dns->answer[i]) != 0) {
 				return -1;
 			}
 		}
@@ -109,7 +135,7 @@ int rinoo_dns_reply_get(t_rinoodns *dns, uint32_t timeout)
 			return -1;
 		}
 		for (i = 0; i < dns->header.nscount && !buffer_iterator_end(&iterator); i++) {
-			if (rinoo_dns_getrecord(&iterator, &dns->authority[i]) != 0) {
+			if (rinoo_dns_record_get(&iterator, &dns->authority[i]) != 0) {
 				return -1;
 			}
 		}
@@ -120,7 +146,7 @@ int rinoo_dns_reply_get(t_rinoodns *dns, uint32_t timeout)
 			return -1;
 		}
 		for (i = 0; i < dns->header.arcount && !buffer_iterator_end(&iterator); i++) {
-			if (rinoo_dns_getrecord(&iterator, &dns->additional[i]) != 0) {
+			if (rinoo_dns_record_get(&iterator, &dns->additional[i]) != 0) {
 				return -1;
 			}
 		}
@@ -128,43 +154,17 @@ int rinoo_dns_reply_get(t_rinoodns *dns, uint32_t timeout)
 	return 0;
 }
 
-static void rinoo_dns_init(t_rinoosched *sched, t_rinoodns *dns, t_rinoodns_type type, const char *host)
-{
-	res_init();
-	dns->socket = rinoo_udp_client(sched, _res.nsaddr_list[0].sin_addr.s_addr, ntohs(_res.nsaddr_list[0].sin_port));
-	dns->host = host;
-	dns->answer = NULL;
-	dns->authority = NULL;
-	dns->additional = NULL;
-	buffer_set(&dns->buffer, dns->packet, sizeof(dns->packet));
-	dns->type = type;
-}
-
-static void rinoo_dns_destroy(t_rinoodns *dns)
-{
-	if (dns->answer != NULL) {
-		free(dns->answer);
-	}
-	if (dns->authority != NULL) {
-		free(dns->authority);
-	}
-	if (dns->additional != NULL) {
-		free(dns->additional);
-	}
-	rinoo_socket_destroy(dns->socket);
-}
-
-static void rinoo_dns_printrecord(t_rinoodns_record *record)
+static inline void rinoo_dns_printrecord(t_rinoodns_record *record)
 {
 	switch (record->type) {
-		case DNS_QUERY_A:
+		case DNS_TYPE_A:
 			rinoo_log("Record A: %s = %s", record->name.value, inet_ntoa(*(struct in_addr *) &record->rdata.a.address));
 			break;
-		case DNS_QUERY_NS:
+		case DNS_TYPE_NS:
 			break;
-		case DNS_QUERY_CNAME:
+		case DNS_TYPE_CNAME:
 			break;
-		case DNS_QUERY_SOA:
+		case DNS_TYPE_SOA:
 			rinoo_log("Record SOA: %s = %s %s %u %d %d %d %u",
 					record->name.value,
 					record->rdata.soa.mname.value,
@@ -175,45 +175,45 @@ static void rinoo_dns_printrecord(t_rinoodns_record *record)
 					record->rdata.soa.expire,
 					record->rdata.soa.minimum);
 			break;
-		case DNS_QUERY_PTR:
+		case DNS_TYPE_PTR:
 			break;
-		case DNS_QUERY_HINFO:
+		case DNS_TYPE_HINFO:
 			break;
-		case DNS_QUERY_MX:
+		case DNS_TYPE_MX:
 			rinoo_log("Record MX: %s = %d %s", record->name.value, record->rdata.mx.preference, record->rdata.mx.exchange.value);
 			break;
-		case DNS_QUERY_TXT:
+		case DNS_TYPE_TXT:
 			rinoo_log("Record TXT: %s = %s", record->name.value, record->rdata.txt.txtdata.value);
 			break;
 	}
 }
 
-int rinoo_dns(t_rinoosched *sched, const char *host, t_ip *ip)
+int rinoo_dns_ip_get(t_rinoosched *sched, const char *host, t_ip *ip)
 {
 	unsigned int i;
 	t_rinoodns dns;
 
-	rinoo_dns_init(sched, &dns, DNS_QUERY_MX, host);
-	if (rinoo_dns_query(&dns, DNS_QUERY_MX, host) != 0) {
+	rinoo_dns_init(sched, &dns, DNS_TYPE_A, host);
+	if (rinoo_dns_query(&dns, DNS_TYPE_A, host) != 0) {
 		goto dns_error;
 	}
 	if (rinoo_dns_reply_get(&dns, 1000) != 0) {
 		goto dns_error;
 	}
-	for (i = 0; i < dns.header.ancount; i++) {
-		rinoo_dns_printrecord(&dns.answer[i]);
+	if (dns.header.ancount == 0) {
+		goto dns_error;
 	}
-	for (i = 0; i < dns.header.nscount; i++) {
-		rinoo_dns_printrecord(&dns.authority[i]);
+	i = 0;
+	while (i < dns.header.ancount && dns.answer[i].type != DNS_TYPE_A) {
+		i++;
 	}
-	for (i = 0; i < dns.header.arcount; i++) {
-		rinoo_dns_printrecord(&dns.additional[i]);
+	if (i >= dns.header.ancount) {
+		goto dns_error;
 	}
-	*ip = 0;
+	*ip = dns.answer[i].rdata.a.address;
 	rinoo_dns_destroy(&dns);
 	return 0;
 dns_error:
-	rinoo_log("Error");
 	rinoo_dns_destroy(&dns);
 	return -1;
 }
