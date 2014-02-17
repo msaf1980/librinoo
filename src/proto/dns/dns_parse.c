@@ -148,6 +148,12 @@ int rinoo_dns_getrdata(t_buffer_iterator *iterator, size_t rdlength, t_rinoodns_
 				return -1;
 			}
 			break;
+		case DNS_QUERY_AAAA:
+			/* FIXME: Support of IPv6 */
+			if (buffer_iterator_position_inc(iterator, 16) != 0) {
+				return -1;
+			}
+			break;
 		default:
 			return -1;
 	}
@@ -171,27 +177,52 @@ int rinoo_dns_getquery(t_buffer_iterator *iterator, t_rinoodns_query *query)
 	return 0;
 }
 
-int rinoo_dns_getanswer(t_buffer_iterator *iterator, t_rinoodns_type type, t_rinoodns_answer *answer)
+int rinoo_dns_getrecord(t_buffer_iterator *iterator, t_rinoodns_record *record)
 {
-	if (rinoo_dns_getname(iterator, &answer->name.buffer) != 0) {
+	buffer_set(&record->name.buffer, record->name.value, sizeof(record->name.value));
+	if (rinoo_dns_getname(iterator, &record->name.buffer) != 0) {
 		return -1;
 	}
-	if (buffer_iterator_gethushort(iterator, &answer->type) != 0) {
+	if (buffer_iterator_gethushort(iterator, &record->type) != 0) {
 		return -1;
 	}
-	if (answer->type != type) {
+	switch (record->type) {
+		case DNS_QUERY_A:
+			break;
+		case DNS_QUERY_NS:
+			buffer_set(&record->rdata.ns.nsname.buffer, record->rdata.ns.nsname.value, sizeof(record->rdata.ns.nsname.value));
+			break;
+		case DNS_QUERY_CNAME:
+			buffer_set(&record->rdata.cname.cname.buffer, record->rdata.cname.cname.value, sizeof(record->rdata.cname.cname.value));
+			break;
+		case DNS_QUERY_SOA:
+			buffer_set(&record->rdata.soa.mname.buffer, record->rdata.soa.mname.value, sizeof(record->rdata.soa.mname.value));
+			buffer_set(&record->rdata.soa.rname.buffer, record->rdata.soa.rname.value, sizeof(record->rdata.soa.rname.value));
+			break;
+		case DNS_QUERY_PTR:
+			buffer_set(&record->rdata.ptr.ptrname.buffer, record->rdata.ptr.ptrname.value, sizeof(record->rdata.ptr.ptrname));
+			break;
+		case DNS_QUERY_HINFO:
+			buffer_set(&record->rdata.hinfo.cpu.buffer, record->rdata.hinfo.cpu.value, sizeof(record->rdata.hinfo.cpu.value));
+			buffer_set(&record->rdata.hinfo.os.buffer, record->rdata.hinfo.os.value, sizeof(record->rdata.hinfo.os.value));
+			break;
+		case DNS_QUERY_MX:
+			buffer_set(&record->rdata.mx.exchange.buffer, record->rdata.mx.exchange.value, sizeof(record->rdata.mx.exchange.value));
+			break;
+		case DNS_QUERY_TXT:
+			buffer_set(&record->rdata.txt.txtdata.buffer, record->rdata.txt.txtdata.value, sizeof(record->rdata.txt.txtdata.value));
+			break;
+	}
+	if (buffer_iterator_gethushort(iterator, &record->aclass) != 0) {
 		return -1;
 	}
-	if (buffer_iterator_gethushort(iterator, &answer->aclass) != 0) {
+	if (buffer_iterator_gethint(iterator, &record->ttl) != 0) {
 		return -1;
 	}
-	if (buffer_iterator_gethint(iterator, &answer->ttl) != 0) {
+	if (buffer_iterator_gethushort(iterator, &record->rdlength) != 0) {
 		return -1;
 	}
-	if (buffer_iterator_gethushort(iterator, &answer->rdlength) != 0) {
-		return -1;
-	}
-	if (rinoo_dns_getrdata(iterator, answer->rdlength, answer->type, &answer->rdata) != 0) {
+	if (rinoo_dns_getrdata(iterator, record->rdlength, record->type, &record->rdata) != 0) {
 		return -1;
 	}
 	return 0;

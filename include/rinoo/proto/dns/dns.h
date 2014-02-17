@@ -27,7 +27,8 @@ typedef enum s_rinoodns_type{
 	DNS_QUERY_HINFO = 0x0d,
 	/* DNS_QUERY_MINFO = 0x0e, Experimental */
 	DNS_QUERY_MX = 0x0f,
-	DNS_QUERY_TXT = 0x10
+	DNS_QUERY_TXT = 0x10,
+	DNS_QUERY_AAAA = 0x1c
 } t_rinoodns_type;
 
 typedef struct s_rinoodns_name {
@@ -93,6 +94,10 @@ typedef struct s_rinoodns_rdata_txt {
 	t_rinoodns_name txtdata;
 } t_rinoodns_rdata_txt;
 
+typedef struct s_rinoodns_rdata_aaaa {
+	char aaaadata[16];
+} t_rinoodns_rdata_aaaa;
+
 typedef union u_rinoodns_rdata {
 	t_rinoodns_rdata_a a;
 	t_rinoodns_rdata_ns ns;
@@ -102,24 +107,28 @@ typedef union u_rinoodns_rdata {
 	t_rinoodns_rdata_hinfo hinfo;
 	t_rinoodns_rdata_mx mx;
 	t_rinoodns_rdata_txt txt;
+	t_rinoodns_rdata_aaaa aaaa;
 } t_rinoodns_rdata;
 
-typedef struct s_rinoodns_answer {
+typedef struct s_rinoodns_record {
 	t_rinoodns_name name;
 	unsigned short type;
 	unsigned short aclass;
 	int ttl;
 	unsigned short rdlength;
 	t_rinoodns_rdata rdata;
-} t_rinoodns_answer;
+} t_rinoodns_record;
 
 typedef struct s_rinoodns {
-	const char *host;
-	t_rinoodns_type type;
 	t_buffer buffer;
 	char packet[512];
+	const char *host;
+	t_rinoodns_type type;
 	t_rinoosocket *socket;
-	t_rinoodns_answer answer;
+	t_rinoodns_header header;
+	t_rinoodns_record *answer;
+	t_rinoodns_record *authority;
+	t_rinoodns_record *additional;
 } t_rinoodns;
 
 #define DNS_QUERY_SET_QR(flags, value)		do { flags = (flags & ~0x8000) | (value << 15); } while (0)
@@ -149,6 +158,6 @@ int rinoo_dns_getheader(t_buffer_iterator *iterator, t_rinoodns_header *header);
 int rinoo_dns_getname(t_buffer_iterator *iterator, t_buffer *name);
 int rinoo_dns_getrdata(t_buffer_iterator *iterator, size_t rdlength, t_rinoodns_type type, t_rinoodns_rdata *rdata);
 int rinoo_dns_getquery(t_buffer_iterator *iterator, t_rinoodns_query *query);
-int rinoo_dns_getanswer(t_buffer_iterator *iterator, t_rinoodns_type type, t_rinoodns_answer *answer);
+int rinoo_dns_getrecord(t_buffer_iterator *iterator, t_rinoodns_record *record);
 
 #endif /* !RINOO_PROTO_DNS_DNS_H_ */
