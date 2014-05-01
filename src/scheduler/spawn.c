@@ -123,16 +123,16 @@ int rinoo_spawn_start(t_rinoosched *sched)
 {
 	int i;
 	sigset_t oldset;
-        sigset_t newset;
+	sigset_t newset;
 
-        sigemptyset(&newset);
-        if (sigaddset(&newset, SIGINT) < 0) {
+	sigemptyset(&newset);
+	if (sigaddset(&newset, SIGINT) < 0) {
 		return -1;
 	}
 	if (sigaction(SIGUSR2, &(struct sigaction){ .sa_handler = rinoo_spawn_handler_stop }, NULL) != 0) {
 		return -1;
 	}
-        pthread_sigmask(SIG_BLOCK, &newset, &oldset);
+	pthread_sigmask(SIG_BLOCK, &newset, &oldset);
 	for (i = 0; i < sched->spawns.count; i++) {
 		if (pthread_create(&sched->spawns.thread[i].id, NULL, rinoo_spawn_loop, sched->spawns.thread[i].sched) != 0) {
 			pthread_sigmask(SIG_SETMASK, &oldset, NULL);

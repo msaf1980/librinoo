@@ -17,7 +17,7 @@
 struct s_rinoosched;
 
 typedef struct s_rinootask {
- 	bool scheduled;
+	bool scheduled;
 	struct timeval tv;
 	struct s_rinoosched *sched;
 	t_rinoorbtree_node proc_node;

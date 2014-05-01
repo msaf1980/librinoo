@@ -13,5 +13,6 @@
 
 #include "rinoo/struct/rbtree.h"
 #include "rinoo/struct/list.h"
+#include "rinoo/struct/vector.h"
 
 #endif /* !RINOO_MODULE_STRUCT_H_ */
