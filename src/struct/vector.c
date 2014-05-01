@@ -56,6 +56,7 @@ void rinoovector_destroy(t_rinoovector *vector)
 		return;
 	}
 	free(vector->ptr);
+	vector->ptr = NULL;
 }
 
 /**
