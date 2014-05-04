@@ -21,6 +21,7 @@ const t_rinoosocket_class socket_class_udp = {
 	.read = rinoo_socket_class_udp_read,
 	.recvfrom = rinoo_socket_class_udp_recvfrom,
 	.write = rinoo_socket_class_udp_write,
+	.writev = rinoo_socket_class_udp_writev,
 	.sendto = rinoo_socket_class_udp_sendto,
 	.sendfile = NULL,
 	.connect = rinoo_socket_class_udp_connect,
@@ -227,6 +228,71 @@ ssize_t	rinoo_socket_class_udp_write(t_rinoosocket *socket, const void *buf, siz
 		}
 		count -= ret;
 		buf += ret;
+	}
+	return sent;
+}
+
+/**
+ * Replacement to the writev(2) syscall in this library.
+ * This function waits for the socket to be available for write operations and calls the write(2) syscall.
+ *
+ * @param socket Pointer to the socket to read
+ * @param buffers Array of buffers
+ * @param count Array size
+ *
+ * @return The number of bytes written on success or -1 if an error occurs
+ */
+ssize_t	rinoo_socket_class_udp_writev(t_rinoosocket *socket, t_buffer **buffers, int count)
+{
+	int i;
+	ssize_t ret;
+	ssize_t sent;
+	size_t total;
+	struct iovec *iov;
+
+	if (count > IOV_MAX) {
+		errno = EINVAL;
+		return -1;
+	}
+	iov = alloca(sizeof(*iov) * count);
+	for (i = 0, total = 0; i < count; i++) {
+		iov[i].iov_base = buffer_ptr(buffers[i]);
+		iov[i].iov_len = buffer_size(buffers[i]);
+		total += buffer_size(buffers[i]);
+	}
+	sent = 0;
+	while (count > 0) {
+		if (rinoo_socket_waitio(socket) != 0) {
+			return -1;
+		}
+		errno = 0;
+		ret = writev(socket->node.fd, iov, count);
+		if (ret == 0) {
+			return -1;
+		} else if (ret < 0) {
+			if (errno != EAGAIN && errno != EWOULDBLOCK) {
+				return -1;
+			}
+			if (rinoo_socket_waitout(socket) != 0) {
+				return -1;
+			}
+			ret = 0;
+		}
+		sent += ret;
+		if (((size_t) sent) == total) {
+			break;
+		}
+		for (i = 0; i < count; i++) {
+			if (ret > 0 && ((size_t) ret) >= iov[i].iov_len) {
+				ret -= iov[i].iov_len;
+			} else {
+				iov[i].iov_base += ret;
+				iov[i].iov_len -= ret;
+				iov = &iov[i];
+				break;
+			}
+		}
+		count -= i;
 	}
 	return sent;
 }

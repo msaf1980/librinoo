@@ -21,6 +21,7 @@ const t_rinoosocket_class socket_class_ssl = {
 	.read = rinoo_socket_class_ssl_read,
 	.recvfrom = NULL,
 	.write = rinoo_socket_class_ssl_write,
+	.writev = NULL,
 	.sendto = NULL,
 	.sendfile = NULL,
 	.connect = rinoo_socket_class_ssl_connect,

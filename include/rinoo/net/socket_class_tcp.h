@@ -18,7 +18,8 @@ t_rinoosocket *rinoo_socket_class_tcp_dup(t_rinoosched *destination, t_rinoosock
 int rinoo_socket_class_tcp_close(t_rinoosocket *socket);
 ssize_t rinoo_socket_class_tcp_read(t_rinoosocket *socket, void *buf, size_t count);
 ssize_t rinoo_socket_class_tcp_recvfrom(t_rinoosocket *socket, void *buf, size_t count, struct sockaddr *addrfrom, socklen_t *addrlen);
-ssize_t	rinoo_socket_class_tcp_write(t_rinoosocket *socket, const void *buf, size_t count);
+ssize_t rinoo_socket_class_tcp_write(t_rinoosocket *socket, const void *buf, size_t count);
+ssize_t rinoo_socket_class_tcp_writev(t_rinoosocket *socket, t_buffer **buffers, int count);
 ssize_t rinoo_socket_class_tcp_sendto(t_rinoosocket *socket, void *buf, size_t count, const struct sockaddr *addrto, socklen_t addrlen);
 ssize_t rinoo_socket_class_tcp_sendfile(t_rinoosocket *socket, int in_fd, off_t offset, size_t count);
 int rinoo_socket_class_tcp_connect(t_rinoosocket *socket, const struct sockaddr *addr, socklen_t addrlen);

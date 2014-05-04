@@ -278,6 +278,36 @@ ssize_t	rinoo_socket_write(t_rinoosocket *socket, const void *buf, size_t count)
 }
 
 /**
+ * Calls the appropriate function depending on socket class.
+ *
+ * @param socket Pointer to the socket to read
+ * @param buffers Array of buffers
+ * @param count Array size
+ *
+ * @return The number of bytes written on success or -1 if an error occurs
+ */
+ssize_t	rinoo_socket_writev(t_rinoosocket *socket, t_buffer **buffers, int count)
+{
+	int i;
+	ssize_t ret;
+	ssize_t total;
+
+	if (socket->class->writev != NULL) {
+		return socket->class->writev(socket, buffers, count);
+	} else {
+		total = 0;
+		for (i = 0; i < count; i++) {
+			ret = rinoo_socket_writeb(socket, buffers[i]);
+			if (ret < 0) {
+				return -1;
+			}
+			total += ret;
+		}
+		return total;
+	}
+}
+
+/**
  * Calls the appropriate sendto function depending on socket class.
  *
  * @param socket Pointer to the socket to read
