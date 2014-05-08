@@ -13,5 +13,6 @@
 
 #include "rinoo/global/macros.h"
 #include "rinoo/global/utils.h"
+#include "rinoo/global/murmurhash3.h"
 
 #endif /* !RINOO_MODULE_GLOBAL_H_ */
