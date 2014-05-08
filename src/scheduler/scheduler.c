@@ -32,8 +32,24 @@ t_rinoosched *rinoo_sched(void)
 		rinoo_sched_destroy(sched);
 		return NULL;
 	}
+	if (rinoolist(&sched->nodes, NULL) != 0) {
+		rinoo_sched_destroy(sched);
+		return NULL;
+	}
 	gettimeofday(&sched->clock, NULL);
 	return sched;
+}
+
+static void rinoo_sched_cancel_task(t_rinoolist_node *node)
+{
+	t_rinoosched_node *sched_node;
+
+	sched_node = container_of(node, t_rinoosched_node, lnode);
+	sched_node->error = ECANCELED;
+	errno = sched_node->error;
+	if (rinoo_task_resume(sched_node->task) != 0 && sched_node->task != NULL) {
+		rinoo_task_destroy(sched_node->task);
+	}
 }
 
 /**
@@ -43,23 +59,13 @@ t_rinoosched *rinoo_sched(void)
  */
 void rinoo_sched_destroy(t_rinoosched *sched)
 {
-	t_rinoolist_node *cur;
-	t_rinoosched_node *node;
-
 	XASSERTN(sched != NULL);
 
 	rinoo_spawn_destroy(sched);
 	rinoo_sched_stop(sched);
 	/* Destroying all pending tasks. */
 	rinoo_task_driver_stop(sched);
-	while ((cur = rinoolist_pop(&sched->nodes)) != NULL) {
-		node = container_of(cur, t_rinoosched_node, lnode);
-		node->error = ECANCELED;
-		errno = node->error;
-		if (rinoo_task_resume(node->task) != 0 && node->task != NULL) {
-			rinoo_task_destroy(node->task);
-		}
-	}
+	rinoolist_flush(&sched->nodes, rinoo_sched_cancel_task);
 	rinoo_task_driver_destroy(sched);
 	rinoo_epoll_destroy(sched);
 	free(sched);
@@ -111,7 +117,7 @@ int rinoo_sched_waitfor(t_rinoosched_node *node, t_rinoosched_mode mode)
 			if (unlikely(rinoo_epoll_insert(node, mode) != 0)) {
 				return -1;
 			}
-			rinoolist_add(&node->sched->nodes, &node->lnode);
+			rinoolist_put(&node->sched->nodes, &node->lnode);
 		} else {
 			if (unlikely(rinoo_epoll_addmode(node, mode) != 0)) {
 				return -1;
