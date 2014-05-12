@@ -108,23 +108,17 @@ int rinoo_sched_waitfor(t_rinoosched_node *node, t_rinoosched_mode mode)
 		errno = error;
 		return -1;
 	}
-	if ((node->received & mode) == mode) {
-		node->received -= mode;
-		return 0;
-	}
-	if ((node->waiting & mode) != mode) {
-		if (node->waiting == RINOO_MODE_NONE) {
-			if (unlikely(rinoo_epoll_insert(node, mode) != 0)) {
-				return -1;
-			}
-			rinoolist_put(&node->sched->nodes, &node->lnode);
-		} else {
-			if (unlikely(rinoo_epoll_addmode(node, mode) != 0)) {
-				return -1;
-			}
+	if (node->mode == RINOO_MODE_NONE) {
+		if (unlikely(rinoo_epoll_insert(node, mode) != 0)) {
+			return -1;
+		}
+		rinoolist_put(&node->sched->nodes, &node->lnode);
+	} else {
+		if (unlikely(rinoo_epoll_addmode(node, mode) != 0)) {
+			return -1;
 		}
 	}
-	node->waiting |= mode;
+	node->mode = mode;
 	node->task = rinoo_task_driver_getcurrent(node->sched);
 	if (unlikely(node->task == &node->sched->driver.main)) {
 		return rinoo_sched_poll(node->sched);
@@ -142,13 +136,13 @@ int rinoo_sched_waitfor(t_rinoosched_node *node, t_rinoosched_mode mode)
 		errno = error;
 		return -1;
 	}
-	if ((node->received & mode) != mode) {
+	if (node->received != mode) {
 		rinoo_sched_remove(node);
 		/* Task has been resumed but no event received, this is a timeout */
 		errno = ETIMEDOUT;
 		return -1;
 	}
-	node->received -= mode;
+	node->received = RINOO_MODE_NONE;
 	return 0;
 }
 
@@ -185,8 +179,8 @@ void rinoo_sched_wakeup(t_rinoosched_node *node, t_rinoosched_mode mode, int err
 	if (node->error == 0) {
 		node->error = error;
 	}
-	node->received |= mode;
-	if (node->task != NULL && node->task != &node->sched->driver.main && (node->waiting & mode) == mode) {
+	node->received = mode;
+	if (node->task != NULL && node->task != &node->sched->driver.main) {
 		rinoo_task_resume(node->task);
 	}
 }

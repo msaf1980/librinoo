@@ -14,16 +14,16 @@
  * Initializes a list.
  * If a compare function is provided, the list will be sorted.
  *
- * @param cmp Optional compare function.
+ * @param compare Optional compare function.
  *
  * @return 0 on success otherwise -1
  */
-int rinoolist(t_rinoolist *list, int (*cmp)(t_rinoolist_node *node1, t_rinoolist_node *node2))
+int rinoolist(t_rinoolist *list, int (*compare)(t_rinoolist_node *node1, t_rinoolist_node *node2))
 {
 	list->head = NULL;
 	list->tail = NULL;
 	list->size = 0;
-	list->cmp = cmp;
+	list->compare = compare;
 	return 0;
 }
 
@@ -69,8 +69,8 @@ void rinoolist_put(t_rinoolist *list, t_rinoolist_node *node)
 {
 	node->prev = NULL;
 	node->next = list->head;
-	if (list->cmp != NULL) {
-		while (node->next != NULL && list->cmp(node->next, node) < 0) {
+	if (list->compare != NULL) {
+		while (node->next != NULL && list->compare(node->next, node) < 0) {
 			node->prev = node->next;
 			node->next = node->next->next;
 		}
@@ -98,12 +98,12 @@ void rinoolist_put(t_rinoolist *list, t_rinoolist_node *node)
  */
 t_rinoolist_node *rinoolist_get(t_rinoolist *list, t_rinoolist_node *node)
 {
-	if (list->cmp == NULL) {
+	if (list->compare == NULL) {
 		return NULL;
 	}
 	node->next = list->head;
 	while (node->next != NULL) {
-		if (list->cmp(node->next, node) == 0) {
+		if (list->compare(node->next, node) == 0) {
 			return node->next;
 		}
 		node->next = node->next->next;

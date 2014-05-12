@@ -20,10 +20,10 @@ typedef struct s_rinoolist {
 	size_t size;
 	t_rinoolist_node *head;
 	t_rinoolist_node *tail;
-	int (*cmp)(t_rinoolist_node *node1, t_rinoolist_node *node2);
+	int (*compare)(t_rinoolist_node *node1, t_rinoolist_node *node2);
 } t_rinoolist;
 
-int rinoolist(t_rinoolist *list, int (*cmp)(t_rinoolist_node *node1, t_rinoolist_node *node2));
+int rinoolist(t_rinoolist *list, int (*compare)(t_rinoolist_node *node1, t_rinoolist_node *node2));
 void rinoolist_flush(t_rinoolist *list, void (*delete)(t_rinoolist_node *node1));
 size_t rinoolist_size(t_rinoolist *list);
 void rinoolist_put(t_rinoolist *list, t_rinoolist_node *node);

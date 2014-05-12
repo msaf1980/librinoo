@@ -69,6 +69,8 @@ void server_func(void *arg)
 void client_func(void *arg)
 {
 	int i;
+	ssize_t res;
+	ssize_t total;
 	char tmp[8];
 	struct sockaddr_in addr;
 	t_rinoosocket *socket;
@@ -83,14 +85,30 @@ void client_func(void *arg)
 	rinoo_log("client - connected");
 	rinoo_log("client - reading %d bytes", BUFFER_SIZE);
 	for (i = 0; i < BUFFER_SIZE / 8; i++) {
-		XTEST(rinoo_socket_read(socket, tmp, 8) == 8);
+		res = 0;
+		total = 0;
+		while (total < 8 && (res = rinoo_socket_read(socket, tmp + total, 8 - total)) > 0) {
+			total += res;
+		}
+		if (res < 0) {
+			rinoo_log("Error: %s", strerror(errno));
+		}
+		XTEST(res > 0);
 		XTEST(memcmp(tmp, "xxxxxxxx", 8) == 0);
 	}
 	rinoo_log("client - sending 'b'");
 	rinoo_log("client - reading %d bytes", BUFFER_SIZE);
 	XTEST(rinoo_socket_write(socket, "b", 1) == 1);
 	for (i = 0; i < BUFFER_SIZE / 8; i++) {
-		XTEST(rinoo_socket_read(socket, tmp, 8) == 8);
+		res = 0;
+		total = 0;
+		while (total < 8 && (res = rinoo_socket_read(socket, tmp + total, 8 - total)) > 0) {
+			total += res;
+		}
+		if (res < 0) {
+			rinoo_log("Error: %s", strerror(errno));
+		}
+		XTEST(res > 0);
 		XTEST(memcmp(tmp, "xxxxxxxx", 8) == 0);
 	}
 	rinoo_log("client - sending 'b'");
