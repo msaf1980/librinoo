@@ -18,7 +18,7 @@ void task(void *unused(arg))
 {
 	t_rinoosched *cur;
 
-	printf("%s start\n", __FUNCTION__);
+	rinoo_log("%s start %d", __FUNCTION__, rinoo_sched_self()->id);
 	/* sleep should return as soon as we get killed by the main scheduler */
 	sleep(1000);
 	cur = rinoo_sched_self();
@@ -26,7 +26,7 @@ void task(void *unused(arg))
 	XTEST(cur->id >= 0 && cur->id <= NBSPAWNS);
 	XTEST(checker[cur->id] == 0);
 	checker[cur->id] = 1;
-	printf("%s end\n", __FUNCTION__);
+	rinoo_log("%s end %d", __FUNCTION__, rinoo_sched_self()->id);
 }
 
 /**
@@ -43,7 +43,9 @@ void wait_and_stop(void *sched)
 	XTEST(cur == sched);
 	XTEST(cur->id == 0);
 	checker[cur->id] = 1;
+	rinoo_log("wait & stop");
 	rinoo_task_wait(sched, 1000);
+	rinoo_log("stopping");
 	rinoo_sched_stop(sched);
 }
 
@@ -66,7 +68,7 @@ int main()
 	for (i = 1; i <= NBSPAWNS; i++) {
 		cur = rinoo_spawn_get(sched, i);
 		XTEST(cur != NULL);
-		XTEST(rinoo_task_start(cur, task, sched) == 0);
+		XTEST(rinoo_task_start(cur, task, NULL) == 0);
 	}
 	XTEST(rinoo_task_start(sched, wait_and_stop, sched) == 0);
 	rinoo_sched_loop(sched);

@@ -26,6 +26,7 @@ typedef struct s_rinoosched_node {
 	t_rinootask *task;
 	t_rinoolist_node lnode;
 	t_rinoosched_mode mode;
+	t_rinoosched_mode waiting;
 	t_rinoosched_mode received;
 	struct s_rinoosched *sched;
 } t_rinoosched_node;

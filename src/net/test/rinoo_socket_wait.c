@@ -1,9 +1,9 @@
 /**
- * @file rinoo_socket_notask.c
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2013
+ * @file rinoo_socket_wait.c
+ * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2014
  * @date Sun Jan 3 15:34:47 2010
  *
- * @brief Test file for read/write functions without any task.
+ * @brief Test file for waitin/waitout functions.
  *
  *
  */
@@ -13,7 +13,7 @@ extern const t_rinoosocket_class socket_class_tcp;
 
 void *server_thread(void *unused(arg))
 {
-	char b;
+	char a;
 	t_rinoosched *sched;
 	t_rinoosocket *server;
 	t_rinoosocket *client;
@@ -31,17 +31,45 @@ void *server_thread(void *unused(arg))
 	client = rinoo_socket_accept(server, (struct sockaddr *) &addr, (socklen_t *)(int[]){(sizeof(struct sockaddr))});
 	XTEST(client != NULL);
 	rinoo_log("server - accepting client (%s:%d)", inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
-	rinoo_log("server - sending 'abcdef'");
-	XTEST(rinoo_socket_write(client, "abcdef", 6) == 6);
-	rinoo_log("server - receiving 'b'");
-	XTEST(rinoo_socket_read(client, &b, 1) == 1);
-	XTEST(b == 'b');
-	rinoo_log("server - receiving nothing");
-	XTEST(rinoo_socket_read(client, &b, 1) == -1);
+	rinoo_log("server - sending 'a'");
+	XTEST(rinoo_socket_write(client, "a", 1) == 1);
+	XTEST(rinoo_socket_read(client, &a, 1) == 1);
+	XTEST(a == 'b');
+	rinoo_log("server - received '%c'", a);
+	rinoo_log("server - waiting");
+	sleep(1);
+	rinoo_log("server - sending 'c'");
+	XTEST(rinoo_socket_write(client, "c", 1) == 1);
 	rinoo_socket_destroy(client);
 	rinoo_socket_destroy(server);
 	rinoo_sched_destroy(sched);
 	return NULL;
+}
+
+void task_client(void *sched)
+{
+	char a;
+	t_rinoosocket *socket;
+	struct sockaddr_in addr;
+
+	socket = rinoo_socket(sched, &socket_class_tcp);
+	XTEST(socket != NULL);
+	addr.sin_port = htons(4242);
+	addr.sin_family = AF_INET;
+	addr.sin_addr.s_addr = 0;
+	rinoo_log("client - connecting");
+	XTEST(rinoo_socket_connect(socket, (struct sockaddr *) &addr, sizeof(addr)) == 0);
+	rinoo_log("client - connected");
+	XTEST(rinoo_socket_read(socket, &a, 1) == 1);
+	rinoo_log("client - received: '%c'", a);
+	XTEST(a == 'a');
+	rinoo_log("client - sending 'b'");
+	XTEST(rinoo_socket_write(socket, "b", 1) == 1);
+	rinoo_log("client - receiving");
+	XTEST(rinoo_socket_read(socket, &a, 1) == 1);
+	rinoo_log("client - received: '%c'", a);
+	XTEST(a == 'c');
+	rinoo_socket_destroy(socket);
 }
 
 /**
@@ -51,33 +79,15 @@ void *server_thread(void *unused(arg))
  */
 int main()
 {
-	char a;
-	char cur;
 	pthread_t thread;
 	t_rinoosched *sched;
-	t_rinoosocket *socket;
-	struct sockaddr_in addr;
 
 	pthread_create(&thread, NULL, server_thread, NULL);
 	sleep(1);
 	sched = rinoo_sched();
 	XTEST(sched != NULL);
-	socket = rinoo_socket(sched, &socket_class_tcp);
-	XTEST(socket != NULL);
-	addr.sin_port = htons(4242);
-	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = 0;
-	rinoo_log("client - connecting");
-	XTEST(rinoo_socket_connect(socket, (struct sockaddr *) &addr, sizeof(addr)) == 0);
-	rinoo_log("client - connected");
-	for (cur = 'a'; cur <= 'f'; cur++) {
-		rinoo_log("client - receiving '%c'", cur);
-		XTEST(rinoo_socket_read(socket, &a, 1) == 1);
-		XTEST(a == cur);
-	}
-	rinoo_log("client - sending 'b'");
-	XTEST(rinoo_socket_write(socket, "b", 1) == 1);
-	rinoo_socket_destroy(socket);
+	rinoo_task_start(sched, task_client, sched);
+	rinoo_sched_loop(sched);
 	rinoo_sched_destroy(sched);
 	pthread_join(thread, NULL);
 	XPASS();

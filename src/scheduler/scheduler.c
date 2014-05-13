@@ -108,22 +108,40 @@ int rinoo_sched_waitfor(t_rinoosched_node *node, t_rinoosched_mode mode)
 		errno = error;
 		return -1;
 	}
-	if (node->mode == RINOO_MODE_NONE) {
-		if (unlikely(rinoo_epoll_insert(node, mode) != 0)) {
-			return -1;
-		}
-		rinoolist_put(&node->sched->nodes, &node->lnode);
-	} else {
-		if (unlikely(rinoo_epoll_addmode(node, mode) != 0)) {
-			return -1;
+	if ((node->received & mode) == mode) {
+		node->received -= mode;
+		return 0;
+	}
+	if ((node->waiting & mode) != mode) {
+		if (node->waiting == RINOO_MODE_NONE) {
+			if (unlikely(rinoo_epoll_insert(node, mode) != 0)) {
+				return -1;
+			}
+			rinoolist_put(&node->sched->nodes, &node->lnode);
+		} else {
+			if (unlikely(rinoo_epoll_addmode(node, node->waiting | mode) != 0)) {
+				return -1;
+			}
 		}
 	}
 	node->mode = mode;
+	node->waiting |= mode;
 	node->task = rinoo_task_driver_getcurrent(node->sched);
-	if (unlikely(node->task == &node->sched->driver.main)) {
-		return rinoo_sched_poll(node->sched);
-	}
 	node->sched->nbpending++;
+	if (unlikely(node->task == &node->sched->driver.main)) {
+		while ((node->received & mode) != mode) {
+			rinoo_sched_poll(node->sched);
+			if (node->error != 0) {
+				error = node->error;
+				rinoo_sched_remove(node);
+				errno = error;
+				node->sched->nbpending--;
+				return -1;
+			}
+		}
+		node->sched->nbpending--;
+		return 0;
+	}
 	if (rinoo_task_release(node->sched) != 0 && node->error == 0) {
 		node->error = errno;
 	}
@@ -136,13 +154,13 @@ int rinoo_sched_waitfor(t_rinoosched_node *node, t_rinoosched_mode mode)
 		errno = error;
 		return -1;
 	}
-	if (node->received != mode) {
+	if ((node->received & mode) != mode) {
 		rinoo_sched_remove(node);
 		/* Task has been resumed but no event received, this is a timeout */
 		errno = ETIMEDOUT;
 		return -1;
 	}
-	node->received = RINOO_MODE_NONE;
+	node->received -= mode;
 	return 0;
 }
 
@@ -179,8 +197,11 @@ void rinoo_sched_wakeup(t_rinoosched_node *node, t_rinoosched_mode mode, int err
 	if (node->error == 0) {
 		node->error = error;
 	}
-	node->received = mode;
-	if (node->task != NULL && node->task != &node->sched->driver.main) {
+	node->received |= mode;
+	if (node->task == NULL || node->task == &node->sched->driver.main) {
+		return;
+	}
+	if (node->mode == mode || node->error != 0) {
 		rinoo_task_resume(node->task);
 	}
 }
@@ -202,6 +223,18 @@ void rinoo_sched_stop(t_rinoosched *sched)
 }
 
 /**
+ * Check whether a scheduler has processed all tasks or stop has been requested.
+ *
+ * @param sched Pointer to the scheduler.
+ *
+ * @return true if scheduling is over, otherwise false.
+ */
+static bool rinoo_sched_end(t_rinoosched *sched)
+{
+	return (sched->stop == true || (sched->nbpending == 0 && rinoo_task_driver_nbpending(sched) == 0));
+}
+
+/**
  * Check for any task to be executed and poll hte file descriptor monitoring layer (epoll).
  *
  * @param sched Pointer to the scheduler.
@@ -214,7 +247,7 @@ int rinoo_sched_poll(t_rinoosched *sched)
 
 	gettimeofday(&sched->clock, NULL);
 	timeout = rinoo_task_driver_run(sched);
-	if (sched->stop == false && sched->nbpending > 0) {
+	if (!rinoo_sched_end(sched)) {
 		return rinoo_epoll_poll(sched, timeout);
 	}
 	return 0;
@@ -233,7 +266,7 @@ void rinoo_sched_loop(t_rinoosched *sched)
 	if (rinoo_spawn_start(sched) != 0) {
 		goto loop_stop;
 	}
-	while (sched->stop == false && (sched->nbpending > 0 || rinoo_task_driver_nbpending(sched) > 0)) {
+	while (!rinoo_sched_end(sched)) {
 		rinoo_sched_poll(sched);
 	}
 loop_stop:

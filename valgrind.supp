@@ -1,11 +1,11 @@
 {
-   <insert_a_suppression_name_here>
+   crypto-leak 
    Memcheck:Leak
    fun:malloc
    fun:CRYPTO_malloc
 }
 {
-   <insert_a_suppression_name_here>
+   crypto-leak2
    Memcheck:Leak
    fun:realloc
    fun:CRYPTO_realloc
