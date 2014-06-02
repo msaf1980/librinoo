@@ -437,14 +437,13 @@ int rinoo_socket_class_tcp_bind(t_rinoosocket *socket, const struct sockaddr *ad
 t_rinoosocket *rinoo_socket_class_tcp_accept(t_rinoosocket *socket, struct sockaddr *addr, socklen_t *addrlen)
 {
 	int fd;
-	int enabled;
 	t_rinoosocket *new;
 
 	if (rinoo_socket_waitio(socket) != 0) {
 		return NULL;
 	}
 	errno = 0;
-	while ((fd = accept(socket->node.fd, addr, addrlen)) < 0) {
+	while ((fd = accept4(socket->node.fd, addr, addrlen, SOCK_NONBLOCK)) < 0) {
 		if (errno != EAGAIN && errno != EWOULDBLOCK) {
 			return NULL;
 		}
@@ -462,11 +461,5 @@ t_rinoosocket *rinoo_socket_class_tcp_accept(t_rinoosocket *socket, struct socka
 	new->node.sched = socket->node.sched;
 	new->parent = socket;
 	new->class = socket->class;
-	enabled = 1;
-	if (unlikely(ioctl(new->node.fd, FIONBIO, &enabled) == -1)) {
-		close(fd);
-		free(new);
-		return NULL;
-	}
 	return new;
 }
