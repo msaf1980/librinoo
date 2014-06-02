@@ -11,7 +11,6 @@
 #ifndef RINOO_NET_UDP_H_
 #define RINOO_NET_UDP_H_
 
-t_rinoosocket *rinoo_udp(t_rinoosched *sched);
 t_rinoosocket *rinoo_udp_client(t_rinoosched *sched, t_ip *ip, uint16_t port);
 
 #endif /* !RINOO_NET_UDP_H_ */

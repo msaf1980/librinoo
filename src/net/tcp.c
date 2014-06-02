@@ -11,6 +11,7 @@
 #include "rinoo/rinoo.h"
 
 extern const t_rinoosocket_class socket_class_tcp;
+extern const t_rinoosocket_class socket_class_tcp6;
 
 /**
  * Creates a TCP client to be connected to a specific IP, on a specific port.
@@ -29,19 +30,19 @@ t_rinoosocket *rinoo_tcp_client(t_rinoosched *sched, t_ip *ip, uint16_t port, ui
 	socklen_t addr_len;
 	struct sockaddr *addr;
 
-	socket = rinoo_socket(sched, &socket_class_tcp);
+	if (ip == NULL) {
+		memset(&loopback, 0, sizeof(loopback));
+		loopback.v4.sin_family = AF_INET;
+		loopback.v4.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+		ip = &loopback;
+	}
+	socket = rinoo_socket(sched, (IS_IPV6(ip) ? &socket_class_tcp6 : &socket_class_tcp));
 	if (unlikely(socket == NULL)) {
 		return NULL;
 	}
 	if (timeout != 0 && rinoo_socket_timeout(socket, timeout) != 0) {
 		rinoo_socket_destroy(socket);
 		return NULL;
-	}
-	if (ip == NULL) {
-		memset(&loopback, 0, sizeof(loopback));
-		loopback.v4.sin_family = AF_INET;
-		loopback.v4.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-		ip = &loopback;
 	}
 	if (ip->v4.sin_family == AF_INET) {
 		ip->v4.sin_port = htons(port);
@@ -75,15 +76,15 @@ t_rinoosocket *rinoo_tcp_server(t_rinoosched *sched, t_ip *ip, uint16_t port)
 	socklen_t addr_len;
 	struct sockaddr *addr;
 
-	socket = rinoo_socket(sched, &socket_class_tcp);
-	if (unlikely(socket == NULL)) {
-		return NULL;
-	}
 	if (ip == NULL) {
 		memset(&any, 0, sizeof(any));
 		any.v4.sin_family = AF_INET;
 		any.v4.sin_addr.s_addr = INADDR_ANY;
 		ip = &any;
+	}
+	socket = rinoo_socket(sched, (IS_IPV6(ip) ? &socket_class_tcp6 : &socket_class_tcp));
+	if (unlikely(socket == NULL)) {
+		return NULL;
 	}
 	if (ip->v4.sin_family == AF_INET) {
 		ip->v4.sin_port = htons(port);

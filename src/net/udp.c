@@ -11,11 +11,7 @@
 #include "rinoo/rinoo.h"
 
 extern const t_rinoosocket_class socket_class_udp;
-
-t_rinoosocket *rinoo_udp(t_rinoosched *sched)
-{
-	return rinoo_socket(sched, &socket_class_udp);
-}
+extern const t_rinoosocket_class socket_class_udp6;
 
 t_rinoosocket *rinoo_udp_client(t_rinoosched *sched, t_ip *ip, uint16_t port)
 {
@@ -24,15 +20,15 @@ t_rinoosocket *rinoo_udp_client(t_rinoosched *sched, t_ip *ip, uint16_t port)
 	socklen_t addr_len;
 	struct sockaddr *addr;
 
-	socket = rinoo_udp(sched);
-	if (unlikely(socket == NULL)) {
-		return NULL;
-	}
 	if (ip == NULL) {
 		memset(&loopback, 0, sizeof(loopback));
 		loopback.v4.sin_family = AF_INET;
 		loopback.v4.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 		ip = &loopback;
+	}
+	socket = rinoo_socket(sched, (IS_IPV6(ip) ? &socket_class_udp6 : &socket_class_udp));
+	if (unlikely(socket == NULL)) {
+		return NULL;
 	}
 	if (ip->v4.sin_family == AF_INET) {
 		ip->v4.sin_port = htons(port);

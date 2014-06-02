@@ -29,6 +29,25 @@ const t_rinoosocket_class socket_class_ssl = {
 	.accept = rinoo_socket_class_ssl_accept
 };
 
+const t_rinoosocket_class socket_class_ssl6 = {
+	.domain = AF_INET6,
+	.type = SOCK_STREAM,
+	.create = rinoo_socket_class_ssl_create,
+	.destroy = rinoo_socket_class_ssl_destroy,
+	.open = rinoo_socket_class_tcp_open,
+	.dup = NULL,
+	.close = rinoo_socket_class_tcp_close,
+	.read = rinoo_socket_class_ssl_read,
+	.recvfrom = NULL,
+	.write = rinoo_socket_class_ssl_write,
+	.writev = NULL,
+	.sendto = NULL,
+	.sendfile = NULL,
+	.connect = rinoo_socket_class_ssl_connect,
+	.bind = rinoo_socket_class_tcp_bind,
+	.accept = rinoo_socket_class_ssl_accept
+};
+
 /**
  * Allocates a secure socket.
  *

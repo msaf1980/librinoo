@@ -11,6 +11,7 @@
 #include"rinoo/rinoo.h"
 
 extern const t_rinoosocket_class socket_class_ssl;
+extern const t_rinoosocket_class socket_class_ssl6;
 
 /**
  * Creates a simple SSL context.
@@ -140,7 +141,13 @@ t_rinoosocket *rinoo_ssl_client(t_rinoosched *sched, t_rinoossl_ctx *ctx, t_ip *
 	socklen_t addr_len;
 	struct sockaddr *addr;
 
-	socket = rinoo_socket(sched, &socket_class_ssl);
+	if (ip == NULL) {
+		memset(&loopback, 0, sizeof(loopback));
+		loopback.v4.sin_family = AF_INET;
+		loopback.v4.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+		ip = &loopback;
+	}
+	socket = rinoo_socket(sched, (IS_IPV6(ip) ? &socket_class_ssl6 : &socket_class_ssl));
 	if (unlikely(socket == NULL)) {
 		return NULL;
 	}
@@ -149,12 +156,6 @@ t_rinoosocket *rinoo_ssl_client(t_rinoosched *sched, t_rinoossl_ctx *ctx, t_ip *
 	if (timeout != 0 && rinoo_socket_timeout(socket, timeout) != 0) {
 		rinoo_socket_destroy(socket);
 		return NULL;
-	}
-	if (ip == NULL) {
-		memset(&loopback, 0, sizeof(loopback));
-		loopback.v4.sin_family = AF_INET;
-		loopback.v4.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-		ip = &loopback;
 	}
 	if (ip->v4.sin_family == AF_INET) {
 		ip->v4.sin_port = htons(port);
@@ -190,18 +191,18 @@ t_rinoosocket *rinoo_ssl_server(t_rinoosched *sched, t_rinoossl_ctx *ctx, t_ip *
 	socklen_t addr_len;
 	struct sockaddr *addr;
 
-	socket = rinoo_socket(sched, &socket_class_ssl);
-	if (unlikely(socket == NULL)) {
-		return NULL;
-	}
-	ssl = rinoo_ssl_get(socket);
-	ssl->ctx = ctx;
 	if (ip == NULL) {
 		memset(&any, 0, sizeof(any));
 		any.v4.sin_family = AF_INET;
 		any.v4.sin_addr.s_addr = INADDR_ANY;
 		ip = &any;
 	}
+	socket = rinoo_socket(sched, (IS_IPV6(ip) ? &socket_class_ssl6 : &socket_class_ssl));
+	if (unlikely(socket == NULL)) {
+		return NULL;
+	}
+	ssl = rinoo_ssl_get(socket);
+	ssl->ctx = ctx;
 	if (ip->v4.sin_family == AF_INET) {
 		ip->v4.sin_port = htons(port);
 		addr = (struct sockaddr *) &ip->v4;

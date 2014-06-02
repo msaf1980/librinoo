@@ -29,6 +29,25 @@ const t_rinoosocket_class socket_class_udp = {
 	.accept = NULL
 };
 
+const t_rinoosocket_class socket_class_udp6 = {
+	.domain = AF_INET6,
+	.type = SOCK_DGRAM,
+	.create = rinoo_socket_class_udp_create,
+	.destroy = rinoo_socket_class_udp_destroy,
+	.open = rinoo_socket_class_udp_open,
+	.dup = rinoo_socket_class_udp_dup,
+	.close = rinoo_socket_class_udp_close,
+	.read = rinoo_socket_class_udp_read,
+	.recvfrom = rinoo_socket_class_udp_recvfrom,
+	.write = rinoo_socket_class_udp_write,
+	.writev = rinoo_socket_class_udp_writev,
+	.sendto = rinoo_socket_class_udp_sendto,
+	.sendfile = NULL,
+	.connect = rinoo_socket_class_udp_connect,
+	.bind = rinoo_socket_class_udp_bind,
+	.accept = NULL
+};
+
 /**
  * Allocates a UDP socket.
  *

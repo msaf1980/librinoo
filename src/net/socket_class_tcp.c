@@ -29,6 +29,25 @@ const t_rinoosocket_class socket_class_tcp = {
 	.accept = rinoo_socket_class_tcp_accept
 };
 
+const t_rinoosocket_class socket_class_tcp6 = {
+	.domain = AF_INET6,
+	.type = SOCK_STREAM,
+	.create = rinoo_socket_class_tcp_create,
+	.destroy = rinoo_socket_class_tcp_destroy,
+	.open = rinoo_socket_class_tcp_open,
+	.dup = rinoo_socket_class_tcp_dup,
+	.close = rinoo_socket_class_tcp_close,
+	.read = rinoo_socket_class_tcp_read,
+	.recvfrom = rinoo_socket_class_tcp_recvfrom,
+	.write = rinoo_socket_class_tcp_write,
+	.writev = rinoo_socket_class_tcp_writev,
+	.sendto = rinoo_socket_class_tcp_sendto,
+	.sendfile = rinoo_socket_class_tcp_sendfile,
+	.connect = rinoo_socket_class_tcp_connect,
+	.bind = rinoo_socket_class_tcp_bind,
+	.accept = rinoo_socket_class_tcp_accept
+};
+
 /**
  * Allocates a TCP socket.
  *
