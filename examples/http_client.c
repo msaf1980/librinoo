@@ -26,7 +26,7 @@ void process_http_client(void *sched)
 	t_rinoosocket *socket;
 
 	for (i = 0; i < 10; i++) {
-		socket = rinoo_tcp_client(sched, 0, port, 0);
+		socket = rinoo_tcp_client(sched, IP_LOOPBACK, port, 0);
 		if (socket == NULL) {
 			rinoo_log("Error while creating socket %d: %s", port, strerror(errno));
 			return;

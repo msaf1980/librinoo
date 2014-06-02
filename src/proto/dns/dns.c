@@ -13,7 +13,7 @@
 void rinoo_dns_init(t_rinoosched *sched, t_rinoodns *dns, t_rinoodns_type type, const char *host)
 {
 	res_init();
-	dns->socket = rinoo_udp_client(sched, _res.nsaddr_list[0].sin_addr.s_addr, ntohs(_res.nsaddr_list[0].sin_port));
+	dns->socket = rinoo_udp_client(sched, (t_ip *) &(_res.nsaddr_list[0]), ntohs(_res.nsaddr_list[0].sin_port));
 	dns->host = host;
 	dns->answer = NULL;
 	dns->authority = NULL;
@@ -210,7 +210,8 @@ int rinoo_dns_ip_get(t_rinoosched *sched, const char *host, t_ip *ip)
 	if (i >= dns.header.ancount) {
 		goto dns_error;
 	}
-	*ip = dns.answer[i].rdata.a.address;
+	ip->v4.sin_family = AF_INET;
+	ip->v4.sin_addr.s_addr = dns.answer[i].rdata.a.address;
 	rinoo_dns_destroy(&dns);
 	return 0;
 dns_error:

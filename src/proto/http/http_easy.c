@@ -120,7 +120,7 @@ static void rinoohttp_easy_server_process(void *context)
  *
  * @return 0 on success, or -1 if an error occurs
  */
-int rinoohttp_easy_server(t_rinoosched *sched, t_ip ip, uint16_t port, t_rinoohttp_route *routes, int size)
+int rinoohttp_easy_server(t_rinoosched *sched, t_ip *ip, uint16_t port, t_rinoohttp_route *routes, int size)
 {
 	t_rinoosocket *server;
 	t_rinoohttp_easy_context *context;

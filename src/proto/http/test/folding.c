@@ -46,7 +46,7 @@ void http_client(void *sched)
 	t_rinoohttp http;
 	t_rinoosocket *client;
 
-	client = rinoo_tcp_client(sched, 0, 4242, 0);
+	client = rinoo_tcp_client(sched, IP_LOOPBACK, 4242, 0);
 	XTEST(client != NULL);
 	XTEST(rinoohttp_init(client, &http) == 0);
 	http_client_send(&http, HEADER1, 200);
@@ -94,7 +94,7 @@ void http_server(void *sched)
 	t_rinoosocket *server;
 	t_rinoosocket *client;
 
-	server = rinoo_tcp_server(sched, 0, 4242);
+	server = rinoo_tcp_server(sched, IP_ANY, 4242);
 	XTEST(server != NULL);
 	client = rinoo_tcp_accept(server, &ip, &port);
 	XTEST(client != NULL);

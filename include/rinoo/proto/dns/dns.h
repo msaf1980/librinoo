@@ -55,7 +55,7 @@ typedef struct s_rinoodns_query {
 /* Yes, there is some useless structs here, but it perfectly matches RFC. */
 
 typedef struct s_rinoodns_rdata_a {
-	t_ip address;
+	unsigned long address;
 } t_rinoodns_rdata_a;
 
 typedef struct s_rinoodns_rdata_ns {

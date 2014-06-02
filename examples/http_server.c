@@ -86,7 +86,7 @@ int main(int argc, char **argv)
 	if (master == NULL) {
 		return -1;
 	}
-	server = rinoo_tcp_server(master, 0, atoi(argv[1]));
+	server = rinoo_tcp_server(master, IP_ANY, atoi(argv[1]));
 	if (server == NULL) {
 		rinoo_log("Could not create server socket on port %s.", argv[1]);
 		rinoo_sched_destroy(master);

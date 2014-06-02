@@ -14,7 +14,7 @@ void task_server(void *sched)
 	t_rinoosocket *server;
 	t_rinoosocket *client;
 
-	server = rinoo_tcp_server(sched, 0, 4242);
+	server = rinoo_tcp_server(sched, IP_ANY, 4242);
 	while ((client = rinoo_tcp_accept(server, NULL, NULL)) != NULL) {
 		rinoo_task_start(sched, task_client, client);
 	}

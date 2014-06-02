@@ -35,7 +35,7 @@ void server_func(void *unused(arg))
 	t_rinoosocket *server;
 	t_rinoosocket *client;
 
-	server = rinoo_tcp_server(rinoo_sched_self(), 0, 4242);
+	server = rinoo_tcp_server(rinoo_sched_self(), IP_ANY, 4242);
 	XTEST(server != NULL);
 	client = rinoo_tcp_accept(server, NULL, NULL);
 	XTEST(client != NULL);
@@ -49,7 +49,7 @@ void client_func(void *unused(arg))
 	t_buffer buffer;
 	t_rinoosocket *client;
 
-	client = rinoo_tcp_client(rinoo_sched_self(), 0, 4242, 0);
+	client = rinoo_tcp_client(rinoo_sched_self(), IP_LOOPBACK, 4242, 0);
 	XTEST(client != NULL);
 	str = malloc(sizeof(*str) * TRANSFER_SIZE);
 	XTEST(str != NULL);

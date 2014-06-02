@@ -132,11 +132,13 @@ t_rinoossl *rinoo_ssl_get(t_rinoosocket *socket)
  *
  * @return Socket pointer on success or NULL if an error occurs
  */
-t_rinoosocket *rinoo_ssl_client(t_rinoosched *sched, t_rinoossl_ctx *ctx, t_ip ip, uint32_t port, uint32_t timeout)
+t_rinoosocket *rinoo_ssl_client(t_rinoosched *sched, t_rinoossl_ctx *ctx, t_ip *ip, uint32_t port, uint32_t timeout)
 {
+	t_ip loopback;
 	t_rinoossl *ssl;
 	t_rinoosocket *socket;
-	struct sockaddr_in addr;
+	socklen_t addr_len;
+	struct sockaddr *addr;
 
 	socket = rinoo_socket(sched, &socket_class_ssl);
 	if (unlikely(socket == NULL)) {
@@ -148,10 +150,22 @@ t_rinoosocket *rinoo_ssl_client(t_rinoosched *sched, t_rinoossl_ctx *ctx, t_ip i
 		rinoo_socket_destroy(socket);
 		return NULL;
 	}
-	addr.sin_port = htons(port);
-	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = ip;
-	if (rinoo_socket_connect(socket, (struct sockaddr *) &addr, sizeof(addr)) != 0) {
+	if (ip == NULL) {
+		memset(&loopback, 0, sizeof(loopback));
+		loopback.v4.sin_family = AF_INET;
+		loopback.v4.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+		ip = &loopback;
+	}
+	if (ip->v4.sin_family == AF_INET) {
+		ip->v4.sin_port = htons(port);
+		addr = (struct sockaddr *) &ip->v4;
+		addr_len = sizeof(ip->v4);
+	} else {
+		ip->v6.sin6_port = htons(port);
+		addr = (struct sockaddr *) &ip->v6;
+		addr_len = sizeof(ip->v6);
+	}
+	if (rinoo_socket_connect(socket, addr, addr_len) != 0) {
 		rinoo_socket_destroy(socket);
 		return NULL;
 	}
@@ -168,11 +182,13 @@ t_rinoosocket *rinoo_ssl_client(t_rinoosched *sched, t_rinoossl_ctx *ctx, t_ip i
  *
  * @return Socket pointer on success or NULL if an error occurs
  */
-t_rinoosocket *rinoo_ssl_server(t_rinoosched *sched, t_rinoossl_ctx *ctx, t_ip ip, uint32_t port)
+t_rinoosocket *rinoo_ssl_server(t_rinoosched *sched, t_rinoossl_ctx *ctx, t_ip *ip, uint32_t port)
 {
+	t_ip any;
 	t_rinoossl *ssl;
 	t_rinoosocket *socket;
-	struct sockaddr_in addr;
+	socklen_t addr_len;
+	struct sockaddr *addr;
 
 	socket = rinoo_socket(sched, &socket_class_ssl);
 	if (unlikely(socket == NULL)) {
@@ -180,10 +196,22 @@ t_rinoosocket *rinoo_ssl_server(t_rinoosched *sched, t_rinoossl_ctx *ctx, t_ip i
 	}
 	ssl = rinoo_ssl_get(socket);
 	ssl->ctx = ctx;
-	addr.sin_port = htons(port);
-	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = ip;
-	if (rinoo_socket_bind(socket, (struct sockaddr *) &addr, sizeof(addr), RINOO_TCP_BACKLOG) != 0) {
+	if (ip == NULL) {
+		memset(&any, 0, sizeof(any));
+		any.v4.sin_family = AF_INET;
+		any.v4.sin_addr.s_addr = INADDR_ANY;
+		ip = &any;
+	}
+	if (ip->v4.sin_family == AF_INET) {
+		ip->v4.sin_port = htons(port);
+		addr = (struct sockaddr *) &ip->v4;
+		addr_len = sizeof(ip->v4);
+	} else {
+		ip->v6.sin6_port = htons(port);
+		addr = (struct sockaddr *) &ip->v6;
+		addr_len = sizeof(ip->v6);
+	}
+	if (rinoo_socket_bind(socket, addr, addr_len, RINOO_TCP_BACKLOG) != 0) {
 		rinoo_socket_destroy(socket);
 		return NULL;
 	}
@@ -201,15 +229,21 @@ t_rinoosocket *rinoo_ssl_server(t_rinoosched *sched, t_rinoossl_ctx *ctx, t_ip i
  */
 t_rinoosocket *rinoo_ssl_accept(t_rinoosocket *socket, t_ip *fromip, uint32_t *fromport)
 {
+	t_ip addr;
+	socklen_t addr_len;
 	t_rinoosocket *new;
-	struct sockaddr_in addr;
 
-	new = rinoo_socket_accept(socket, (struct sockaddr *) &addr, (socklen_t *)(int[]){(sizeof(struct sockaddr))});
+	addr_len = sizeof(addr);
+	new = rinoo_socket_accept(socket, (struct sockaddr *) &addr, &addr_len);
 	if (fromip != NULL) {
-		*fromip = addr.sin_addr.s_addr;
+		*fromip = addr;
 	}
 	if (fromport != NULL) {
-		*fromport = ntohs(addr.sin_port);
+		if (addr.v4.sin_family == AF_INET) {
+			*fromport = ntohs(addr.v4.sin_port);
+		} else {
+			*fromport = ntohs(addr.v6.sin6_port);
+		}
 	}
 	return new;
 }

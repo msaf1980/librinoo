@@ -30,7 +30,7 @@ int main()
 	t_rinoosocket *server;
 
 	sched = rinoo_sched();
-	server = rinoo_tcp_server(sched, 0, 4242);
+	server = rinoo_tcp_server(sched, IP_ANY, 4242);
 	/* Spawning 10 schedulers, each running in a separate thread */
 	rinoo_spawn(sched, 10);
 	for (i = 1; i <= 10; i++) {

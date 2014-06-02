@@ -17,19 +17,33 @@ t_rinoosocket *rinoo_udp(t_rinoosched *sched)
 	return rinoo_socket(sched, &socket_class_udp);
 }
 
-t_rinoosocket *rinoo_udp_client(t_rinoosched *sched, t_ip ip, uint16_t port)
+t_rinoosocket *rinoo_udp_client(t_rinoosched *sched, t_ip *ip, uint16_t port)
 {
+	t_ip loopback;
 	t_rinoosocket *socket;
-	struct sockaddr_in addr;
+	socklen_t addr_len;
+	struct sockaddr *addr;
 
 	socket = rinoo_udp(sched);
 	if (unlikely(socket == NULL)) {
 		return NULL;
 	}
-	addr.sin_port = htons(port);
-	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = ip;
-	if (rinoo_socket_connect(socket, (struct sockaddr *) &addr, sizeof(addr)) != 0) {
+	if (ip == NULL) {
+		memset(&loopback, 0, sizeof(loopback));
+		loopback.v4.sin_family = AF_INET;
+		loopback.v4.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+		ip = &loopback;
+	}
+	if (ip->v4.sin_family == AF_INET) {
+		ip->v4.sin_port = htons(port);
+		addr = (struct sockaddr *) &ip->v4;
+		addr_len = sizeof(ip->v4);
+	} else {
+		ip->v6.sin6_port = htons(port);
+		addr = (struct sockaddr *) &ip->v6;
+		addr_len = sizeof(ip->v6);
+	}
+	if (rinoo_socket_connect(socket, addr, addr_len) != 0) {
 		rinoo_socket_destroy(socket);
 		return NULL;
 	}

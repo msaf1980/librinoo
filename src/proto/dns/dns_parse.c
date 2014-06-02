@@ -87,7 +87,7 @@ int rinoo_dns_rdata_get(t_buffer_iterator *iterator, size_t rdlength, t_rinoodns
 			if (buffer_iterator_getint(iterator, &ip) != 0) {
 				return -1;
 			}
-			rdata->a.address = *(t_ip *)(&ip);
+			rdata->a.address = ip;
 			break;
 		case DNS_TYPE_NS:
 			if (rinoo_dns_name_get(iterator, &rdata->ns.nsname.buffer) != 0) {

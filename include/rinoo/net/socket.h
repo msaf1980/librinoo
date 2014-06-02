@@ -20,7 +20,13 @@ typedef struct s_rinoosocket {
 	const t_rinoosocket_class *class;
 } t_rinoosocket;
 
-typedef in_addr_t t_ip;
+typedef union u_ip {
+	struct sockaddr_in v4;
+	struct sockaddr_in6 v6;
+} t_ip;
+
+#define IP_ANY		(NULL)
+#define IP_LOOPBACK	(NULL)
 
 int rinoo_socket_init(t_rinoosched *sched, t_rinoosocket *sock, const t_rinoosocket_class *class);
 t_rinoosocket *rinoo_socket(t_rinoosched *sched, const t_rinoosocket_class *class);

@@ -30,7 +30,7 @@ RiNOO is a simple way to create high scalability client/server applications.
     	t_rinoosocket *server;
     	t_rinoosocket *client;
 
-    	server = rinoo_tcp_server(sched, 0, 4242);
+    	server = rinoo_tcp_server(sched, IP_ANY, 4242);
     	while ((client = rinoo_tcp_accept(server, NULL, NULL)) != NULL) {
     		rinoo_task_start(sched, task_client, client);
     	}
@@ -82,7 +82,7 @@ RiNOO is a simple way to create high scalability client/server applications.
     	t_rinoosocket *server;
 
     	sched = rinoo_sched();
-    	server = rinoo_tcp_server(sched, 0, 4242);
+    	server = rinoo_tcp_server(sched, IP_ANY, 4242);
         /* Spawning 10 schedulers, each running in a separate thread */
         rinoo_spawn(sched, 10);
         for (i = 1; i <= 10; i++) {
@@ -104,7 +104,7 @@ RiNOO is a simple way to create high scalability client/server applications.
         t_rinoohttp http;
         t_rinoosocket *client;
 
-        client = rinoo_tcp_client(sched, 0, 80, 0);
+        client = rinoo_tcp_client(sched, IP_LOOPBACK, 80, 0);
         rinoohttp_init(client, &http);
         rinoohttp_request_send(&http, RINOO_HTTP_METHOD_GET, "/", NULL);
         rinoohttp_response_get(&http);
