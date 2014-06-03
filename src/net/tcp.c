@@ -96,7 +96,6 @@ t_rinoosocket *rinoo_tcp_server(t_rinoosched *sched, t_ip *ip, uint16_t port)
 		addr_len = sizeof(ip->v6);
 	}
 	if (rinoo_socket_bind(socket, addr, addr_len, RINOO_TCP_BACKLOG) != 0) {
-		printf("%s\n", strerror(errno));
 		rinoo_socket_destroy(socket);
 		return NULL;
 	}
