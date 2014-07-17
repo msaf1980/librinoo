@@ -35,6 +35,7 @@
 #include <sys/types.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
+#include <sys/inotify.h>
 #include <sys/sendfile.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
@@ -65,5 +66,8 @@
 
 /* PROTO */
 #include "rinoo/proto/module.h"
+
+/* FS */
+#include "rinoo/fs/module.h"
 
 #endif /* !RINOO_H_ */
