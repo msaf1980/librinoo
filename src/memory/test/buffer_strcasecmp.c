@@ -33,7 +33,7 @@ int main()
 
 	buffer1 = buffer_create(NULL);
 	XTEST(buffer1 != NULL);
-	for (i = 0; i < (sizeof(strings) / sizeof(*strings)) - 1; i++) {
+	for (i = 0; i < ARRAY_SIZE(strings) - 1; i++) {
 		buffer_add(buffer1, strings[i], strlen(strings[i]));
 		XTEST(buffer_strcasecmp(buffer1, strings[i + 1]) < 0);
 		buffer_erase(buffer1, buffer_size(buffer1));

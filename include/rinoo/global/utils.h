@@ -11,6 +11,8 @@
 #ifndef RINOO_UTILS_H_
 #define RINOO_UTILS_H_
 
+#define ARRAY_SIZE(array)	(sizeof(array) / sizeof(array[0]))
+
 #define RINOO_LOG_MAXLENGTH	2048
 
 void rinoo_log(const char *format, ...);

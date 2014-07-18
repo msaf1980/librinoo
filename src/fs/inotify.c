@@ -41,14 +41,14 @@ t_rinoo_inotify_watch *rinoo_inotify_add_watch(t_rinoo_inotify *inotify, const c
 	int wd;
 	t_rinoo_inotify_watch *watch;
 
-	if (inotify->nb_watches >= (sizeof(inotify->watches) / sizeof(*inotify->watches))) {
+	if (inotify->nb_watches >= ARRAY_SIZE(inotify->watches)) {
 		return NULL;
 	}
 	wd = inotify_add_watch(inotify->node.fd, path, type);
 	if (wd < 0) {
 		return NULL;
 	}
-	if (wd >= (sizeof(inotify->watches) / sizeof(*inotify->watches))) {
+	if ((unsigned int) wd >= ARRAY_SIZE(inotify->watches)) {
 		inotify_rm_watch(inotify->node.fd, wd);
 		return NULL;
 	}
