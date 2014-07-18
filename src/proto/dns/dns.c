@@ -154,40 +154,6 @@ int rinoo_dns_reply_get(t_rinoodns *dns, uint32_t timeout)
 	return 0;
 }
 
-static inline void rinoo_dns_printrecord(t_rinoodns_record *record)
-{
-	switch (record->type) {
-		case DNS_TYPE_A:
-			rinoo_log("Record A: %s = %s", record->name.value, inet_ntoa(*(struct in_addr *) &record->rdata.a.address));
-			break;
-		case DNS_TYPE_NS:
-			break;
-		case DNS_TYPE_CNAME:
-			break;
-		case DNS_TYPE_SOA:
-			rinoo_log("Record SOA: %s = %s %s %u %d %d %d %u",
-					record->name.value,
-					record->rdata.soa.mname.value,
-					record->rdata.soa.rname.value,
-					record->rdata.soa.serial,
-					record->rdata.soa.refresh,
-					record->rdata.soa.retry,
-					record->rdata.soa.expire,
-					record->rdata.soa.minimum);
-			break;
-		case DNS_TYPE_PTR:
-			break;
-		case DNS_TYPE_HINFO:
-			break;
-		case DNS_TYPE_MX:
-			rinoo_log("Record MX: %s = %d %s", record->name.value, record->rdata.mx.preference, record->rdata.mx.exchange.value);
-			break;
-		case DNS_TYPE_TXT:
-			rinoo_log("Record TXT: %s = %s", record->name.value, record->rdata.txt.txtdata.value);
-			break;
-	}
-}
-
 int rinoo_dns_ip_get(t_rinoosched *sched, const char *host, t_ip *ip)
 {
 	unsigned int i;
