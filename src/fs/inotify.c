@@ -24,6 +24,12 @@ t_rinoo_inotify *rinoo_inotify(t_rinoosched *sched)
 		close(fd);
 		return NULL;
 	}
+	notify->event.path = buffer_create(NULL);
+	if (notify->event.path == NULL) {
+		close(fd);
+		free(notify);
+		return NULL;
+	}
 	notify->node.fd = fd;
 	notify->node.sched = sched;
 	return notify;
@@ -31,14 +37,24 @@ t_rinoo_inotify *rinoo_inotify(t_rinoosched *sched)
 
 void rinoo_inotify_destroy(t_rinoo_inotify *notify)
 {
+	size_t i;
+
+	for (i = 0; i < ARRAY_SIZE(notify->watches); i++) {
+		if (notify->watches[i] != NULL) {
+			rinoo_inotify_rm_watch(notify, notify->watches[i]);
+		}
+	}
 	rinoo_sched_remove(&notify->node);
 	close(notify->node.fd);
+	buffer_destroy(notify->event.path);
 	free(notify);
 }
 
 t_rinoo_inotify_watch *rinoo_inotify_add_watch(t_rinoo_inotify *inotify, const char *path, t_rinoo_inotify_type type, bool recursive)
 {
 	int wd;
+	int nb;
+	t_fs_entry *entry;
 	t_rinoo_inotify_watch *watch;
 
 	if (inotify->nb_watches >= ARRAY_SIZE(inotify->watches)) {
@@ -63,6 +79,20 @@ t_rinoo_inotify_watch *rinoo_inotify_add_watch(t_rinoo_inotify *inotify, const c
 		inotify_rm_watch(inotify->node.fd, wd);
 		free(watch);
 		return NULL;
+	}
+	if (recursive) {
+		nb = 0;
+		entry = NULL;
+		while (rinoo_fs_browse(path, &entry) == 0 && entry != NULL) {
+			nb++;
+			if (nb > 100) {
+				nb = 0;
+				rinoo_task_pause(inotify->node.sched);
+			}
+			if (S_ISDIR(entry->stat.st_mode)) {
+				rinoo_inotify_add_watch(inotify, buffer_ptr(entry->path), type, false);
+			}
+		}
 	}
 	inotify->watches[wd] = watch;
 	inotify->nb_watches++;
@@ -93,16 +123,14 @@ static int rinoo_inotify_waitio(t_rinoo_inotify *inotify)
 
 t_rinoo_inotify_event *rinoo_inotify_event(t_rinoo_inotify *inotify)
 {
-	static __thread t_rinoo_inotify_event event;
 	ssize_t ret;
-	char buffer[1024];
 	struct inotify_event *ievent;
 
 	if (rinoo_inotify_waitio(inotify) != 0) {
 		return NULL;
 	}
 	errno = 0;
-	while ((ret = read(inotify->node.fd, buffer, sizeof(buffer))) < 0) {
+	while ((ret = read(inotify->node.fd, inotify->read_buffer, sizeof(inotify->read_buffer))) < 0) {
 		if (errno != EAGAIN && errno != EWOULDBLOCK) {
 			return NULL;
 		}
@@ -112,8 +140,15 @@ t_rinoo_inotify_event *rinoo_inotify_event(t_rinoo_inotify *inotify)
 		}
 		errno = 0;
 	}
-	ievent = (struct inotify_event *) buffer;
-	event.type = ievent->mask;
-	event.watch = inotify->watches[ievent->wd];
-	return &event;
+	ievent = (struct inotify_event *) inotify->read_buffer;
+	inotify->event.type = ievent->mask;
+	inotify->event.watch = inotify->watches[ievent->wd];
+	buffer_erase(inotify->event.path, 0);
+	buffer_addstr(inotify->event.path, inotify->event.watch->path);
+	if (ievent->name[0] != 0) {
+		buffer_addstr(inotify->event.path, "/");
+		buffer_addstr(inotify->event.path, ievent->name);
+	}
+	buffer_addnull(inotify->event.path);
+	return &inotify->event;
 }

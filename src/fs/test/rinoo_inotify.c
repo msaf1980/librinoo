@@ -10,6 +10,7 @@
 
 #include "rinoo/rinoo.h"
 
+#define TEST_DIRECTORY	"/tmp/.inotify.test/"
 #define NB_EVENT	20
 
 static int nb_create = 0;
@@ -25,7 +26,7 @@ void event_generator(void *sched)
 
 	rinoo_task_wait(sched, 200);
 	for (i = 0; i < NB_EVENT / 2; i++) {
-		snprintf(path, sizeof(path), "/tmp/.inotify.XXXXXX");
+		snprintf(path, sizeof(path), TEST_DIRECTORY ".inotify.XXXXXX");
 		fd = mkstemp(path);
 		close(fd);
 		rinoo_log("Event generator: file created.");
@@ -45,7 +46,7 @@ void check_file(void *sched)
 	t_rinoo_inotify_event *event;
 
 	inotify = rinoo_inotify(sched);
-	rinoo_inotify_add_watch(inotify, "/tmp", INOTIFY_CREATE | INOTIFY_DELETE, false);
+	rinoo_inotify_add_watch(inotify, "/tmp", INOTIFY_CREATE | INOTIFY_DELETE, true);
 	for (i = 0; i < NB_EVENT && (event = rinoo_inotify_event(inotify)) != NULL; i++) {
 		if (event->type & INOTIFY_CREATE) {
 			rinoo_log("File created.");
@@ -70,11 +71,13 @@ int main()
 {
 	t_rinoosched *sched;
 
+	mkdir(TEST_DIRECTORY, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 	sched = rinoo_sched();
 	XTEST(sched != NULL);
 	XTEST(rinoo_task_start(sched, check_file, sched) == 0);
 	XTEST(rinoo_task_start(sched, event_generator, sched) == 0);
 	rinoo_sched_loop(sched);
 	rinoo_sched_destroy(sched);
+	rmdir(TEST_DIRECTORY);
 	XPASS();
 }

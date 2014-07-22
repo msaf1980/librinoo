@@ -43,6 +43,7 @@ typedef struct s_rinoo_inotify_watch {
 } t_rinoo_inotify_watch;
 
 typedef struct s_rinoo_inotify_event {
+	t_buffer *path;
 	t_rinoo_inotify_type type;
 	t_rinoo_inotify_watch *watch;
 } t_rinoo_inotify_event;
@@ -52,6 +53,8 @@ typedef struct s_rinoo_inotify {
 	size_t io_calls;
 	size_t nb_watches;
 	t_rinoo_inotify_watch *watches[500];
+	char read_buffer[4096];
+	t_rinoo_inotify_event event;
 } t_rinoo_inotify;
 
 t_rinoo_inotify *rinoo_inotify(t_rinoosched *sched);

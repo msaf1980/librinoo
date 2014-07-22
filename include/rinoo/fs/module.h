@@ -11,6 +11,7 @@
 #ifndef RINOO_MODULE_FS_H_
 #define RINOO_MODULE_FS_H_
 
+#include "rinoo/fs/browse.h"
 #include "rinoo/fs/inotify.h"
 
 #endif /* !RINOO_MODULE_FS_H_ */

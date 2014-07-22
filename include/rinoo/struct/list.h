@@ -30,5 +30,6 @@ void rinoolist_put(t_rinoolist *list, t_rinoolist_node *node);
 t_rinoolist_node *rinoolist_get(t_rinoolist *list, t_rinoolist_node *node);
 int rinoolist_remove(t_rinoolist *list, t_rinoolist_node *node);
 t_rinoolist_node *rinoolist_pop(t_rinoolist *list);
+t_rinoolist_node *rinoolist_head(t_rinoolist *list);
 
 #endif /* !RINOO_STRUCT_LIST_H_ */

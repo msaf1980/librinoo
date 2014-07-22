@@ -158,3 +158,15 @@ t_rinoolist_node *rinoolist_pop(t_rinoolist *list)
 	}
 	return node;
 }
+
+/**
+ * Returns list's head
+ *
+ * @param list Pointer to the list
+ *
+ * @return First element in the list or NULL if empty
+ */
+t_rinoolist_node *rinoolist_head(t_rinoolist *list)
+{
+	return list->head;
+}
