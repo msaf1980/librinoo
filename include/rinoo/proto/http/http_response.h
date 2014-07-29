@@ -29,6 +29,7 @@ bool rinoohttp_response_get(struct s_rinoohttp *http);
 void rinoohttp_response_setmsg(struct s_rinoohttp *http, const char *msg);
 void rinoohttp_response_setdefaultmsg(struct s_rinoohttp *http);
 void rinoohttp_response_setdefaultheaders(struct s_rinoohttp *http);
+int rinoohttp_response_prepare(struct s_rinoohttp *http, size_t body_length);
 int rinoohttp_response_send(struct s_rinoohttp *http, t_buffer *body);
 
 #endif /* !RINOO_PROTO_HTTP_RESPONSE_H_ */

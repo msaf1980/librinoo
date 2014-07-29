@@ -19,6 +19,7 @@
 static void rinoohttp_easy_route_call(t_rinoohttp *http, t_rinoohttp_route *route)
 {
 	t_buffer body;
+	t_buffer *uri;
 
 	http->response.code = route->code;
 	switch (route->type) {
@@ -39,6 +40,19 @@ static void rinoohttp_easy_route_call(t_rinoohttp *http, t_rinoohttp_route *rout
 			strtobuffer(&body, RINOO_HTTP_ERROR_404);
 			rinoohttp_response_send(http, &body);
 		}
+		break;
+	case RINOO_HTTP_ROUTE_DIR:
+		uri = buffer_create(NULL);
+		buffer_addstr(uri, route->path);
+		buffer_addstr(uri, "/");
+		buffer_add(uri, buffer_ptr(&http->request.uri), buffer_size(&http->request.uri));
+		buffer_addnull(uri);
+		if (rinoohttp_send_file(http, buffer_ptr(uri)) != 0) {
+			http->response.code = 404;
+			strtobuffer(&body, RINOO_HTTP_ERROR_404);
+			rinoohttp_response_send(http, &body);
+		}
+		buffer_destroy(uri);
 		break;
 	case RINOO_HTTP_ROUTE_REDIRECT:
 		rinoohttp_header_set(&http->response.headers, "Location", route->location);
@@ -64,7 +78,8 @@ static void rinoohttp_easy_client_process(void *context)
 	while (rinoohttp_request_get(&http)) {
 		for (i = 0, found = false; i < econtext->nbroutes && found == false; i++) {
 			if (econtext->routes[i].uri == NULL ||
-			    buffer_strcmp(&http.request.uri, econtext->routes[i].uri) == 0) {
+			buffer_strcmp(&http.request.uri, econtext->routes[i].uri) == 0 ||
+			(econtext->routes[i].type == RINOO_HTTP_ROUTE_DIR && buffer_strncmp(&http.request.uri, econtext->routes[i].uri, strlen(econtext->routes[i].uri)) == 0)) {
 				rinoohttp_easy_route_call(&http, &econtext->routes[i]);
 				found = true;
 			}

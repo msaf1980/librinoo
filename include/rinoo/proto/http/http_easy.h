@@ -18,6 +18,7 @@ typedef enum e_rinoohttp_route_type {
 	RINOO_HTTP_ROUTE_STATIC = 0,
 	RINOO_HTTP_ROUTE_FUNC,
 	RINOO_HTTP_ROUTE_FILE,
+	RINOO_HTTP_ROUTE_DIR,
 	RINOO_HTTP_ROUTE_REDIRECT,
 } t_rinoohttp_route_type;
 
@@ -27,6 +28,7 @@ typedef struct s_rinoohttp_route {
 	t_rinoohttp_route_type type;
 	union {
 		const char *file;
+		const char *path;
 		const char *content;
 		const char *location;
 		int (*func)(t_rinoohttp *http, struct s_rinoohttp_route *route);

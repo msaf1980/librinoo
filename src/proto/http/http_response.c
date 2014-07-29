@@ -210,25 +210,25 @@ void rinoohttp_response_setdefaultheaders(t_rinoohttp *http)
 }
 
 /**
- * Sends a http response.
+ * Prepares HTTP response buffer. This function forges a buffer containing
+ * the raw HTTP response (response code, message and headers) with no response
+ * content. The result is available in the http response buffer (t_rinoohttp
+ * structure).
  *
- * @param http Pointer to a http structure
- * @param body Pointer to http response body, if any
+ * @param http HTTP structure
+ * @param body_length HTTP Content length
  *
- * @return 0 on success, otherwise -1
+ * @result 0 on success, otherwise -1
  */
-int rinoohttp_response_send(t_rinoohttp *http, t_buffer *body)
+int rinoohttp_response_prepare(t_rinoohttp *http, size_t body_length)
 {
-	ssize_t ret;
 	t_rinoorbtree_node *cur_node;
 	t_rinoohttp_header *cur_header;
 
 	XASSERT(http != NULL, -1);
 	XASSERT(buffer_size(http->response.buffer) == 0, -1);
 
-	if (body != NULL) {
-		http->response.content_length = buffer_size(body);
-	}
+	http->response.content_length = body_length;
 	rinoohttp_response_setdefaultheaders(http);
 	rinoohttp_response_setdefaultmsg(http);
 	switch (http->version) {
@@ -252,18 +252,32 @@ int rinoohttp_response_send(t_rinoohttp *http, t_buffer *body)
 			     buffer_ptr(&cur_header->value));
 	}
 	buffer_add(http->response.buffer, "\r\n", 2);
-	if (body != NULL && buffer_size(http->response.buffer) > buffer_size(body)) {
-		buffer_add(http->response.buffer, buffer_ptr(body), buffer_size(body));
-		ret = rinoo_socket_writeb(http->socket, http->response.buffer);
-		if (ret != (ssize_t) buffer_size(http->response.buffer)) {
+	return 0;
+}
+
+/**
+ * Sends a http response.
+ *
+ * @param http Pointer to a http structure
+ * @param body Pointer to http response body, if any
+ *
+ * @return 0 on success, otherwise -1
+ */
+int rinoohttp_response_send(t_rinoohttp *http, t_buffer *body)
+{
+	t_buffer *buffers[2];
+
+	if (rinoohttp_response_prepare(http, (body != NULL ? buffer_size(body) : 0)) != 0) {
+		return -1;
+	}
+	if (body == NULL) {
+		if (rinoo_socket_writeb(http->socket, http->response.buffer) != (ssize_t) buffer_size(http->response.buffer)) {
 			return -1;
 		}
 	} else {
-		ret = rinoo_socket_writeb(http->socket, http->response.buffer);
-		if (ret != (ssize_t) buffer_size(http->response.buffer)) {
-			return -1;
-		}
-		if (body != NULL && rinoo_socket_writeb(http->socket, body) != (ssize_t) buffer_size(body)) {
+		buffers[0] = http->response.buffer;
+		buffers[1] = body;
+		if (rinoo_socket_writev(http->socket, buffers, 2) != (ssize_t)(buffer_size(http->response.buffer) + buffer_size(body))) {
 			return -1;
 		}
 	}
