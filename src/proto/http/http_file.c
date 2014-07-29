@@ -134,6 +134,10 @@ int rinoohttp_send_file(t_rinoohttp *http, const char *path)
 	if (S_ISREG(stats.st_mode) == 0) {
 		return -1;
 	}
+	if (stats.st_size == 0) {
+		http->response.code = 200;
+		return rinoohttp_response_send(http, NULL);
+	}
 	fd = open(path, O_RDONLY);
 	if (fd < 0) {
 		return -1;
