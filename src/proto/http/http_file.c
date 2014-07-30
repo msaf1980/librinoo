@@ -8,7 +8,7 @@
  *
  */
 
-#include	"rinoo/rinoo.h"
+#include "rinoo/proto/http/module.h"
 
 int rinoohttp_send_dir(t_rinoohttp *http, const char *path)
 {

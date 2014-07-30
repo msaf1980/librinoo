@@ -8,7 +8,7 @@
  *
  */
 
-#include "rinoo/rinoo.h"
+#include "rinoo/proto/dns/module.h"
 
 void rinoo_dns_init(t_rinoosched *sched, t_rinoodns *dns, t_rinoodns_type type, const char *host)
 {

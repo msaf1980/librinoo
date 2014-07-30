@@ -8,7 +8,7 @@
  *
  */
 
-#include "rinoo/rinoo.h"
+#include "rinoo/fs/module.h"
 
 t_rinoo_inotify *rinoo_inotify(t_rinoosched *sched)
 {

@@ -8,7 +8,7 @@
  *
  */
 
-#include "rinoo/rinoo.h"
+#include "rinoo/net/module.h"
 
 extern const t_rinoosocket_class socket_class_udp;
 extern const t_rinoosocket_class socket_class_udp6;

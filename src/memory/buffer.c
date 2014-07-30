@@ -8,7 +8,7 @@
  *
  */
 
-#include "rinoo/rinoo.h"
+#include "rinoo/memory/module.h"
 
 static t_buffer_class default_class = {
 	.inisize = RINOO_BUFFER_HELPER_INISIZE,

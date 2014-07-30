@@ -32,7 +32,7 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "rinoo/rinoo.h"
+#include "rinoo/struct/module.h"
 
 static inline void rinoorbtree_rotate_left(t_rinoorbtree *tree, t_rinoorbtree_node *node)
 {

@@ -8,7 +8,7 @@
  *
  */
 
-#include "rinoo/rinoo.h"
+#include "rinoo/proto/http/module.h"
 
 int rinoohttp_init(t_rinoosocket *socket, t_rinoohttp *http)
 {

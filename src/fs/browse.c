@@ -8,7 +8,7 @@
  *
  */
 
-#include "rinoo/rinoo.h"
+#include "rinoo/fs/module.h"
 
 static int rinoo_fs_stack_push(t_fs_entry *entry, DIR *dirfd, const char *path)
 {

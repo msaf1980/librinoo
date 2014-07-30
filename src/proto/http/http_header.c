@@ -8,7 +8,7 @@
  *
  */
 
-#include	"rinoo/rinoo.h"
+#include "rinoo/proto/http/module.h"
 
 /**
  * Compare function used in the HTTP header hashtable to sort entries.

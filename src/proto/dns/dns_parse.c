@@ -8,7 +8,7 @@
  *
  */
 
-#include "rinoo/rinoo.h"
+#include "rinoo/proto/dns/module.h"
 
 int rinoo_dns_header_get(t_buffer_iterator *iterator, t_rinoodns_header *header)
 {

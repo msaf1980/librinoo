@@ -8,7 +8,7 @@
  *
  */
 
-#include "rinoo/rinoo.h"
+#include "rinoo/struct/module.h"
 
 /**
  * Initializes a list.

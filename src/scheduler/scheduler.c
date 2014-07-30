@@ -8,7 +8,7 @@
  *
  */
 
-#include "rinoo/rinoo.h"
+#include "rinoo/scheduler/module.h"
 
 /**
  * Create a new scheduler.

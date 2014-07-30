@@ -11,6 +11,18 @@
 #ifndef RINOO_MODULE_GLOBAL_H_
 #define RINOO_MODULE_GLOBAL_H_
 
+#include <time.h>
+#include <stdio.h>
+#include <ctype.h>
+#include <stddef.h>
+#include <stdarg.h>
+#include <stdlib.h>
+#include <stdint.h>
+#include <string.h>
+#include <sys/time.h>
+
+#include "rinoo/debug/module.h"
+
 #include "rinoo/global/macros.h"
 #include "rinoo/global/utils.h"
 #include "rinoo/global/murmurhash3.h"

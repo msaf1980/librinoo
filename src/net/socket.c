@@ -8,7 +8,7 @@
  *
  */
 
-#include "rinoo/rinoo.h"
+#include "rinoo/net/module.h"
 
 /**
  * Socket initialisation function.

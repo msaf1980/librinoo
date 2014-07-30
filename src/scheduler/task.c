@@ -8,7 +8,7 @@
  *
  */
 
-#include "rinoo/rinoo.h"
+#include "rinoo/scheduler/module.h"
 
 #ifdef RINOO_DEBUG
 # include <valgrind/valgrind.h>

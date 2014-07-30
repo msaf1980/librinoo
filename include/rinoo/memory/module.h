@@ -11,6 +11,15 @@
 #ifndef RINOO_MODULE_MEMORY_H_
 #define RINOO_MODULE_MEMORY_H_
 
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <arpa/inet.h>
+#include <stdarg.h>
+
+#include "rinoo/global/macros.h"
+
 #include "rinoo/memory/buffer_class.h"
 #include "rinoo/memory/buffer.h"
 #include "rinoo/memory/buffer_helper.h"

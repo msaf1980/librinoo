@@ -8,7 +8,7 @@
  *
  */
 
-#include "rinoo/rinoo.h"
+#include "rinoo/net/module.h"
 
 const t_rinoosocket_class socket_class_udp = {
 	.domain = AF_INET,

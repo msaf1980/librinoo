@@ -8,7 +8,7 @@
  *
  */
 
-#include "rinoo/rinoo.h"
+#include "rinoo/proto/http/module.h"
 
 %%{
   machine httpreq_reader;

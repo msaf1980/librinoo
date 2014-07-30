@@ -8,7 +8,7 @@
  *
  */
 
-#include "rinoo/rinoo.h"
+#include "rinoo/global/module.h"
 
 static inline uint32_t rotl32(uint32_t x, int8_t r)
 {

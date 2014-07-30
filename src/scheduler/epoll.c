@@ -8,11 +8,7 @@
  *
  */
 
-#include "rinoo/rinoo.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <execinfo.h>
+#include "rinoo/scheduler/module.h"
 
 /**
  * Epoll initialization. It calls epoll_create and
