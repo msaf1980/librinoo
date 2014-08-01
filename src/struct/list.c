@@ -14,7 +14,8 @@
  * Initializes a list.
  * If a compare function is provided, the list will be sorted.
  *
- * @param compare Optional compare function.
+ * @param list List to initialize
+ * @param compare Optional compare function
  *
  * @return 0 on success otherwise -1
  */
