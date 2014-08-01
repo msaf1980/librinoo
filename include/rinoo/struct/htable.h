@@ -26,6 +26,7 @@ typedef struct s_rinoohtable {
 } t_rinoohtable;
 
 int rinoohtable(t_rinoohtable *htable, size_t size, uint32_t (*hash)(t_rinoohtable_node *node), int (*compare)(t_rinoohtable_node *node1, t_rinoohtable_node *node2));
+void rinoohtable_destroy(t_rinoohtable *htable);
 void rinoohtable_flush(t_rinoohtable *htable, void (*delete)(t_rinoohtable_node *node1));
 size_t rinoohtable_size(t_rinoohtable *htable);
 void rinoohtable_put(t_rinoohtable *htable, t_rinoohtable_node *node);
