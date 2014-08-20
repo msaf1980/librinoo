@@ -41,7 +41,7 @@ int rinoo_dns_query(t_rinoodns *dns, t_rinoodns_type type, const char *host)
 	char len;
 	char *dot;
 	unsigned short tmp;
-	t_rinoodns_header header;
+	t_rinoodns_header header = { 0 };
 
 	header.id = htons((unsigned short) ((unsigned long long) dns % USHRT_MAX));
 	DNS_QUERY_SET_QR(header.flags, 0);
