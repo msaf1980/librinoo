@@ -256,14 +256,24 @@ t_rinoosocket *rinoo_socket_class_ssl_accept(t_rinoosocket *socket, struct socka
 	int fd;
 	int ret;
 	BIO *sbio;
-	int enabled;
 	t_rinoossl *new;
 	t_rinoossl *ssl = rinoo_ssl_get(socket);
 
 	errno = 0;
-	while ((fd = accept(ssl->socket.node.fd, addr, addrlen)) < 0) {
-		if (errno != EAGAIN && errno != EWOULDBLOCK) {
-			return NULL;
+	while ((fd = accept4(ssl->socket.node.fd, addr, addrlen, SOCK_NONBLOCK)) < 0) {
+		switch (errno) {
+			case EAGAIN:
+			case ENETDOWN:
+			case EPROTO:
+			case ENOPROTOOPT:
+			case EHOSTDOWN:
+			case ENONET:
+			case EHOSTUNREACH:
+			case EOPNOTSUPP:
+			case ENETUNREACH:
+				break;
+			default:
+				return NULL;
 		}
 		if (rinoo_socket_waitin(socket) != 0) {
 			return NULL;
@@ -279,12 +289,6 @@ t_rinoosocket *rinoo_socket_class_ssl_accept(t_rinoosocket *socket, struct socka
 	new->socket.node.fd = fd;
 	new->socket.node.sched = socket->node.sched;
 	new->socket.class = socket->class;
-	enabled = 1;
-	if (unlikely(ioctl(fd, FIONBIO, &enabled) == -1)) {
-		close(fd);
-		free(new);
-		return NULL;
-	}
 	new->socket.parent = socket;
 	new->ssl = SSL_new(new->ctx->ctx);
 	if (unlikely(new->ssl == NULL)) {

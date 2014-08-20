@@ -463,8 +463,19 @@ t_rinoosocket *rinoo_socket_class_tcp_accept(t_rinoosocket *socket, struct socka
 	}
 	errno = 0;
 	while ((fd = accept4(socket->node.fd, addr, addrlen, SOCK_NONBLOCK)) < 0) {
-		if (errno != EAGAIN && errno != EWOULDBLOCK) {
-			return NULL;
+		switch (errno) {
+			case EAGAIN:
+			case ENETDOWN:
+			case EPROTO:
+			case ENOPROTOOPT:
+			case EHOSTDOWN:
+			case ENONET:
+			case EHOSTUNREACH:
+			case EOPNOTSUPP:
+			case ENETUNREACH:
+				break;
+			default:
+				return NULL;
 		}
 		if (rinoo_socket_waitin(socket) != 0) {
 			return NULL;
