@@ -297,7 +297,7 @@ t_buffer *buffer_dup_class(t_buffer *buffer, t_buffer_class *class)
 		return NULL;
 	}
 	newbuffer->ptr = class->malloc(newbuffer, newbuffer->msize);
-	if (newbuffer == NULL) {
+	if (unlikely(newbuffer->ptr == NULL)) {
 		free(newbuffer);
 		return NULL;
 	}
