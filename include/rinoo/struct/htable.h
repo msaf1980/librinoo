@@ -11,26 +11,26 @@
 #ifndef RINOO_STRUCT_HTABLE_H_
 #define RINOO_STRUCT_HTABLE_H_
 
-typedef struct s_rinoohtable_node {
+typedef struct s_htable_node {
 	uint32_t hash;
-	struct s_rinoohtable_node *prev;
-	struct s_rinoohtable_node *next;
-} t_rinoohtable_node;
+	struct s_htable_node *prev;
+	struct s_htable_node *next;
+} t_htable_node;
 
-typedef struct s_rinoohtable {
+typedef struct s_htable {
 	size_t size;
 	size_t table_size;
-	t_rinoohtable_node **table;
-	uint32_t (*hash)(t_rinoohtable_node *node);
-	int (*compare)(t_rinoohtable_node *node1, t_rinoohtable_node *node2);
-} t_rinoohtable;
+	t_htable_node **table;
+	uint32_t (*hash)(t_htable_node *node);
+	int (*compare)(t_htable_node *node1, t_htable_node *node2);
+} t_htable;
 
-int rinoohtable(t_rinoohtable *htable, size_t size, uint32_t (*hash)(t_rinoohtable_node *node), int (*compare)(t_rinoohtable_node *node1, t_rinoohtable_node *node2));
-void rinoohtable_destroy(t_rinoohtable *htable);
-void rinoohtable_flush(t_rinoohtable *htable, void (*delete)(t_rinoohtable_node *node1));
-size_t rinoohtable_size(t_rinoohtable *htable);
-void rinoohtable_put(t_rinoohtable *htable, t_rinoohtable_node *node);
-t_rinoohtable_node *rinoohtable_get(t_rinoohtable *htable, t_rinoohtable_node *node);
-int rinoohtable_remove(t_rinoohtable *htable, t_rinoohtable_node *node);
+int htable(t_htable *htable, size_t size, uint32_t (*hash)(t_htable_node *node), int (*compare)(t_htable_node *node1, t_htable_node *node2));
+void htable_destroy(t_htable *htable);
+void htable_flush(t_htable *htable, void (*delete)(t_htable_node *node1));
+size_t htable_size(t_htable *htable);
+void htable_put(t_htable *htable, t_htable_node *node);
+t_htable_node *htable_get(t_htable *htable, t_htable_node *node);
+int htable_remove(t_htable *htable, t_htable_node *node);
 
 #endif /* !RINOO_STRUCT_HTABLE_H_ */

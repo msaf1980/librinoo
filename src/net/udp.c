@@ -10,13 +10,13 @@
 
 #include "rinoo/net/module.h"
 
-extern const t_rinoosocket_class socket_class_udp;
-extern const t_rinoosocket_class socket_class_udp6;
+extern const t_socket_class socket_class_udp;
+extern const t_socket_class socket_class_udp6;
 
-t_rinoosocket *rinoo_udp_client(t_rinoosched *sched, t_ip *ip, uint16_t port)
+t_socket *rinoo_udp_client(t_sched *sched, t_ip *ip, uint16_t port)
 {
 	t_ip loopback;
-	t_rinoosocket *socket;
+	t_socket *socket;
 	socklen_t addr_len;
 	struct sockaddr *addr;
 

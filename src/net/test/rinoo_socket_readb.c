@@ -32,8 +32,8 @@ void process_client(void *socket)
 
 void server_func(void *unused(arg))
 {
-	t_rinoosocket *server;
-	t_rinoosocket *client;
+	t_socket *server;
+	t_socket *client;
 
 	server = rinoo_tcp_server(rinoo_sched_self(), IP_ANY, 4242);
 	XTEST(server != NULL);
@@ -47,7 +47,7 @@ void server_func(void *unused(arg))
 void client_func(void *unused(arg))
 {
 	t_buffer buffer;
-	t_rinoosocket *client;
+	t_socket *client;
 
 	client = rinoo_tcp_client(rinoo_sched_self(), IP_LOOPBACK, 4242, 0);
 	XTEST(client != NULL);
@@ -67,7 +67,7 @@ void client_func(void *unused(arg))
  */
 int main()
 {
-	t_rinoosched *sched;
+	t_sched *sched;
 
 	sched = rinoo_sched();
 	XTEST(sched != NULL);

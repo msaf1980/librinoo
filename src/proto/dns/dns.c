@@ -10,7 +10,7 @@
 
 #include "rinoo/proto/dns/module.h"
 
-void rinoo_dns_init(t_rinoosched *sched, t_rinoodns *dns, t_rinoodns_type type, const char *host)
+void rinoo_dns_init(t_sched *sched, t_dns *dns, t_dns_type type, const char *host)
 {
 	res_init();
 	dns->socket = rinoo_udp_client(sched, (t_ip *) &(_res.nsaddr_list[0]), ntohs(_res.nsaddr_list[0].sin_port));
@@ -22,7 +22,7 @@ void rinoo_dns_init(t_rinoosched *sched, t_rinoodns *dns, t_rinoodns_type type, 
 	dns->type = type;
 }
 
-void rinoo_dns_destroy(t_rinoodns *dns)
+void rinoo_dns_destroy(t_dns *dns)
 {
 	if (dns->answer != NULL) {
 		free(dns->answer);
@@ -36,12 +36,12 @@ void rinoo_dns_destroy(t_rinoodns *dns)
 	rinoo_socket_destroy(dns->socket);
 }
 
-int rinoo_dns_query(t_rinoodns *dns, t_rinoodns_type type, const char *host)
+int rinoo_dns_query(t_dns *dns, t_dns_type type, const char *host)
 {
 	char len;
 	char *dot;
 	unsigned short tmp;
-	t_rinoodns_header header = { 0 };
+	t_dns_header header = { 0 };
 
 	header.id = htons((unsigned short) ((unsigned long long) dns % USHRT_MAX));
 	DNS_QUERY_SET_QR(header.flags, 0);
@@ -82,10 +82,10 @@ int rinoo_dns_query(t_rinoodns *dns, t_rinoodns_type type, const char *host)
 	return 0;
 }
 
-int rinoo_dns_reply_get(t_rinoodns *dns, uint32_t timeout)
+int rinoo_dns_reply_get(t_dns *dns, uint32_t timeout)
 {
 	unsigned int i;
-	t_rinoodns_query query;
+	t_dns_query query;
 	t_buffer_iterator iterator;
 
 	buffer_erase(&dns->buffer, 0);
@@ -154,10 +154,10 @@ int rinoo_dns_reply_get(t_rinoodns *dns, uint32_t timeout)
 	return 0;
 }
 
-int rinoo_dns_ip_get(t_rinoosched *sched, const char *host, t_ip *ip)
+int rinoo_dns_ip_get(t_sched *sched, const char *host, t_ip *ip)
 {
 	unsigned int i;
-	t_rinoodns dns;
+	t_dns dns;
 
 	rinoo_dns_init(sched, &dns, DNS_TYPE_A, host);
 	if (rinoo_dns_query(&dns, DNS_TYPE_A, host) != 0) {

@@ -11,25 +11,25 @@
 #ifndef RINOO_STRUCT_LIST_H_
 #define RINOO_STRUCT_LIST_H_
 
-typedef struct s_rinoolist_node {
-	struct s_rinoolist_node *prev;
-	struct s_rinoolist_node *next;
-} t_rinoolist_node;
+typedef struct s_list_node {
+	struct s_list_node *prev;
+	struct s_list_node *next;
+} t_list_node;
 
-typedef struct s_rinoolist {
+typedef struct s_list {
 	size_t size;
-	t_rinoolist_node *head;
-	t_rinoolist_node *tail;
-	int (*compare)(t_rinoolist_node *node1, t_rinoolist_node *node2);
-} t_rinoolist;
+	t_list_node *head;
+	t_list_node *tail;
+	int (*compare)(t_list_node *node1, t_list_node *node2);
+} t_list;
 
-int rinoolist(t_rinoolist *list, int (*compare)(t_rinoolist_node *node1, t_rinoolist_node *node2));
-void rinoolist_flush(t_rinoolist *list, void (*delete)(t_rinoolist_node *node1));
-size_t rinoolist_size(t_rinoolist *list);
-void rinoolist_put(t_rinoolist *list, t_rinoolist_node *node);
-t_rinoolist_node *rinoolist_get(t_rinoolist *list, t_rinoolist_node *node);
-int rinoolist_remove(t_rinoolist *list, t_rinoolist_node *node);
-t_rinoolist_node *rinoolist_pop(t_rinoolist *list);
-t_rinoolist_node *rinoolist_head(t_rinoolist *list);
+int list(t_list *list, int (*compare)(t_list_node *node1, t_list_node *node2));
+void list_flush(t_list *list, void (*delete)(t_list_node *node1));
+size_t list_size(t_list *list);
+void list_put(t_list *list, t_list_node *node);
+t_list_node *list_get(t_list *list, t_list_node *node);
+int list_remove(t_list *list, t_list_node *node);
+t_list_node *list_pop(t_list *list);
+t_list_node *list_head(t_list *list);
 
 #endif /* !RINOO_STRUCT_LIST_H_ */

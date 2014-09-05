@@ -14,7 +14,7 @@ int checker = 0;
 
 void task3(void *arg)
 {
-	t_rinoosched *sched = arg;
+	t_sched *sched = arg;
 	printf("%s start\n", __FUNCTION__);
 	XTEST(checker == 2);
 	checker = 3;
@@ -24,7 +24,7 @@ void task3(void *arg)
 
 void task2(void *arg)
 {
-	t_rinoosched *sched = arg;
+	t_sched *sched = arg;
 
 	printf("%s start\n", __FUNCTION__);
 	XTEST(checker == 1);
@@ -36,7 +36,7 @@ void task2(void *arg)
 
 void task1(void *arg)
 {
-	t_rinoosched *sched = arg;
+	t_sched *sched = arg;
 
 	printf("%s start\n", __FUNCTION__);
 	XTEST(checker == 0);
@@ -55,7 +55,7 @@ void task1(void *arg)
  */
 int main()
 {
-	t_rinoosched *sched;
+	t_sched *sched;
 
 	sched = rinoo_sched();
 	XTEST(sched != NULL);

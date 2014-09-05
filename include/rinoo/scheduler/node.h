@@ -12,23 +12,23 @@
 #define RINOO_SCHEDULER_NODE_H_
 
 /* Declared in scheduler.h */
-struct s_rinoosched;
+struct s_sched;
 
-typedef enum e_rinoosched_mode {
+typedef enum e_sched_mode {
 	RINOO_MODE_NONE = 0,
 	RINOO_MODE_IN = 1,
 	RINOO_MODE_OUT = 2,
-} t_rinoosched_mode;
+} t_sched_mode;
 
-typedef struct s_rinoosched_node {
+typedef struct s_sched_node {
 	int fd;
 	int error;
-	t_rinootask *task;
-	t_rinoolist_node lnode;
-	t_rinoosched_mode mode;
-	t_rinoosched_mode waiting;
-	t_rinoosched_mode received;
-	struct s_rinoosched *sched;
-} t_rinoosched_node;
+	t_task *task;
+	t_list_node lnode;
+	t_sched_mode mode;
+	t_sched_mode waiting;
+	t_sched_mode received;
+	struct s_sched *sched;
+} t_sched_node;
 
 #endif /* !RINOO_SCHEDULER_NODE_H_ */

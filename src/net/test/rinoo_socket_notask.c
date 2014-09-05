@@ -9,14 +9,14 @@
  */
 #include "rinoo/rinoo.h"
 
-extern const t_rinoosocket_class socket_class_tcp;
+extern const t_socket_class socket_class_tcp;
 
 void *server_thread(void *unused(arg))
 {
 	char b;
-	t_rinoosched *sched;
-	t_rinoosocket *server;
-	t_rinoosocket *client;
+	t_sched *sched;
+	t_socket *server;
+	t_socket *client;
 	struct sockaddr_in addr;
 
 	sched = rinoo_sched();
@@ -54,8 +54,8 @@ int main()
 	char a;
 	char cur;
 	pthread_t thread;
-	t_rinoosched *sched;
-	t_rinoosocket *socket;
+	t_sched *sched;
+	t_socket *socket;
 	struct sockaddr_in addr;
 
 	pthread_create(&thread, NULL, server_thread, NULL);

@@ -22,8 +22,8 @@ void process_http_client(void *sched)
 {
 	int i;
 	int j;
-	t_rinoohttp http;
-	t_rinoosocket *socket;
+	t_http http;
+	t_socket *socket;
 
 	for (i = 0; i < 10; i++) {
 		socket = rinoo_tcp_client(sched, IP_LOOPBACK, port, 0);
@@ -31,22 +31,22 @@ void process_http_client(void *sched)
 			rinoo_log("Error while creating socket %d: %s", port, strerror(errno));
 			return;
 		}
-		rinoohttp_init(socket, &http);
+		rinoo_http_init(socket, &http);
 		for (j = 0; j < 10; j++) {
-			if (rinoohttp_request_send(&http, RINOO_HTTP_METHOD_GET, "/", NULL) != 0) {
+			if (rinoo_http_request_send(&http, RINOO_HTTP_METHOD_GET, "/", NULL) != 0) {
 				goto client_error;
 			}
-			if (!rinoohttp_response_get(&http)) {
+			if (!rinoo_http_response_get(&http)) {
 				goto client_error;
 			}
-			rinoohttp_reset(&http);
+			rinoo_http_reset(&http);
 		}
-		rinoohttp_destroy(&http);
+		rinoo_http_destroy(&http);
 		rinoo_socket_destroy(socket);
 	}
 	return;
 client_error:
-	rinoohttp_destroy(&http);
+	rinoo_http_destroy(&http);
 	rinoo_socket_destroy(socket);
 }
 
@@ -62,8 +62,8 @@ int main(int argc, char **argv)
 {
 	int i;
 	int j;
-	t_rinoosched *cur;
-	t_rinoosched *sched;
+	t_sched *cur;
+	t_sched *sched;
 
 	if (argc != 2) {
 		printf("Usage: %s <port>\n", argv[0]);

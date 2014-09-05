@@ -63,7 +63,7 @@ void task3(void *sched)
  */
 int main()
 {
-	t_rinoosched *sched;
+	t_sched *sched;
 
 	sched = rinoo_sched();
 	XTEST(sched != NULL);

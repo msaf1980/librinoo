@@ -16,10 +16,10 @@
 #define HEADER4		"testing\r\n   folding"
 #define HEADER5		"testing\r\nfolding"
 
-void http_client_send(t_rinoohttp *http, const char *header_value, int expected_code)
+void http_client_send(t_http *http, const char *header_value, int expected_code)
 {
 	t_buffer *buffer;
-	t_rinoohttp_header *header;
+	t_http_header *header;
 
 	rinoo_log("Sending: %s", header_value);
 	buffer = buffer_create(NULL);
@@ -30,60 +30,60 @@ void http_client_send(t_rinoohttp *http, const char *header_value, int expected_
 		     "Content-Length: 0\r\n"
 		     "\r\n", header_value);
 	XTEST(rinoo_socket_writeb(http->socket, buffer) > 0);
-	XTEST(rinoohttp_response_get(http));
+	XTEST(rinoo_http_response_get(http));
 	XTEST(http->response.code == expected_code);
 	if (expected_code == 200) {
-		header = rinoohttp_header_get(&http->response.headers, "X-Test");
+		header = rinoo_http_header_get(&http->response.headers, "X-Test");
 		XTEST(header != NULL);
 		XTEST(buffer_strcmp(&header->value, header_value) == 0);
 	}
-	rinoohttp_reset(http);
+	rinoo_http_reset(http);
 	buffer_destroy(buffer);
 }
 
 void http_client(void *sched)
 {
-	t_rinoohttp http;
-	t_rinoosocket *client;
+	t_http http;
+	t_socket *client;
 
 	client = rinoo_tcp_client(sched, IP_LOOPBACK, 4242, 0);
 	XTEST(client != NULL);
-	XTEST(rinoohttp_init(client, &http) == 0);
+	XTEST(rinoo_http_init(client, &http) == 0);
 	http_client_send(&http, HEADER1, 200);
 	http_client_send(&http, HEADER2, 200);
 	http_client_send(&http, HEADER3, 200);
 	http_client_send(&http, HEADER4, 200);
 	http_client_send(&http, HEADER5, 400);
-	rinoohttp_destroy(&http);
+	rinoo_http_destroy(&http);
 	rinoo_socket_destroy(client);
 }
 
-void http_server_recv(t_rinoohttp *http, const char *header_value)
+void http_server_recv(t_http *http, const char *header_value)
 {
-	t_rinoohttp_header *header;
+	t_http_header *header;
 
 	rinoo_log("Receiving: %s", header_value);
-	XTEST(rinoohttp_request_get(http));
-	header = rinoohttp_header_get(&http->request.headers, "X-Test");
+	XTEST(rinoo_http_request_get(http));
+	header = rinoo_http_header_get(&http->request.headers, "X-Test");
 	XTEST(header != NULL);
 	XTEST(buffer_strcmp(&header->value, header_value) == 0);
 	http->response.code = 200;
-	rinoohttp_header_set(&http->response.headers, "X-Test", header_value);
-	XTEST(rinoohttp_response_send(http, NULL) == 0);
-	rinoohttp_reset(http);
+	rinoo_http_header_set(&http->response.headers, "X-Test", header_value);
+	XTEST(rinoo_http_response_send(http, NULL) == 0);
+	rinoo_http_reset(http);
 }
 
 void http_server_process(void *socket)
 {
-	t_rinoohttp http;
+	t_http http;
 
-	XTEST(rinoohttp_init(socket, &http) == 0);
+	XTEST(rinoo_http_init(socket, &http) == 0);
 	http_server_recv(&http, HEADER1);
 	http_server_recv(&http, HEADER2);
 	http_server_recv(&http, HEADER3);
 	http_server_recv(&http, HEADER4);
-	XTEST(rinoohttp_request_get(&http) == false);
-	rinoohttp_destroy(&http);
+	XTEST(rinoo_http_request_get(&http) == false);
+	rinoo_http_destroy(&http);
 	rinoo_socket_destroy(socket);
 }
 
@@ -91,8 +91,8 @@ void http_server(void *sched)
 {
 	t_ip ip;
 	uint16_t port;
-	t_rinoosocket *server;
-	t_rinoosocket *client;
+	t_socket *server;
+	t_socket *client;
 
 	server = rinoo_tcp_server(sched, IP_ANY, 4242);
 	XTEST(server != NULL);
@@ -111,7 +111,7 @@ void http_server(void *sched)
  */
 int main()
 {
-	t_rinoosched *sched;
+	t_sched *sched;
 
 	sched = rinoo_sched();
 	XTEST(sched != NULL);

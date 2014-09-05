@@ -10,7 +10,7 @@
 
 #include "rinoo/net/module.h"
 
-const t_rinoosocket_class socket_class_udp = {
+const t_socket_class socket_class_udp = {
 	.domain = AF_INET,
 	.type = SOCK_DGRAM,
 	.create = rinoo_socket_class_udp_create,
@@ -29,7 +29,7 @@ const t_rinoosocket_class socket_class_udp = {
 	.accept = NULL
 };
 
-const t_rinoosocket_class socket_class_udp6 = {
+const t_socket_class socket_class_udp6 = {
 	.domain = AF_INET6,
 	.type = SOCK_DGRAM,
 	.create = rinoo_socket_class_udp_create,
@@ -55,9 +55,9 @@ const t_rinoosocket_class socket_class_udp6 = {
  *
  * @return Pointer to the new socket or NULL if an error occurs
  */
-t_rinoosocket *rinoo_socket_class_udp_create(t_rinoosched *sched)
+t_socket *rinoo_socket_class_udp_create(t_sched *sched)
 {
-	t_rinoosocket *socket;
+	t_socket *socket;
 
 	socket = calloc(1, sizeof(*socket));
 	if (unlikely(socket == NULL)) {
@@ -72,7 +72,7 @@ t_rinoosocket *rinoo_socket_class_udp_create(t_rinoosched *sched)
  *
  * @param socket Socket pointer
  */
-void rinoo_socket_class_udp_destroy(t_rinoosocket *socket)
+void rinoo_socket_class_udp_destroy(t_socket *socket)
 {
 	free(socket);
 }
@@ -84,7 +84,7 @@ void rinoo_socket_class_udp_destroy(t_rinoosocket *socket)
  *
  * @return 0 on success or -1 if an error occurs
  */
-int rinoo_socket_class_udp_open(t_rinoosocket *sock)
+int rinoo_socket_class_udp_open(t_socket *sock)
 {
 	int fd;
 	int enabled;
@@ -112,9 +112,9 @@ int rinoo_socket_class_udp_open(t_rinoosocket *sock)
  *
  * @return Pointer to the new socket or NULL if an error occurs
  */
-t_rinoosocket *rinoo_socket_class_udp_dup(t_rinoosched *destination, t_rinoosocket *socket)
+t_socket *rinoo_socket_class_udp_dup(t_sched *destination, t_socket *socket)
 {
-	t_rinoosocket *new;
+	t_socket *new;
 
 	new = calloc(1, sizeof(*new));
 	if (unlikely(new == NULL)) {
@@ -137,7 +137,7 @@ t_rinoosocket *rinoo_socket_class_udp_dup(t_rinoosched *destination, t_rinoosock
  *
  * @return 0 on success or -1 if an error occurs
  */
-int rinoo_socket_class_udp_close(t_rinoosocket *socket)
+int rinoo_socket_class_udp_close(t_socket *socket)
 {
 	XASSERT(socket != NULL, -1);
 
@@ -154,7 +154,7 @@ int rinoo_socket_class_udp_close(t_rinoosocket *socket)
  *
  * @return The number of bytes read on success or -1 if an error occurs
  */
-ssize_t rinoo_socket_class_udp_read(t_rinoosocket *socket, void *buf, size_t count)
+ssize_t rinoo_socket_class_udp_read(t_socket *socket, void *buf, size_t count)
 {
 	ssize_t ret;
 
@@ -189,7 +189,7 @@ ssize_t rinoo_socket_class_udp_read(t_rinoosocket *socket, void *buf, size_t cou
  *
  * @return The number of bytes read on success or -1 if an error occurs
  */
-ssize_t rinoo_socket_class_udp_recvfrom(t_rinoosocket *socket, void *buf, size_t count, struct sockaddr *addrfrom, socklen_t *addrlen)
+ssize_t rinoo_socket_class_udp_recvfrom(t_socket *socket, void *buf, size_t count, struct sockaddr *addrfrom, socklen_t *addrlen)
 {
 	ssize_t ret;
 
@@ -222,7 +222,7 @@ ssize_t rinoo_socket_class_udp_recvfrom(t_rinoosocket *socket, void *buf, size_t
  *
  * @return The number of bytes written on success or -1 if an error occurs
  */
-ssize_t	rinoo_socket_class_udp_write(t_rinoosocket *socket, const void *buf, size_t count)
+ssize_t	rinoo_socket_class_udp_write(t_socket *socket, const void *buf, size_t count)
 {
 	size_t sent;
 	ssize_t ret;
@@ -261,7 +261,7 @@ ssize_t	rinoo_socket_class_udp_write(t_rinoosocket *socket, const void *buf, siz
  *
  * @return The number of bytes written on success or -1 if an error occurs
  */
-ssize_t	rinoo_socket_class_udp_writev(t_rinoosocket *socket, t_buffer **buffers, int count)
+ssize_t	rinoo_socket_class_udp_writev(t_socket *socket, t_buffer **buffers, int count)
 {
 	int i;
 	ssize_t ret;
@@ -327,7 +327,7 @@ ssize_t	rinoo_socket_class_udp_writev(t_rinoosocket *socket, t_buffer **buffers,
  *
  * @return The number of bytes written on success or -1 if an error occurs
  */
-ssize_t rinoo_socket_class_udp_sendto(t_rinoosocket *socket, void *buf, size_t count, const struct sockaddr *addrto, socklen_t addrlen)
+ssize_t rinoo_socket_class_udp_sendto(t_socket *socket, void *buf, size_t count, const struct sockaddr *addrto, socklen_t addrlen)
 {
 	size_t sent;
 	ssize_t ret;
@@ -365,7 +365,7 @@ ssize_t rinoo_socket_class_udp_sendto(t_rinoosocket *socket, void *buf, size_t c
  *
  * @return 0 on success or -1 if an error occurs (timeout is considered as an error)
  */
-int rinoo_socket_class_udp_connect(t_rinoosocket *socket, const struct sockaddr *addr, socklen_t addrlen)
+int rinoo_socket_class_udp_connect(t_socket *socket, const struct sockaddr *addr, socklen_t addrlen)
 {
 	int val;
 	int enabled;
@@ -413,7 +413,7 @@ int rinoo_socket_class_udp_connect(t_rinoosocket *socket, const struct sockaddr 
  *
  * @return 0 on success or -1 if an error occurs
  */
-int rinoo_socket_class_udp_bind(t_rinoosocket *socket, const struct sockaddr *addr, socklen_t addrlen, int unused(backlog))
+int rinoo_socket_class_udp_bind(t_socket *socket, const struct sockaddr *addr, socklen_t addrlen, int unused(backlog))
 {
 	int enabled;
 

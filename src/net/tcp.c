@@ -10,8 +10,8 @@
 
 #include "rinoo/net/module.h"
 
-extern const t_rinoosocket_class socket_class_tcp;
-extern const t_rinoosocket_class socket_class_tcp6;
+extern const t_socket_class socket_class_tcp;
+extern const t_socket_class socket_class_tcp6;
 
 /**
  * Creates a TCP client to be connected to a specific IP, on a specific port.
@@ -23,10 +23,10 @@ extern const t_rinoosocket_class socket_class_tcp6;
  *
  * @return Socket pointer on success or NULL if an error occurs
  */
-t_rinoosocket *rinoo_tcp_client(t_rinoosched *sched, t_ip *ip, uint16_t port, uint32_t timeout)
+t_socket *rinoo_tcp_client(t_sched *sched, t_ip *ip, uint16_t port, uint32_t timeout)
 {
 	t_ip loopback;
-	t_rinoosocket *socket;
+	t_socket *socket;
 	socklen_t addr_len;
 	struct sockaddr *addr;
 
@@ -69,10 +69,10 @@ t_rinoosocket *rinoo_tcp_client(t_rinoosched *sched, t_ip *ip, uint16_t port, ui
  *
  * @return Socket pointer to the server on success or NULL if an error occurs
  */
-t_rinoosocket *rinoo_tcp_server(t_rinoosched *sched, t_ip *ip, uint16_t port)
+t_socket *rinoo_tcp_server(t_sched *sched, t_ip *ip, uint16_t port)
 {
 	t_ip any;
-	t_rinoosocket *socket;
+	t_socket *socket;
 	socklen_t addr_len;
 	struct sockaddr *addr;
 
@@ -111,11 +111,11 @@ t_rinoosocket *rinoo_tcp_server(t_rinoosched *sched, t_ip *ip, uint16_t port)
  *
  * @return A pointer to the new socket on success or NULL if an error occurs
  */
-t_rinoosocket *rinoo_tcp_accept(t_rinoosocket *socket, t_ip *fromip, uint16_t *fromport)
+t_socket *rinoo_tcp_accept(t_socket *socket, t_ip *fromip, uint16_t *fromport)
 {
 	t_ip addr;
 	socklen_t addr_len;
-	t_rinoosocket *new;
+	t_socket *new;
 
 	addr_len = sizeof(addr);
 	new = rinoo_socket_accept(socket, (struct sockaddr *) &addr, &addr_len);

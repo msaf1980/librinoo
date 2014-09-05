@@ -20,7 +20,7 @@
  *
  * @return 0 on success, otherwise -1
  */
-int rinoo_socket_init(t_rinoosched *sched, t_rinoosocket *sock, const t_rinoosocket_class *class)
+int rinoo_socket_init(t_sched *sched, t_socket *sock, const t_socket_class *class)
 {
 	XASSERT(sched != NULL, -1);
 	XASSERT(sock != NULL, -1);
@@ -40,9 +40,9 @@ int rinoo_socket_init(t_rinoosched *sched, t_rinoosocket *sock, const t_rinoosoc
  *
  * @return A pointer to the new socket or NULL if an error occurs
  */
-t_rinoosocket *rinoo_socket(t_rinoosched *sched, const t_rinoosocket_class *class)
+t_socket *rinoo_socket(t_sched *sched, const t_socket_class *class)
 {
-	t_rinoosocket *new;
+	t_socket *new;
 
 	XASSERT(sched != NULL, NULL);
 	XASSERT(class != NULL, NULL);
@@ -67,9 +67,9 @@ t_rinoosocket *rinoo_socket(t_rinoosched *sched, const t_rinoosocket_class *clas
  *
  * @return A pointer to the new socket or NULL if an error occurs
  */
-t_rinoosocket *rinoo_socket_dup(t_rinoosched *destination, t_rinoosocket *socket)
+t_socket *rinoo_socket_dup(t_sched *destination, t_socket *socket)
 {
-	t_rinoosocket *new;
+	t_socket *new;
 
 	XASSERT(destination != NULL, NULL);
 	XASSERT(socket != NULL, NULL);
@@ -87,7 +87,7 @@ t_rinoosocket *rinoo_socket_dup(t_rinoosched *destination, t_rinoosocket *socket
  *
  * @param socket Pointer to the socket to close
  */
-void rinoo_socket_close(t_rinoosocket *socket)
+void rinoo_socket_close(t_socket *socket)
 {
 	XASSERTN(socket != NULL);
 
@@ -101,7 +101,7 @@ void rinoo_socket_close(t_rinoosocket *socket)
  *
  * @param socket Pointer to the socket to destroy
  */
-void rinoo_socket_destroy(t_rinoosocket *socket)
+void rinoo_socket_destroy(t_socket *socket)
 {
 	XASSERTN(socket != NULL);
 
@@ -116,7 +116,7 @@ void rinoo_socket_destroy(t_rinoosocket *socket)
  *
  * @return 0 on success or -1 if an error occurs (timeout is considered as error)
  */
-int rinoo_socket_waitin(t_rinoosocket *socket)
+int rinoo_socket_waitin(t_socket *socket)
 {
 	socket->io_calls = 0;
 	return rinoo_sched_waitfor(&socket->node, RINOO_MODE_IN);
@@ -129,7 +129,7 @@ int rinoo_socket_waitin(t_rinoosocket *socket)
  *
  * @return 0 on success or -1 if an error occurs (timeout is considered as error)
  */
-int rinoo_socket_waitout(t_rinoosocket *socket)
+int rinoo_socket_waitout(t_socket *socket)
 {
 	socket->io_calls = 0;
 	return rinoo_sched_waitfor(&socket->node, RINOO_MODE_OUT);
@@ -143,7 +143,7 @@ int rinoo_socket_waitout(t_rinoosocket *socket)
  *
  * @return 0 on success or -1 if an error occurs
  */
-int rinoo_socket_waitio(t_rinoosocket *socket)
+int rinoo_socket_waitio(t_socket *socket)
 {
 	socket->io_calls++;
 	if (socket->io_calls > MAX_IO_CALLS) {
@@ -163,7 +163,7 @@ int rinoo_socket_waitio(t_rinoosocket *socket)
  *
  * @return 0 on success or -1 if an error occurs
  */
-int rinoo_socket_timeout(t_rinoosocket *socket, uint32_t ms)
+int rinoo_socket_timeout(t_socket *socket, uint32_t ms)
 {
 	struct timeval res;
 	struct timeval toadd;
@@ -188,7 +188,7 @@ int rinoo_socket_timeout(t_rinoosocket *socket, uint32_t ms)
  *
  * @return 0 on success or -1 if an error occurs (timeout is considered as an error)
  */
-int rinoo_socket_connect(t_rinoosocket *socket, const struct sockaddr *addr, socklen_t addrlen)
+int rinoo_socket_connect(t_socket *socket, const struct sockaddr *addr, socklen_t addrlen)
 {
 	XASSERT(socket != NULL, -1);
 	XASSERT(socket->class->connect != NULL, -1);
@@ -206,7 +206,7 @@ int rinoo_socket_connect(t_rinoosocket *socket, const struct sockaddr *addr, soc
  *
  * @return 0 on success or -1 if an error occurs
  */
-int rinoo_socket_bind(t_rinoosocket *socket, const struct sockaddr *addr, socklen_t addrlen, int backlog)
+int rinoo_socket_bind(t_socket *socket, const struct sockaddr *addr, socklen_t addrlen, int backlog)
 {
 	XASSERT(socket != NULL, -1);
 	XASSERT(socket->class->bind != NULL, -1);
@@ -223,7 +223,7 @@ int rinoo_socket_bind(t_rinoosocket *socket, const struct sockaddr *addr, sockle
  *
  * @return A pointer to the new client socket or NULL if an error occurs
  */
-t_rinoosocket *rinoo_socket_accept(t_rinoosocket *socket, struct sockaddr *addr, socklen_t *addrlen)
+t_socket *rinoo_socket_accept(t_socket *socket, struct sockaddr *addr, socklen_t *addrlen)
 {
 	XASSERT(socket != NULL, NULL);
 	XASSERT(socket->class->accept != NULL, NULL);
@@ -240,7 +240,7 @@ t_rinoosocket *rinoo_socket_accept(t_rinoosocket *socket, struct sockaddr *addr,
  *
  * @return The number of bytes read on success or -1 if an error occurs
  */
-ssize_t rinoo_socket_read(t_rinoosocket *socket, void *buf, size_t count)
+ssize_t rinoo_socket_read(t_socket *socket, void *buf, size_t count)
 {
 	return socket->class->read(socket, buf, count);
 }
@@ -256,7 +256,7 @@ ssize_t rinoo_socket_read(t_rinoosocket *socket, void *buf, size_t count)
  *
  * @return The number of bytes read on success or -1 if an error occurs
  */
-ssize_t rinoo_socket_recvfrom(t_rinoosocket *socket, void *buf, size_t count, struct sockaddr *addrfrom, socklen_t *addrlen)
+ssize_t rinoo_socket_recvfrom(t_socket *socket, void *buf, size_t count, struct sockaddr *addrfrom, socklen_t *addrlen)
 {
 	XASSERT(socket->class->recvfrom != NULL, -1);
 
@@ -272,7 +272,7 @@ ssize_t rinoo_socket_recvfrom(t_rinoosocket *socket, void *buf, size_t count, st
  *
  * @return The number of bytes written on success or -1 if an error occurs
  */
-ssize_t	rinoo_socket_write(t_rinoosocket *socket, const void *buf, size_t count)
+ssize_t	rinoo_socket_write(t_socket *socket, const void *buf, size_t count)
 {
 	return socket->class->write(socket, buf, count);
 }
@@ -286,7 +286,7 @@ ssize_t	rinoo_socket_write(t_rinoosocket *socket, const void *buf, size_t count)
  *
  * @return The number of bytes written on success or -1 if an error occurs
  */
-ssize_t	rinoo_socket_writev(t_rinoosocket *socket, t_buffer **buffers, int count)
+ssize_t	rinoo_socket_writev(t_socket *socket, t_buffer **buffers, int count)
 {
 	int i;
 	ssize_t ret;
@@ -318,7 +318,7 @@ ssize_t	rinoo_socket_writev(t_rinoosocket *socket, t_buffer **buffers, int count
  *
  * @return The number of bytes written on success or -1 if an error occurs
  */
-ssize_t rinoo_socket_sendto(t_rinoosocket *socket, void *buf, size_t count, const struct sockaddr *addrto, socklen_t addrlen)
+ssize_t rinoo_socket_sendto(t_socket *socket, void *buf, size_t count, const struct sockaddr *addrto, socklen_t addrlen)
 {
 	XASSERT(socket->class->sendto != NULL, -1);
 
@@ -335,7 +335,7 @@ ssize_t rinoo_socket_sendto(t_rinoosocket *socket, void *buf, size_t count, cons
  *
  * @return The number of bytes read on success or -1 if an error occurs
  */
-ssize_t rinoo_socket_readb(t_rinoosocket *socket, t_buffer *buffer)
+ssize_t rinoo_socket_readb(t_socket *socket, t_buffer *buffer)
 {
 	ssize_t res;
 
@@ -370,7 +370,7 @@ ssize_t rinoo_socket_readb(t_rinoosocket *socket, t_buffer *buffer)
  *
  * @return The size of the last line found, or -1 if an error occurs.
  */
-ssize_t rinoo_socket_readline(t_rinoosocket *socket, t_buffer *buffer, const char *delim, size_t maxsize)
+ssize_t rinoo_socket_readline(t_socket *socket, t_buffer *buffer, const char *delim, size_t maxsize)
 {
 	void *ptr;
 	size_t dlen;
@@ -410,7 +410,7 @@ ssize_t rinoo_socket_readline(t_rinoosocket *socket, t_buffer *buffer, const cha
  *
  * @return Buffer size if the string has been found, otherwise -1
  */
-ssize_t rinoo_socket_expect(t_rinoosocket *socket, t_buffer *buffer, const char *expected)
+ssize_t rinoo_socket_expect(t_socket *socket, t_buffer *buffer, const char *expected)
 {
 	size_t len;
 
@@ -435,7 +435,7 @@ ssize_t rinoo_socket_expect(t_rinoosocket *socket, t_buffer *buffer, const char 
  *
  * @return The number of bytes written on success or -1 if an error occurs
  */
-ssize_t rinoo_socket_writeb(t_rinoosocket *socket, t_buffer *buffer)
+ssize_t rinoo_socket_writeb(t_socket *socket, t_buffer *buffer)
 {
 	size_t len;
 	size_t total;
@@ -465,7 +465,7 @@ ssize_t rinoo_socket_writeb(t_rinoosocket *socket, t_buffer *buffer)
  *
  * @return Number of bytes sent or -1 if an error occurs
  */
-ssize_t rinoo_socket_sendfile(t_rinoosocket *socket, int in_fd, off_t offset, size_t count)
+ssize_t rinoo_socket_sendfile(t_socket *socket, int in_fd, off_t offset, size_t count)
 {
 	if (unlikely(socket->class->sendfile == NULL)) {
 		void *ptr;

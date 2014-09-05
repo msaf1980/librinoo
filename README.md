@@ -29,8 +29,8 @@ RiNOO is a simple way to create high scalability client/server applications.
 
     void task_server(void *sched)
     {
-    	t_rinoosocket *server;
-    	t_rinoosocket *client;
+    	t_socket *server;
+    	t_socket *client;
 
     	server = rinoo_tcp_server(sched, IP_ANY, 4242);
     	while ((client = rinoo_tcp_accept(server, NULL, NULL)) != NULL) {
@@ -41,7 +41,7 @@ RiNOO is a simple way to create high scalability client/server applications.
 
     int main()
     {
-    	t_rinoosched *sched;
+    	t_sched *sched;
 
     	sched = rinoo_sched();
     	rinoo_task_start(sched, task_server, sched);
@@ -65,8 +65,8 @@ RiNOO is a simple way to create high scalability client/server applications.
 
     void task_server(void *server)
     {
-        t_rinoosched *sched;
-    	t_rinoosocket *client;
+        t_sched *sched;
+    	t_socket *client;
 
         sched = rinoo_sched_self();
     	while ((client = rinoo_tcp_accept(server, NULL, NULL)) != NULL) {
@@ -79,9 +79,9 @@ RiNOO is a simple way to create high scalability client/server applications.
     int main()
     {
         int i;
-    	t_rinoosched *spawn;
-    	t_rinoosched *sched;
-    	t_rinoosocket *server;
+    	t_sched *spawn;
+    	t_sched *sched;
+    	t_socket *server;
 
     	sched = rinoo_sched();
     	server = rinoo_tcp_server(sched, IP_ANY, 4242);
@@ -103,21 +103,21 @@ RiNOO is a simple way to create high scalability client/server applications.
 
     void http_client(void *sched)
     {
-        t_rinoohttp http;
-        t_rinoosocket *client;
+        t_http http;
+        t_socket *client;
 
         client = rinoo_tcp_client(sched, IP_LOOPBACK, 80, 0);
-        rinoohttp_init(client, &http);
-        rinoohttp_request_send(&http, RINOO_HTTP_METHOD_GET, "/", NULL);
-        rinoohttp_response_get(&http);
+        rinoo_http_init(client, &http);
+        rinoo_http_request_send(&http, RINOO_HTTP_METHOD_GET, "/", NULL);
+        rinoo_http_response_get(&http);
         rinoo_log("client - %.*s", buffer_size(http.response.buffer), buffer_ptr(http.response.buffer));
-        rinoohttp_destroy(&http);
+        rinoo_http_destroy(&http);
         rinoo_socket_destroy(client);
     }
 
     int main()
     {
-        t_rinoosched *sched;
+        t_sched *sched;
 
         sched = rinoo_sched();
         rinoo_task_start(sched, http_client, sched);
@@ -130,7 +130,7 @@ RiNOO is a simple way to create high scalability client/server applications.
 
     #include "rinoo/rinoo.h"
 
-    t_rinoohttp_route routes[] = {
+    t_http_route routes[] = {
         { "/", 200, RINOO_HTTP_ROUTE_STATIC, .content = "<html><body><center>Welcome to RiNOO HTTP server!<br/><br/><a href=\"/motd\">motd</a></center><body></html>" },
         { "/motd", 200, RINOO_HTTP_ROUTE_FILE, .file = "/etc/motd" },
         { NULL, 302, RINOO_HTTP_ROUTE_REDIRECT, .location = "/" }
@@ -138,10 +138,10 @@ RiNOO is a simple way to create high scalability client/server applications.
 
     int main()
     {
-        t_rinoosched *sched;
+        t_sched *sched;
 
         sched = rinoo_sched();
-        rinoohttp_easy_server(sched, 0, 4242, routes, sizeof(routes) / sizeof(*routes));
+        rinoo_http_easy_server(sched, 0, 4242, routes, sizeof(routes) / sizeof(*routes));
         rinoo_sched_loop(sched);
         rinoo_sched_destroy(sched);
         return 0;

@@ -11,25 +11,25 @@
 #ifndef RINOO_NET_SOCKET_CLASS_H_
 #define RINOO_NET_SOCKET_CLASS_H_
 
-struct s_rinoosocket;
+struct s_socket;
 
-typedef struct s_rinoosocket_class {
+typedef struct s_socket_class {
 	int domain;
 	int type;
-	struct s_rinoosocket *(*create)(t_rinoosched *sched);
-	void (*destroy)(struct s_rinoosocket *socket);
-	int (*open)(struct s_rinoosocket *socket);
-	struct s_rinoosocket *(*dup)(t_rinoosched *destination, struct s_rinoosocket *socket);
-	int (*close)(struct s_rinoosocket *socket);
-	ssize_t (*read)(struct s_rinoosocket *socket, void *buf, size_t count);
-	ssize_t (*recvfrom)(struct s_rinoosocket *socket, void *buf, size_t count, struct sockaddr *addrfrom, socklen_t *addrlen);
-	ssize_t (*write)(struct s_rinoosocket *socket, const void *buf, size_t count);
-	ssize_t (*writev)(struct s_rinoosocket *socket, t_buffer **buffers, int count);
-	ssize_t (*sendto)(struct s_rinoosocket *socket, void *buf, size_t count, const struct sockaddr *addrto, socklen_t addrlen);
-	ssize_t (*sendfile)(struct s_rinoosocket *socket, int in_fd, off_t offset, size_t count);
-	int (*connect)(struct s_rinoosocket *socket, const struct sockaddr *addr, socklen_t addrlen);
-	int (*bind)(struct s_rinoosocket *socket, const struct sockaddr *addr, socklen_t addrlen, int backlog);
-	struct s_rinoosocket *(*accept)(struct s_rinoosocket *socket, struct sockaddr *addr, socklen_t *addrlen);
-} t_rinoosocket_class;
+	struct s_socket *(*create)(t_sched *sched);
+	void (*destroy)(struct s_socket *socket);
+	int (*open)(struct s_socket *socket);
+	struct s_socket *(*dup)(t_sched *destination, struct s_socket *socket);
+	int (*close)(struct s_socket *socket);
+	ssize_t (*read)(struct s_socket *socket, void *buf, size_t count);
+	ssize_t (*recvfrom)(struct s_socket *socket, void *buf, size_t count, struct sockaddr *addrfrom, socklen_t *addrlen);
+	ssize_t (*write)(struct s_socket *socket, const void *buf, size_t count);
+	ssize_t (*writev)(struct s_socket *socket, t_buffer **buffers, int count);
+	ssize_t (*sendto)(struct s_socket *socket, void *buf, size_t count, const struct sockaddr *addrto, socklen_t addrlen);
+	ssize_t (*sendfile)(struct s_socket *socket, int in_fd, off_t offset, size_t count);
+	int (*connect)(struct s_socket *socket, const struct sockaddr *addr, socklen_t addrlen);
+	int (*bind)(struct s_socket *socket, const struct sockaddr *addr, socklen_t addrlen, int backlog);
+	struct s_socket *(*accept)(struct s_socket *socket, struct sockaddr *addr, socklen_t *addrlen);
+} t_socket_class;
 
 #endif /* !RINOO_NET_SOCKET_CLASS_H_ */

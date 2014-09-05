@@ -11,7 +11,7 @@
 
 #define BUFFER_SIZE 2097152
 
-extern const t_rinoosocket_class socket_class_tcp;
+extern const t_socket_class socket_class_tcp;
 
 static char *big_buffer;
 
@@ -21,7 +21,7 @@ void process_client(void *arg)
 	char b;
 	t_buffer *buffers[4];
 	t_buffer buffer[4];
-	t_rinoosocket *socket = arg;
+	t_socket *socket = arg;
 
 	buffer_static(&buffer[0], big_buffer, BUFFER_SIZE);
 	buffers[0] = &buffer[0];
@@ -47,10 +47,10 @@ void process_client(void *arg)
 
 void server_func(void *arg)
 {
-	t_rinoosocket *server;
-	t_rinoosocket *client;
+	t_socket *server;
+	t_socket *client;
 	struct sockaddr_in addr;
-	t_rinoosched *sched = arg;
+	t_sched *sched = arg;
 
 	server = rinoo_socket(sched, &socket_class_tcp);
 	XTEST(server != NULL);
@@ -73,8 +73,8 @@ void client_func(void *arg)
 	ssize_t total;
 	char tmp[8];
 	struct sockaddr_in addr;
-	t_rinoosocket *socket;
-	t_rinoosched *sched = arg;
+	t_socket *socket;
+	t_sched *sched = arg;
 
 	socket = rinoo_socket(sched, &socket_class_tcp);
 	XTEST(socket != NULL);
@@ -123,7 +123,7 @@ void client_func(void *arg)
  */
 int main()
 {
-	t_rinoosched *sched;
+	t_sched *sched;
 
 	big_buffer = malloc(sizeof(*big_buffer) * BUFFER_SIZE);
 	XTEST(big_buffer != NULL);

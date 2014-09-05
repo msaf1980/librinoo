@@ -24,16 +24,16 @@ static int rinoo_fs_stack_push(t_fs_entry *entry, DIR *dirfd, const char *path)
 		return -1;
 	}
 	directory->fd = dirfd;
-	rinoolist_put(&entry->stack, &directory->stack_node);
+	list_put(&entry->stack, &directory->stack_node);
 	return 0;
 }
 
 static int rinoo_fs_stack_pop(t_fs_entry *entry)
 {
-	t_rinoolist_node *node;
+	t_list_node *node;
 	t_fs_directory *directory;
 
-	node = rinoolist_pop(&entry->stack);
+	node = list_pop(&entry->stack);
 	if (node == NULL) {
 		return -1;
 	}
@@ -45,10 +45,10 @@ static int rinoo_fs_stack_pop(t_fs_entry *entry)
 
 static t_fs_directory *rinoo_fs_stack_head(t_fs_entry *entry)
 {
-	t_rinoolist_node *node;
+	t_list_node *node;
 	t_fs_directory *directory;
 
-	node = rinoolist_head(&entry->stack);
+	node = list_head(&entry->stack);
 	if (node == NULL) {
 		return NULL;
 	}
@@ -56,7 +56,7 @@ static t_fs_directory *rinoo_fs_stack_head(t_fs_entry *entry)
 	return directory;
 }
 
-static void rinoo_fs_stack_destroy_node(t_rinoolist_node *node)
+static void rinoo_fs_stack_destroy_node(t_list_node *node)
 {
 	t_fs_directory *directory;
 
@@ -77,7 +77,7 @@ static void rinoo_fs_entry_destroy(t_fs_entry *entry)
 	if (entry->path != NULL) {
 		buffer_destroy(entry->path);
 	}
-	rinoolist_flush(&entry->stack, rinoo_fs_stack_destroy_node);
+	list_flush(&entry->stack, rinoo_fs_stack_destroy_node);
 	free(entry);
 }
 
@@ -90,7 +90,7 @@ static t_fs_entry *rinoo_fs_entry(const char *path)
 	if (entry == NULL) {
 		return NULL;
 	}
-	rinoolist(&entry->stack, NULL);
+	list(&entry->stack, NULL);
 	size = pathconf(path, _PC_NAME_MAX);
 	if (size < 0) {
 		size = 256;

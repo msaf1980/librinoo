@@ -10,12 +10,12 @@
 
 #include	"rinoo/rinoo.h"
 
-t_rinoosched *sched;
+t_sched *sched;
 
 void process_client(void *arg)
 {
 	char b;
-	t_rinoosocket *socket = arg;
+	t_socket *socket = arg;
 
 	rinoo_log("server - client accepted");
 	rinoo_log("server - sending 'abcdef'");
@@ -32,9 +32,9 @@ void server_func(void *arg)
 {
 	t_ip fromip;
 	uint32_t fromport;
-	t_rinoosocket *client;
-	t_rinoosocket *server;
-	t_rinoossl_ctx *ctx = arg;
+	t_socket *client;
+	t_socket *server;
+	t_ssl_ctx *ctx = arg;
 
 	server = rinoo_ssl_server(sched, ctx, 0, 4242);
 	rinoo_log("server listening...");
@@ -49,8 +49,8 @@ void client_func(void *arg)
 {
 	char a;
 	char cur;
-	t_rinoosocket *client;
-	t_rinoossl_ctx *ctx = arg;
+	t_socket *client;
+	t_ssl_ctx *ctx = arg;
 
 	rinoo_log("client - connecting...");
 	client = rinoo_ssl_client(sched, ctx, 0, 4242, 0);
@@ -74,7 +74,7 @@ void client_func(void *arg)
  */
 int main()
 {
-	t_rinoossl_ctx *ssl;
+	t_ssl_ctx *ssl;
 
 	sched = rinoo_sched();
 	XTEST(sched != NULL);

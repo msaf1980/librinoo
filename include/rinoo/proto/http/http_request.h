@@ -12,9 +12,9 @@
 #define RINOO_PROTO_HTTP_REQUEST_H_
 
 /* Defined in http.h */
-struct s_rinoohttp;
+struct s_http;
 
-typedef enum e_rinoohttp_method {
+typedef enum e_http_method {
 	RINOO_HTTP_METHOD_UNKNOWN = 0,
 	RINOO_HTTP_METHOD_OPTIONS = 1,
 	RINOO_HTTP_METHOD_GET = 2,
@@ -24,21 +24,21 @@ typedef enum e_rinoohttp_method {
 	RINOO_HTTP_METHOD_DELETE = 32,
 	RINOO_HTTP_METHOD_TRACE = 64,
 	RINOO_HTTP_METHOD_CONNECT = 128,
-} t_rinoohttp_method;
+} t_http_method;
 
-typedef struct s_rinoohttp_request {
+typedef struct s_http_request {
 	t_buffer uri;
 	t_buffer content;
 	t_buffer *buffer;
 	size_t headers_length;
 	size_t content_length;
-	t_rinoorbtree headers;
-	t_rinoohttp_method method;
-} t_rinoohttp_request;
+	t_rbtree headers;
+	t_http_method method;
+} t_http_request;
 
-int rinoohttp_request_parse(struct s_rinoohttp *http);
-bool rinoohttp_request_get(struct s_rinoohttp *http);
-void rinoohttp_request_setdefaultheaders(struct s_rinoohttp *http);
-int rinoohttp_request_send(struct s_rinoohttp *http, t_rinoohttp_method method, const char *uri, t_buffer *body);
+int rinoo_http_request_parse(struct s_http *http);
+bool rinoo_http_request_get(struct s_http *http);
+void rinoo_http_request_setdefaultheaders(struct s_http *http);
+int rinoo_http_request_send(struct s_http *http, t_http_method method, const char *uri, t_buffer *body);
 
 #endif /* !RINOO_PROTO_HTTP_REQUEST_H_ */

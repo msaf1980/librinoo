@@ -10,8 +10,8 @@
 
 #include "rinoo/net/module.h"
 
-extern const t_rinoosocket_class socket_class_ssl;
-extern const t_rinoosocket_class socket_class_ssl6;
+extern const t_socket_class socket_class_ssl;
+extern const t_socket_class socket_class_ssl6;
 
 /**
  * Creates a simple SSL context.
@@ -19,14 +19,14 @@ extern const t_rinoosocket_class socket_class_ssl6;
  *
  * @return SSL context pointer
  */
-t_rinoossl_ctx *rinoo_ssl_context(void)
+t_ssl_ctx *rinoo_ssl_context(void)
 {
 	RSA *rsa;
 	X509 *x509;
 	SSL_CTX *ctx;
 	EVP_PKEY *pkey;
 	X509_NAME *name;
-	t_rinoossl_ctx *ssl;
+	t_ssl_ctx *ssl;
 
 	/* SSL_library_init is not reentrant! */
 	SSL_library_init();
@@ -100,7 +100,7 @@ t_rinoossl_ctx *rinoo_ssl_context(void)
  *
  * @param ctx SSL contextt pointer
  */
-void rinoo_ssl_context_destroy(t_rinoossl_ctx *ctx)
+void rinoo_ssl_context_destroy(t_ssl_ctx *ctx)
 {
 	if (ctx != NULL) {
 		X509_free(ctx->x509);
@@ -117,9 +117,9 @@ void rinoo_ssl_context_destroy(t_rinoossl_ctx *ctx)
  *
  * @return SSL socket pointer
  */
-t_rinoossl *rinoo_ssl_get(t_rinoosocket *socket)
+t_ssl *rinoo_ssl_get(t_socket *socket)
 {
-	return container_of(socket, t_rinoossl, socket);
+	return container_of(socket, t_ssl, socket);
 }
 
 /**
@@ -133,11 +133,11 @@ t_rinoossl *rinoo_ssl_get(t_rinoosocket *socket)
  *
  * @return Socket pointer on success or NULL if an error occurs
  */
-t_rinoosocket *rinoo_ssl_client(t_rinoosched *sched, t_rinoossl_ctx *ctx, t_ip *ip, uint32_t port, uint32_t timeout)
+t_socket *rinoo_ssl_client(t_sched *sched, t_ssl_ctx *ctx, t_ip *ip, uint32_t port, uint32_t timeout)
 {
 	t_ip loopback;
-	t_rinoossl *ssl;
-	t_rinoosocket *socket;
+	t_ssl *ssl;
+	t_socket *socket;
 	socklen_t addr_len;
 	struct sockaddr *addr;
 
@@ -183,11 +183,11 @@ t_rinoosocket *rinoo_ssl_client(t_rinoosched *sched, t_rinoossl_ctx *ctx, t_ip *
  *
  * @return Socket pointer on success or NULL if an error occurs
  */
-t_rinoosocket *rinoo_ssl_server(t_rinoosched *sched, t_rinoossl_ctx *ctx, t_ip *ip, uint32_t port)
+t_socket *rinoo_ssl_server(t_sched *sched, t_ssl_ctx *ctx, t_ip *ip, uint32_t port)
 {
 	t_ip any;
-	t_rinoossl *ssl;
-	t_rinoosocket *socket;
+	t_ssl *ssl;
+	t_socket *socket;
 	socklen_t addr_len;
 	struct sockaddr *addr;
 
@@ -228,11 +228,11 @@ t_rinoosocket *rinoo_ssl_server(t_rinoosched *sched, t_rinoossl_ctx *ctx, t_ip *
  *
  * @return A pointer to the new socket on success or NULL if an error occurs
  */
-t_rinoosocket *rinoo_ssl_accept(t_rinoosocket *socket, t_ip *fromip, uint32_t *fromport)
+t_socket *rinoo_ssl_accept(t_socket *socket, t_ip *fromip, uint32_t *fromport)
 {
 	t_ip addr;
 	socklen_t addr_len;
-	t_rinoosocket *new;
+	t_socket *new;
 
 	addr_len = sizeof(addr);
 	new = rinoo_socket_accept(socket, (struct sockaddr *) &addr, &addr_len);

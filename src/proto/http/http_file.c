@@ -10,7 +10,7 @@
 
 #include "rinoo/proto/http/module.h"
 
-int rinoohttp_send_dir(t_rinoohttp *http, const char *path)
+int rinoo_http_send_dir(t_http *http, const char *path)
 {
 	int ret;
 	int flag;
@@ -109,12 +109,12 @@ int rinoohttp_send_dir(t_rinoohttp *http, const char *path)
 	closedir(dir);
 
 	http->response.code = 200;
-	ret = rinoohttp_response_send(http, result);
+	ret = rinoo_http_response_send(http, result);
 	buffer_destroy(result);
 	return ret;
 }
 
-int rinoohttp_send_file(t_rinoohttp *http, const char *path)
+int rinoo_http_send_file(t_http *http, const char *path)
 {
 	int ret;
 	int fd;
@@ -129,14 +129,14 @@ int rinoohttp_send_file(t_rinoohttp *http, const char *path)
 		return -1;
 	}
 	if (S_ISDIR(stats.st_mode)) {
-		return rinoohttp_send_dir(http, path);
+		return rinoo_http_send_dir(http, path);
 	}
 	if (S_ISREG(stats.st_mode) == 0) {
 		return -1;
 	}
 	if (stats.st_size == 0) {
 		http->response.code = 200;
-		return rinoohttp_response_send(http, NULL);
+		return rinoo_http_response_send(http, NULL);
 	}
 	fd = open(path, O_RDONLY);
 	if (fd < 0) {
@@ -151,7 +151,7 @@ int rinoohttp_send_file(t_rinoohttp *http, const char *path)
 	}
 	http->response.code = 200;
 	buffer_static(&dummy, ptr, stats.st_size);
-	ret = rinoohttp_response_send(http, &dummy);
+	ret = rinoo_http_response_send(http, &dummy);
 	munmap(ptr, stats.st_size);
 	close(fd);
 	return ret;

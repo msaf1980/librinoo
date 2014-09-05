@@ -10,7 +10,7 @@
 
 #include "rinoo/net/module.h"
 
-const t_rinoosocket_class socket_class_tcp = {
+const t_socket_class socket_class_tcp = {
 	.domain = AF_INET,
 	.type = SOCK_STREAM,
 	.create = rinoo_socket_class_tcp_create,
@@ -29,7 +29,7 @@ const t_rinoosocket_class socket_class_tcp = {
 	.accept = rinoo_socket_class_tcp_accept
 };
 
-const t_rinoosocket_class socket_class_tcp6 = {
+const t_socket_class socket_class_tcp6 = {
 	.domain = AF_INET6,
 	.type = SOCK_STREAM,
 	.create = rinoo_socket_class_tcp_create,
@@ -55,9 +55,9 @@ const t_rinoosocket_class socket_class_tcp6 = {
  *
  * @return Pointer to the new socket or NULL if an error occurs
  */
-t_rinoosocket *rinoo_socket_class_tcp_create(t_rinoosched *sched)
+t_socket *rinoo_socket_class_tcp_create(t_sched *sched)
 {
-	t_rinoosocket *socket;
+	t_socket *socket;
 
 	socket = calloc(1, sizeof(*socket));
 	if (unlikely(socket == NULL)) {
@@ -72,7 +72,7 @@ t_rinoosocket *rinoo_socket_class_tcp_create(t_rinoosched *sched)
  *
  * @param socket Socket pointer
  */
-void rinoo_socket_class_tcp_destroy(t_rinoosocket *socket)
+void rinoo_socket_class_tcp_destroy(t_socket *socket)
 {
 	free(socket);
 }
@@ -84,7 +84,7 @@ void rinoo_socket_class_tcp_destroy(t_rinoosocket *socket)
  *
  * @return 0 on success or -1 if an error occurs
  */
-int rinoo_socket_class_tcp_open(t_rinoosocket *sock)
+int rinoo_socket_class_tcp_open(t_socket *sock)
 {
 	int fd;
 	int enabled;
@@ -112,9 +112,9 @@ int rinoo_socket_class_tcp_open(t_rinoosocket *sock)
  *
  * @return Pointer to the new socket or NULL if an error occurs
  */
-t_rinoosocket *rinoo_socket_class_tcp_dup(t_rinoosched *destination, t_rinoosocket *socket)
+t_socket *rinoo_socket_class_tcp_dup(t_sched *destination, t_socket *socket)
 {
-	t_rinoosocket *new;
+	t_socket *new;
 
 	new = calloc(1, sizeof(*new));
 	if (unlikely(new == NULL)) {
@@ -137,7 +137,7 @@ t_rinoosocket *rinoo_socket_class_tcp_dup(t_rinoosched *destination, t_rinoosock
  *
  * @return 0 on success or -1 if an error occurs
  */
-int rinoo_socket_class_tcp_close(t_rinoosocket *socket)
+int rinoo_socket_class_tcp_close(t_socket *socket)
 {
 	XASSERT(socket != NULL, -1);
 
@@ -154,7 +154,7 @@ int rinoo_socket_class_tcp_close(t_rinoosocket *socket)
  *
  * @return The number of bytes read on success or -1 if an error occurs
  */
-ssize_t rinoo_socket_class_tcp_read(t_rinoosocket *socket, void *buf, size_t count)
+ssize_t rinoo_socket_class_tcp_read(t_socket *socket, void *buf, size_t count)
 {
 	ssize_t ret;
 
@@ -189,7 +189,7 @@ ssize_t rinoo_socket_class_tcp_read(t_rinoosocket *socket, void *buf, size_t cou
  *
  * @return The number of bytes read on success or -1 if an error occurs
  */
-ssize_t rinoo_socket_class_tcp_recvfrom(t_rinoosocket *socket, void *buf, size_t count, struct sockaddr *addrfrom, socklen_t *addrlen)
+ssize_t rinoo_socket_class_tcp_recvfrom(t_socket *socket, void *buf, size_t count, struct sockaddr *addrfrom, socklen_t *addrlen)
 {
 	ssize_t ret;
 
@@ -222,7 +222,7 @@ ssize_t rinoo_socket_class_tcp_recvfrom(t_rinoosocket *socket, void *buf, size_t
  *
  * @return The number of bytes written on success or -1 if an error occurs
  */
-ssize_t	rinoo_socket_class_tcp_write(t_rinoosocket *socket, const void *buf, size_t count)
+ssize_t	rinoo_socket_class_tcp_write(t_socket *socket, const void *buf, size_t count)
 {
 	size_t sent;
 	ssize_t ret;
@@ -261,7 +261,7 @@ ssize_t	rinoo_socket_class_tcp_write(t_rinoosocket *socket, const void *buf, siz
  *
  * @return The number of bytes written on success or -1 if an error occurs
  */
-ssize_t	rinoo_socket_class_tcp_writev(t_rinoosocket *socket, t_buffer **buffers, int count)
+ssize_t	rinoo_socket_class_tcp_writev(t_socket *socket, t_buffer **buffers, int count)
 {
 	int i;
 	ssize_t ret;
@@ -327,7 +327,7 @@ ssize_t	rinoo_socket_class_tcp_writev(t_rinoosocket *socket, t_buffer **buffers,
  *
  * @return The number of bytes written on success or -1 if an error occurs
  */
-ssize_t rinoo_socket_class_tcp_sendto(t_rinoosocket *socket, void *buf, size_t count, const struct sockaddr *unused(addrto), socklen_t unused(addrlen))
+ssize_t rinoo_socket_class_tcp_sendto(t_socket *socket, void *buf, size_t count, const struct sockaddr *unused(addrto), socklen_t unused(addrlen))
 {
 	return rinoo_socket_class_tcp_write(socket, buf, count);
 }
@@ -342,7 +342,7 @@ ssize_t rinoo_socket_class_tcp_sendto(t_rinoosocket *socket, void *buf, size_t c
  *
  * @return Number of bytes correctly sent or -1 if an error occurs
  */
-ssize_t rinoo_socket_class_tcp_sendfile(t_rinoosocket *socket, int in_fd, off_t offset, size_t count)
+ssize_t rinoo_socket_class_tcp_sendfile(t_socket *socket, int in_fd, off_t offset, size_t count)
 {
 	size_t sent;
 	ssize_t ret;
@@ -381,7 +381,7 @@ ssize_t rinoo_socket_class_tcp_sendfile(t_rinoosocket *socket, int in_fd, off_t 
  *
  * @return 0 on success or -1 if an error occurs (timeout is considered as an error)
  */
-int rinoo_socket_class_tcp_connect(t_rinoosocket *socket, const struct sockaddr *addr, socklen_t addrlen)
+int rinoo_socket_class_tcp_connect(t_socket *socket, const struct sockaddr *addr, socklen_t addrlen)
 {
 	int val;
 	int enabled;
@@ -430,7 +430,7 @@ int rinoo_socket_class_tcp_connect(t_rinoosocket *socket, const struct sockaddr 
  *
  * @return 0 on success or -1 if an error occurs
  */
-int rinoo_socket_class_tcp_bind(t_rinoosocket *socket, const struct sockaddr *addr, socklen_t addrlen, int backlog)
+int rinoo_socket_class_tcp_bind(t_socket *socket, const struct sockaddr *addr, socklen_t addrlen, int backlog)
 {
 	int enabled;
 
@@ -453,10 +453,10 @@ int rinoo_socket_class_tcp_bind(t_rinoosocket *socket, const struct sockaddr *ad
  *
  * @return A pointer to the new client socket or NULL if an error occurs
  */
-t_rinoosocket *rinoo_socket_class_tcp_accept(t_rinoosocket *socket, struct sockaddr *addr, socklen_t *addrlen)
+t_socket *rinoo_socket_class_tcp_accept(t_socket *socket, struct sockaddr *addr, socklen_t *addrlen)
 {
 	int fd;
-	t_rinoosocket *new;
+	t_socket *new;
 
 	if (rinoo_socket_waitio(socket) != 0) {
 		return NULL;

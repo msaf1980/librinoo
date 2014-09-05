@@ -12,24 +12,24 @@
 #define RINOO_PROTO_HTTP_RESPONSE_H_
 
 /* Defined in http.h */
-struct s_rinoohttp;
+struct s_http;
 
-typedef struct s_rinoohttp_response {
+typedef struct s_http_response {
 	int code;
 	t_buffer msg;
 	t_buffer content;
 	t_buffer *buffer;
 	size_t headers_length;
 	size_t content_length;
-	t_rinoorbtree headers;
-} t_rinoohttp_response;
+	t_rbtree headers;
+} t_http_response;
 
-int rinoohttp_response_parse(struct s_rinoohttp *http);
-bool rinoohttp_response_get(struct s_rinoohttp *http);
-void rinoohttp_response_setmsg(struct s_rinoohttp *http, const char *msg);
-void rinoohttp_response_setdefaultmsg(struct s_rinoohttp *http);
-void rinoohttp_response_setdefaultheaders(struct s_rinoohttp *http);
-int rinoohttp_response_prepare(struct s_rinoohttp *http, size_t body_length);
-int rinoohttp_response_send(struct s_rinoohttp *http, t_buffer *body);
+int rinoo_http_response_parse(struct s_http *http);
+bool rinoo_http_response_get(struct s_http *http);
+void rinoo_http_response_setmsg(struct s_http *http, const char *msg);
+void rinoo_http_response_setdefaultmsg(struct s_http *http);
+void rinoo_http_response_setdefaultheaders(struct s_http *http);
+int rinoo_http_response_prepare(struct s_http *http, size_t body_length);
+int rinoo_http_response_send(struct s_http *http, t_buffer *body);
 
 #endif /* !RINOO_PROTO_HTTP_RESPONSE_H_ */

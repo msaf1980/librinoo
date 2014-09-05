@@ -18,7 +18,7 @@
  *
  * @return 0 on success, otherwise -1
  */
-int rinoovector_add(t_rinoovector *vector, void *item)
+int vector_add(t_vector *vector, void *item)
 {
 	void *ptr;
 	size_t msize;
@@ -50,7 +50,7 @@ int rinoovector_add(t_rinoovector *vector, void *item)
  *
  * @param vector Vector to destroy
  */
-void rinoovector_destroy(t_rinoovector *vector)
+void vector_destroy(t_vector *vector)
 {
 	if (vector == NULL || vector->msize == 0 || vector->ptr == NULL) {
 		return;
@@ -67,7 +67,7 @@ void rinoovector_destroy(t_rinoovector *vector)
  *
  * @return 0 on success, otherwise -1
  */
-int rinoovector_remove(t_rinoovector *vector, uint32_t i)
+int vector_remove(t_vector *vector, uint32_t i)
 {
 	if (vector == NULL || i >= vector->size) {
 		return -1;
@@ -87,7 +87,7 @@ int rinoovector_remove(t_rinoovector *vector, uint32_t i)
  *
  * @return Pointer to the element on success, otherwise NULL
  */
-void *rinoovector_get(t_rinoovector *vector, uint32_t i)
+void *vector_get(t_vector *vector, uint32_t i)
 {
 	if (vector == NULL || i >= vector->size) {
 		return NULL;
@@ -102,7 +102,7 @@ void *rinoovector_get(t_rinoovector *vector, uint32_t i)
  *
  * @return Size of the vector
  */
-size_t rinoovector_size(t_rinoovector *vector)
+size_t vector_size(t_vector *vector)
 {
 	if (vector == NULL) {
 		return 0;

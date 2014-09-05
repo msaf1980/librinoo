@@ -17,7 +17,7 @@
  */
 int main()
 {
-	t_rinoossl_ctx *ssl;
+	t_ssl_ctx *ssl;
 
 	ssl = rinoo_ssl_context();
 	XTEST(ssl != NULL);

@@ -10,7 +10,7 @@
 
 #include "rinoo/rinoo.h"
 
-t_rinoosched *master;
+t_sched *master;
 
 /**
  * Process HTTP requests for each client.
@@ -19,24 +19,24 @@ t_rinoosched *master;
  */
 void process_http_client(void *arg)
 {
-	t_rinoohttp http;
-	t_rinoosocket *client = arg;
+	t_http http;
+	t_socket *client = arg;
 
-	rinoohttp_init(client, &http);
-	while (rinoohttp_request_get(&http)) {
+	rinoo_http_init(client, &http);
+	while (rinoo_http_request_get(&http)) {
 		rinoo_log("Request uri=%.*s thread=%d", buffer_size(&http.request.uri), buffer_ptr(&http.request.uri), rinoo_sched_self()->id);
 		http.response.code = 200;
-		if (rinoohttp_response_send(&http, NULL) != 0) {
+		if (rinoo_http_response_send(&http, NULL) != 0) {
 			goto error;
 		}
-		rinoohttp_reset(&http);
+		rinoo_http_reset(&http);
 	}
-	rinoohttp_destroy(&http);
+	rinoo_http_destroy(&http);
 	rinoo_socket_destroy(client);
 	return;
 error:
 	rinoo_log("error");
-	rinoohttp_destroy(&http);
+	rinoo_http_destroy(&http);
 	rinoo_socket_destroy(client);
 }
 
@@ -47,8 +47,8 @@ error:
  */
 void process_http_server(void *arg)
 {
-	t_rinoosocket *client;
-	t_rinoosocket *socket = arg;
+	t_socket *client;
+	t_socket *socket = arg;
 
 	rinoo_log("Thread %d started.", rinoo_sched_self()->id);
 	while ((client = rinoo_tcp_accept(socket, NULL, NULL)) != NULL) {
@@ -75,8 +75,8 @@ void signal_handler(int unused(signal))
 int main(int argc, char **argv)
 {
 	int i;
-	t_rinoosched *cur;
-	t_rinoosocket *server;
+	t_sched *cur;
+	t_socket *server;
 
 	if (argc != 2) {
 		printf("Usage: %s <port>\n", argv[0]);

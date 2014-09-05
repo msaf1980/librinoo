@@ -11,7 +11,7 @@
 #ifndef RINOO_PROTO_DNS_DNS_H_
 #define RINOO_PROTO_DNS_DNS_H_
 
-typedef enum s_rinoodns_type{
+typedef enum s_dns_type{
 	DNS_TYPE_A = 0x01,
 	DNS_TYPE_NS = 0x02,
 	/* DNS_TYPE_MD = 0x03, Obsolete */
@@ -29,107 +29,107 @@ typedef enum s_rinoodns_type{
 	DNS_TYPE_MX = 0x0f,
 	DNS_TYPE_TXT = 0x10,
 	DNS_TYPE_AAAA = 0x1c
-} t_rinoodns_type;
+} t_dns_type;
 
-typedef struct s_rinoodns_name {
+typedef struct s_dns_name {
 	char value[256];
 	t_buffer buffer;
-} t_rinoodns_name;
+} t_dns_name;
 
-typedef struct s_rinoodns_header {
+typedef struct s_dns_header {
 	unsigned short id;
 	unsigned short flags;
 	unsigned short qdcount;
 	unsigned short ancount;
 	unsigned short nscount;
 	unsigned short arcount;
-} t_rinoodns_header;
+} t_dns_header;
 
-typedef struct s_rinoodns_query {
-	t_rinoodns_name name;
+typedef struct s_dns_query {
+	t_dns_name name;
 	unsigned short type;
 	unsigned short qclass;
-} t_rinoodns_query;
+} t_dns_query;
 
 /* RDATA */
 /* Yes, there is some useless structs here, but it perfectly matches RFC. */
 
-typedef struct s_rinoodns_rdata_a {
+typedef struct s_dns_rdata_a {
 	unsigned long address;
-} t_rinoodns_rdata_a;
+} t_dns_rdata_a;
 
-typedef struct s_rinoodns_rdata_ns {
-	t_rinoodns_name nsname;
-} t_rinoodns_rdata_ns;
+typedef struct s_dns_rdata_ns {
+	t_dns_name nsname;
+} t_dns_rdata_ns;
 
-typedef struct s_rinoodns_rdata_cname {
-	t_rinoodns_name cname;
-} t_rinoodns_rdata_cname;
+typedef struct s_dns_rdata_cname {
+	t_dns_name cname;
+} t_dns_rdata_cname;
 
-typedef struct s_rinoodns_rdata_soa {
-	t_rinoodns_name mname;
-	t_rinoodns_name rname;
+typedef struct s_dns_rdata_soa {
+	t_dns_name mname;
+	t_dns_name rname;
 	unsigned int serial;
 	int refresh;
 	int retry;
 	int expire;
 	unsigned int minimum;
-} t_rinoodns_rdata_soa;
+} t_dns_rdata_soa;
 
-typedef struct s_rinoodns_rdata_ptr {
-	t_rinoodns_name ptrname;
-} t_rinoodns_rdata_ptr;
+typedef struct s_dns_rdata_ptr {
+	t_dns_name ptrname;
+} t_dns_rdata_ptr;
 
-typedef struct s_rinoodns_rdata_hinfo {
-	t_rinoodns_name cpu;
-	t_rinoodns_name os;
-} t_rinoodns_rdata_hinfo;
+typedef struct s_dns_rdata_hinfo {
+	t_dns_name cpu;
+	t_dns_name os;
+} t_dns_rdata_hinfo;
 
-typedef struct s_rinoodns_rdata_mx {
+typedef struct s_dns_rdata_mx {
 	short preference;
-	t_rinoodns_name exchange;
-} t_rinoodns_rdata_mx;
+	t_dns_name exchange;
+} t_dns_rdata_mx;
 
-typedef struct s_rinoodns_rdata_txt {
-	t_rinoodns_name txtdata;
-} t_rinoodns_rdata_txt;
+typedef struct s_dns_rdata_txt {
+	t_dns_name txtdata;
+} t_dns_rdata_txt;
 
-typedef struct s_rinoodns_rdata_aaaa {
+typedef struct s_dns_rdata_aaaa {
 	char aaaadata[16];
-} t_rinoodns_rdata_aaaa;
+} t_dns_rdata_aaaa;
 
-typedef union u_rinoodns_rdata {
-	t_rinoodns_rdata_a a;
-	t_rinoodns_rdata_ns ns;
-	t_rinoodns_rdata_cname cname;
-	t_rinoodns_rdata_soa soa;
-	t_rinoodns_rdata_ptr ptr;
-	t_rinoodns_rdata_hinfo hinfo;
-	t_rinoodns_rdata_mx mx;
-	t_rinoodns_rdata_txt txt;
-	t_rinoodns_rdata_aaaa aaaa;
-} t_rinoodns_rdata;
+typedef union u_dns_rdata {
+	t_dns_rdata_a a;
+	t_dns_rdata_ns ns;
+	t_dns_rdata_cname cname;
+	t_dns_rdata_soa soa;
+	t_dns_rdata_ptr ptr;
+	t_dns_rdata_hinfo hinfo;
+	t_dns_rdata_mx mx;
+	t_dns_rdata_txt txt;
+	t_dns_rdata_aaaa aaaa;
+} t_dns_rdata;
 
-typedef struct s_rinoodns_record {
-	t_rinoodns_name name;
+typedef struct s_dns_record {
+	t_dns_name name;
 	unsigned short type;
 	unsigned short aclass;
 	int ttl;
 	unsigned short rdlength;
-	t_rinoodns_rdata rdata;
-} t_rinoodns_record;
+	t_dns_rdata rdata;
+} t_dns_record;
 
-typedef struct s_rinoodns {
+typedef struct s_dns {
 	t_buffer buffer;
 	char packet[512];
 	const char *host;
-	t_rinoodns_type type;
-	t_rinoosocket *socket;
-	t_rinoodns_header header;
-	t_rinoodns_record *answer;
-	t_rinoodns_record *authority;
-	t_rinoodns_record *additional;
-} t_rinoodns;
+	t_dns_type type;
+	t_socket *socket;
+	t_dns_header header;
+	t_dns_record *answer;
+	t_dns_record *authority;
+	t_dns_record *additional;
+} t_dns;
 
 #define DNS_QUERY_SET_QR(flags, value)		do { flags = (flags & ~0x8000) | (value << 15); } while (0)
 #define DNS_QUERY_SET_OPCODE(flags, value)	do { flags = (flags & ~0x7800) | (0x7800 & (value << 11)); } while (0)
@@ -152,14 +152,14 @@ typedef struct s_rinoodns {
 #define DNS_QUERY_NAME_IS_COMPRESSED(byte)	((byte & 0xc0) == 0xc0)
 #define DNS_QUERY_NAME_GET_OFFSET(offset)	(offset & 0x3fff)
 
-void rinoo_dns_init(t_rinoosched *sched, t_rinoodns *dns, t_rinoodns_type type, const char *host);
-void rinoo_dns_destroy(t_rinoodns *dns);
-int rinoo_dns_ip_get(t_rinoosched *sched, const char *host, t_ip *ip);
-int rinoo_dns_query(t_rinoodns *dns, t_rinoodns_type type, const char *host);
-int rinoo_dns_header_get(t_buffer_iterator *iterator, t_rinoodns_header *header);
+void rinoo_dns_init(t_sched *sched, t_dns *dns, t_dns_type type, const char *host);
+void rinoo_dns_destroy(t_dns *dns);
+int rinoo_dns_ip_get(t_sched *sched, const char *host, t_ip *ip);
+int rinoo_dns_query(t_dns *dns, t_dns_type type, const char *host);
+int rinoo_dns_header_get(t_buffer_iterator *iterator, t_dns_header *header);
 int rinoo_dns_name_get(t_buffer_iterator *iterator, t_buffer *name);
-int rinoo_dns_rdata_get(t_buffer_iterator *iterator, size_t rdlength, t_rinoodns_type type, t_rinoodns_rdata *rdata);
-int rinoo_dns_query_get(t_buffer_iterator *iterator, t_rinoodns_query *query);
-int rinoo_dns_record_get(t_buffer_iterator *iterator, t_rinoodns_record *record);
+int rinoo_dns_rdata_get(t_buffer_iterator *iterator, size_t rdlength, t_dns_type type, t_dns_rdata *rdata);
+int rinoo_dns_query_get(t_buffer_iterator *iterator, t_dns_query *query);
+int rinoo_dns_record_get(t_buffer_iterator *iterator, t_dns_record *record);
 
 #endif /* !RINOO_PROTO_DNS_DNS_H_ */

@@ -26,7 +26,7 @@ void dns_test(void *arg)
  */
 int main()
 {
-	t_rinoosched *sched;
+	t_sched *sched;
 
 	sched = rinoo_sched();
 	XTEST(sched != NULL);

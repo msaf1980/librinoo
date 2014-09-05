@@ -12,23 +12,23 @@
 #define RINOO_SCHEDULER_SPAWN_H_
 
 /* Defined in scheduler.h */
-struct s_rinoosched;
+struct s_sched;
 
-typedef struct s_rinoothread {
+typedef struct s_thread {
 	pthread_t id;
-	struct s_rinoosched *sched;
-} t_rinoothread;
+	struct s_sched *sched;
+} t_thread;
 
-typedef struct s_rinoosched_spawns {
+typedef struct s_sched_spawns {
 	int count;
-	t_rinoothread *thread;
-} t_rinoosched_spawns;
+	t_thread *thread;
+} t_sched_spawns;
 
-int rinoo_spawn(struct s_rinoosched *sched, int count);
-void rinoo_spawn_destroy(struct s_rinoosched *sched);
-struct s_rinoosched *rinoo_spawn_get(struct s_rinoosched *sched, int id);
-int rinoo_spawn_start(struct s_rinoosched *sched);
-void rinoo_spawn_stop(struct s_rinoosched *sched);
-void rinoo_spawn_join(struct s_rinoosched *sched);
+int rinoo_spawn(struct s_sched *sched, int count);
+void rinoo_spawn_destroy(struct s_sched *sched);
+struct s_sched *rinoo_spawn_get(struct s_sched *sched, int id);
+int rinoo_spawn_start(struct s_sched *sched);
+void rinoo_spawn_stop(struct s_sched *sched);
+void rinoo_spawn_join(struct s_sched *sched);
 
 #endif /* !RINOO_SCHEDULER_SPAWN_H_ */

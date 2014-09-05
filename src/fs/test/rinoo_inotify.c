@@ -42,8 +42,8 @@ void event_generator(void *sched)
 void check_file(void *sched)
 {
 	int i;
-	t_rinoo_inotify *inotify;
-	t_rinoo_inotify_event *event;
+	t_inotify *inotify;
+	t_inotify_event *event;
 
 	inotify = rinoo_inotify(sched);
 	rinoo_inotify_add_watch(inotify, "/tmp", INOTIFY_CREATE | INOTIFY_DELETE, true);
@@ -69,7 +69,7 @@ void check_file(void *sched)
  */
 int main()
 {
-	t_rinoosched *sched;
+	t_sched *sched;
 
 	mkdir(TEST_DIRECTORY, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
 	sched = rinoo_sched();

@@ -34,9 +34,9 @@
 
 #include "rinoo/struct/module.h"
 
-static inline void rinoorbtree_rotate_left(t_rinoorbtree *tree, t_rinoorbtree_node *node)
+static inline void rbtree_rotate_left(t_rbtree *tree, t_rbtree_node *node)
 {
-	t_rinoorbtree_node *current;
+	t_rbtree_node *current;
 
 	current = node->right;
 	node->right = current->left;
@@ -57,9 +57,9 @@ static inline void rinoorbtree_rotate_left(t_rinoorbtree *tree, t_rinoorbtree_no
 	node->parent = current;
 }
 
-static inline void rinoorbtree_rotate_right(t_rinoorbtree *tree, t_rinoorbtree_node *node)
+static inline void rbtree_rotate_right(t_rbtree *tree, t_rbtree_node *node)
 {
-	t_rinoorbtree_node *current;
+	t_rbtree_node *current;
 
 	current = node->left;
 	node->left = current->right;
@@ -80,11 +80,11 @@ static inline void rinoorbtree_rotate_right(t_rinoorbtree *tree, t_rinoorbtree_n
 	node->parent = current;
 }
 
-static void rinoorbtree_insert_color(t_rinoorbtree *tree, t_rinoorbtree_node *node)
+static void rbtree_insert_color(t_rbtree *tree, t_rbtree_node *node)
 {
-	t_rinoorbtree_node *parent;
-	t_rinoorbtree_node *gparent;
-	t_rinoorbtree_node *current;
+	t_rbtree_node *parent;
+	t_rbtree_node *gparent;
+	t_rbtree_node *current;
 
 	parent = node->parent;
 	while ((parent = node->parent) != NULL &&
@@ -100,14 +100,14 @@ static void rinoorbtree_insert_color(t_rinoorbtree *tree, t_rinoorbtree_node *no
 				node = gparent;
 			} else {
 				if (parent->right == node) {
-					rinoorbtree_rotate_left(tree, parent);
+					rbtree_rotate_left(tree, parent);
 					current = parent;
 					parent = node;
 					node = current;
 				}
 				parent->color = RINOO_RBTREE_BLACK;
 				gparent->color = RINOO_RBTREE_RED;
-				rinoorbtree_rotate_right(tree, gparent);
+				rbtree_rotate_right(tree, gparent);
 			}
 		} else {
 			current = gparent->left;
@@ -118,23 +118,23 @@ static void rinoorbtree_insert_color(t_rinoorbtree *tree, t_rinoorbtree_node *no
 				node = gparent;
 			} else {
 				if (parent->left == node) {
-					rinoorbtree_rotate_right(tree, parent);
+					rbtree_rotate_right(tree, parent);
 					current = parent;
 					parent = node;
 					node = current;
 				}
 				parent->color = RINOO_RBTREE_BLACK;
 				gparent->color = RINOO_RBTREE_RED;
-				rinoorbtree_rotate_left(tree, gparent);
+				rbtree_rotate_left(tree, gparent);
 			}
 		}
 	}
 	tree->root->color = RINOO_RBTREE_BLACK;
 }
 
-static void rinoorbtree_remove_color(t_rinoorbtree *tree, t_rinoorbtree_node *parent, t_rinoorbtree_node *node)
+static void rbtree_remove_color(t_rbtree *tree, t_rbtree_node *parent, t_rbtree_node *node)
 {
-	t_rinoorbtree_node *current;
+	t_rbtree_node *current;
 
 	while ((node == NULL || node->color == RINOO_RBTREE_BLACK) && node != tree->root && parent != NULL) {
 		if (parent->left == node) {
@@ -142,7 +142,7 @@ static void rinoorbtree_remove_color(t_rinoorbtree *tree, t_rinoorbtree_node *pa
 			if (current->color == RINOO_RBTREE_RED) {
 				current->color = RINOO_RBTREE_BLACK;
 				parent->color = RINOO_RBTREE_RED;
-				rinoorbtree_rotate_left(tree, parent);
+				rbtree_rotate_left(tree, parent);
 				current = parent->right;
 			}
 			if ((current->left == NULL || current->left->color == RINOO_RBTREE_BLACK) &&
@@ -156,7 +156,7 @@ static void rinoorbtree_remove_color(t_rinoorbtree *tree, t_rinoorbtree_node *pa
 						current->left->color = RINOO_RBTREE_BLACK;
 					}
 					current->color = RINOO_RBTREE_RED;
-					rinoorbtree_rotate_right(tree, current);
+					rbtree_rotate_right(tree, current);
 					current = parent->right;
 				}
 				current->color = parent->color;
@@ -164,7 +164,7 @@ static void rinoorbtree_remove_color(t_rinoorbtree *tree, t_rinoorbtree_node *pa
 				if (current->right != NULL) {
 					current->right->color = RINOO_RBTREE_BLACK;
 				}
-				rinoorbtree_rotate_left(tree, parent);
+				rbtree_rotate_left(tree, parent);
 				node = tree->root;
 				break;
 			}
@@ -173,7 +173,7 @@ static void rinoorbtree_remove_color(t_rinoorbtree *tree, t_rinoorbtree_node *pa
 			if (current->color == RINOO_RBTREE_RED) {
 				current->color = RINOO_RBTREE_BLACK;
 				parent->color = RINOO_RBTREE_RED;
-				rinoorbtree_rotate_right(tree, parent);
+				rbtree_rotate_right(tree, parent);
 				current = parent->left;
 			}
 			if ((current->left == NULL || current->left->color == RINOO_RBTREE_BLACK) &&
@@ -187,7 +187,7 @@ static void rinoorbtree_remove_color(t_rinoorbtree *tree, t_rinoorbtree_node *pa
 						current->right->color = RINOO_RBTREE_BLACK;
 					}
 					current->color = RINOO_RBTREE_RED;
-					rinoorbtree_rotate_left(tree, current);
+					rbtree_rotate_left(tree, current);
 					current = parent->left;
 				}
 				current->color = parent->color;
@@ -195,7 +195,7 @@ static void rinoorbtree_remove_color(t_rinoorbtree *tree, t_rinoorbtree_node *pa
 				if (current->left != NULL) {
 					current->left->color = RINOO_RBTREE_BLACK;
 				}
-				rinoorbtree_rotate_right(tree, parent);
+				rbtree_rotate_right(tree, parent);
 				node = tree->root;
 				break;
 			}
@@ -207,9 +207,9 @@ static void rinoorbtree_remove_color(t_rinoorbtree *tree, t_rinoorbtree_node *pa
 	}
 }
 
-int rinoorbtree(t_rinoorbtree *tree,
-		int (*compare)(t_rinoorbtree_node *node1, t_rinoorbtree_node *node2),
-		void (*delete)(t_rinoorbtree_node *node))
+int rbtree(t_rbtree *tree,
+		int (*compare)(t_rbtree_node *node1, t_rbtree_node *node2),
+		void (*delete)(t_rbtree_node *node))
 {
 	XASSERT(tree != NULL, -1);
 	XASSERT(compare != NULL, -1);
@@ -221,10 +221,10 @@ int rinoorbtree(t_rinoorbtree *tree,
 	return 0;
 }
 
-void rinoorbtree_flush(t_rinoorbtree *tree)
+void rbtree_flush(t_rbtree *tree)
 {
-	t_rinoorbtree_node *old;
-	t_rinoorbtree_node *current;
+	t_rbtree_node *old;
+	t_rbtree_node *current;
 
 	XASSERTN(tree != NULL);
 
@@ -259,12 +259,12 @@ void rinoorbtree_flush(t_rinoorbtree *tree)
 	tree->head = NULL;
 }
 
-int rinoorbtree_put(t_rinoorbtree *tree, t_rinoorbtree_node *node)
+int rbtree_put(t_rbtree *tree, t_rbtree_node *node)
 {
 	int cmp;
 	int head;
-	t_rinoorbtree_node *parent;
-	t_rinoorbtree_node *current;
+	t_rbtree_node *parent;
+	t_rbtree_node *current;
 
 	XASSERT(tree != NULL, -1);
 	XASSERT(node != NULL, -1);
@@ -303,18 +303,18 @@ int rinoorbtree_put(t_rinoorbtree *tree, t_rinoorbtree_node *node)
 		tree->head = node;
 	}
 
-	rinoorbtree_insert_color(tree, node);
+	rbtree_insert_color(tree, node);
 	tree->size++;
 
 	return 0;
 }
 
-void rinoorbtree_remove(t_rinoorbtree *tree, t_rinoorbtree_node *node)
+void rbtree_remove(t_rbtree *tree, t_rbtree_node *node)
 {
-	t_rinoorbtree_node *old;
-	t_rinoorbtree_node *child;
-	t_rinoorbtree_node *parent;
-	t_rinoorbtree_color color;
+	t_rbtree_node *old;
+	t_rbtree_node *child;
+	t_rbtree_node *parent;
+	t_rbtree_color color;
 
 	XASSERTN(tree != NULL);
 	XASSERTN(node != NULL);
@@ -387,7 +387,7 @@ void rinoorbtree_remove(t_rinoorbtree *tree, t_rinoorbtree_node *node)
 	}
 color:
 	if (color == RINOO_RBTREE_BLACK) {
-		rinoorbtree_remove_color(tree, parent, child);
+		rbtree_remove_color(tree, parent, child);
 	}
 
 	if (tree->delete != NULL) {
@@ -396,14 +396,14 @@ color:
 	tree->size--;
 }
 
-t_rinoorbtree_node *rinoorbtree_head(t_rinoorbtree *tree)
+t_rbtree_node *rbtree_head(t_rbtree *tree)
 {
 	XASSERT(tree != NULL, NULL);
 
 	return tree->head;
 }
 
-t_rinoorbtree_node *rinoorbtree_next(t_rinoorbtree_node *node)
+t_rbtree_node *rbtree_next(t_rbtree_node *node)
 {
 	if (node->right != NULL) {
 		node = node->right;
@@ -424,10 +424,10 @@ t_rinoorbtree_node *rinoorbtree_next(t_rinoorbtree_node *node)
 	return node;
 }
 
-t_rinoorbtree_node *rinoorbtree_find(t_rinoorbtree *tree, t_rinoorbtree_node *node)
+t_rbtree_node *rbtree_find(t_rbtree *tree, t_rbtree_node *node)
 {
 	int cmp;
-	t_rinoorbtree_node *tmp;
+	t_rbtree_node *tmp;
 
 	XASSERT(tree != NULL, NULL);
 	XASSERT(node != NULL, NULL);

@@ -26,7 +26,7 @@
 	  if (hd_start != NULL && hd_end != NULL && hdv_start != NULL) {
 		  tmp = *hd_end;
 		  *hd_end = 0;
-		  rinoohttp_header_setdata(&http->request.headers, hd_start, hdv_start, (hdv_end - hdv_start));
+		  rinoo_http_header_setdata(&http->request.headers, hd_start, hdv_start, (hdv_end - hdv_start));
 		  *hd_end = tmp;
 	  }
   }
@@ -67,7 +67,7 @@
   }%%
 
 
-int rinoohttp_request_parse(t_rinoohttp *http)
+int rinoo_http_request_parse(t_http *http)
 {
 	int cs = 0;
 	char *p = buffer_ptr(http->request.buffer);

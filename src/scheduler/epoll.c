@@ -18,7 +18,7 @@
  *
  * @return 0 if succeeds, else -1.
  */
-int rinoo_epoll_init(t_rinoosched *sched)
+int rinoo_epoll_init(t_sched *sched)
 {
 	XASSERT(sched != NULL, -1);
 
@@ -37,7 +37,7 @@ int rinoo_epoll_init(t_rinoosched *sched)
  *
  * @param sched Pointer to the scheduler to use.
  */
-void rinoo_epoll_destroy(t_rinoosched *sched)
+void rinoo_epoll_destroy(t_sched *sched)
 {
 	XASSERTN(sched != NULL);
 
@@ -54,7 +54,7 @@ void rinoo_epoll_destroy(t_rinoosched *sched)
  *
  * @return 0 if succeeds, else -1.
  */
-int rinoo_epoll_insert(t_rinoosched_node *node, t_rinoosched_mode mode)
+int rinoo_epoll_insert(t_sched_node *node, t_sched_mode mode)
 {
 	struct epoll_event ev = { 0, { 0 } };
 
@@ -80,7 +80,7 @@ int rinoo_epoll_insert(t_rinoosched_node *node, t_rinoosched_mode mode)
  *
  * @return 0 if succeeds, else -1.
  */
-int rinoo_epoll_addmode(t_rinoosched_node *node, t_rinoosched_mode mode)
+int rinoo_epoll_addmode(t_sched_node *node, t_sched_mode mode)
 {
 	struct epoll_event ev = { 0, { 0 } };
 
@@ -105,7 +105,7 @@ int rinoo_epoll_addmode(t_rinoosched_node *node, t_rinoosched_mode mode)
  *
  * @return 0 if succeeds, else -1.
  */
-int rinoo_epoll_remove(t_rinoosched_node *node)
+int rinoo_epoll_remove(t_sched_node *node)
 {
 	if (unlikely(epoll_ctl(node->sched->epoll.fd, EPOLL_CTL_DEL, node->fd, NULL) != 0)) {
 		return -1;
@@ -124,7 +124,7 @@ int rinoo_epoll_remove(t_rinoosched_node *node)
  *
  * @return 0 if succeeds, else -1.
  */
-int rinoo_epoll_poll(t_rinoosched *sched, int timeout)
+int rinoo_epoll_poll(t_sched *sched, int timeout)
 {
 	int nbevents;
 	struct epoll_event *event;

@@ -11,17 +11,17 @@
 #ifndef RINOO_STRUCT_VECTOR_H_
 #define RINOO_STRUCT_VECTOR_H_
 
-typedef struct s_rinoovector {
+typedef struct s_vector {
 	size_t size;
 	size_t msize;
 	void **ptr;
-} t_rinoovector;
+} t_vector;
 
-int rinoovector_add(t_rinoovector *vector, void *item);
-void rinoovector_destroy(t_rinoovector *vector);
-int rinoovector_remove(t_rinoovector *vector, uint32_t i);
-void *rinoovector_get(t_rinoovector *vector, uint32_t i);
-size_t rinoovector_size(t_rinoovector *vector);
+int vector_add(t_vector *vector, void *item);
+void vector_destroy(t_vector *vector);
+int vector_remove(t_vector *vector, uint32_t i);
+void *vector_get(t_vector *vector, uint32_t i);
+size_t vector_size(t_vector *vector);
 
 #endif /* !RINOO_STRUCT_VECTOR_H_ */
 

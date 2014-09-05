@@ -14,31 +14,31 @@
 
 void http_client(void *sched)
 {
-	t_rinoohttp http;
-	t_rinoosocket *client;
+	t_http http;
+	t_socket *client;
 
 	client = rinoo_tcp_client(sched, IP_LOOPBACK, 4242, 0);
 	XTEST(client != NULL);
-	XTEST(rinoohttp_init(client, &http) == 0);
-	XTEST(rinoohttp_request_send(&http, RINOO_HTTP_METHOD_GET, "/", NULL) == 0);
-	XTEST(rinoohttp_response_get(&http));
+	XTEST(rinoo_http_init(client, &http) == 0);
+	XTEST(rinoo_http_request_send(&http, RINOO_HTTP_METHOD_GET, "/", NULL) == 0);
+	XTEST(rinoo_http_response_get(&http));
 	XTEST(buffer_size(&http.response.content) == strlen(HTTP_CONTENT));
 	XTEST(http.response.code == 200);
-	rinoohttp_destroy(&http);
+	rinoo_http_destroy(&http);
 	rinoo_socket_destroy(client);
 }
 
 void http_server_process(void *socket)
 {
 	t_buffer content;
-	t_rinoohttp http;
+	t_http http;
 
-	XTEST(rinoohttp_init(socket, &http) == 0);
-	XTEST(rinoohttp_request_get(&http));
+	XTEST(rinoo_http_init(socket, &http) == 0);
+	XTEST(rinoo_http_request_get(&http));
 	http.response.code = 200;
 	strtobuffer(&content, HTTP_CONTENT);
-	XTEST(rinoohttp_response_send(&http, &content) == 0);
-	rinoohttp_destroy(&http);
+	XTEST(rinoo_http_response_send(&http, &content) == 0);
+	rinoo_http_destroy(&http);
 	rinoo_socket_destroy(socket);
 }
 
@@ -46,8 +46,8 @@ void http_server(void *sched)
 {
 	t_ip ip;
 	uint16_t port;
-	t_rinoosocket *server;
-	t_rinoosocket *client;
+	t_socket *server;
+	t_socket *client;
 
 	server = rinoo_tcp_server(sched, IP_ANY, 4242);
 	XTEST(server != NULL);
@@ -66,7 +66,7 @@ void http_server(void *sched)
  */
 int main()
 {
-	t_rinoosched *sched;
+	t_sched *sched;
 
 	sched = rinoo_sched();
 	XTEST(sched != NULL);

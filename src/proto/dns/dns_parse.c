@@ -10,7 +10,7 @@
 
 #include "rinoo/proto/dns/module.h"
 
-int rinoo_dns_header_get(t_buffer_iterator *iterator, t_rinoodns_header *header)
+int rinoo_dns_header_get(t_buffer_iterator *iterator, t_dns_header *header)
 {
 	if (buffer_iterator_gethushort(iterator, &header->id) != 0) {
 		return -1;
@@ -76,7 +76,7 @@ int rinoo_dns_name_get(t_buffer_iterator *iterator, t_buffer *name)
 	return 0;
 }
 
-int rinoo_dns_rdata_get(t_buffer_iterator *iterator, size_t rdlength, t_rinoodns_type type, t_rinoodns_rdata *rdata)
+int rinoo_dns_rdata_get(t_buffer_iterator *iterator, size_t rdlength, t_dns_type type, t_dns_rdata *rdata)
 {
 	int ip;
 	size_t position;
@@ -163,7 +163,7 @@ int rinoo_dns_rdata_get(t_buffer_iterator *iterator, size_t rdlength, t_rinoodns
 	return 0;
 }
 
-int rinoo_dns_query_get(t_buffer_iterator *iterator, t_rinoodns_query *query)
+int rinoo_dns_query_get(t_buffer_iterator *iterator, t_dns_query *query)
 {
 	if (rinoo_dns_name_get(iterator, &query->name.buffer) != 0) {
 		return -1;
@@ -177,7 +177,7 @@ int rinoo_dns_query_get(t_buffer_iterator *iterator, t_rinoodns_query *query)
 	return 0;
 }
 
-int rinoo_dns_record_get(t_buffer_iterator *iterator, t_rinoodns_record *record)
+int rinoo_dns_record_get(t_buffer_iterator *iterator, t_dns_record *record)
 {
 	buffer_set(&record->name.buffer, record->name.value, sizeof(record->name.value));
 	if (rinoo_dns_name_get(iterator, &record->name.buffer) != 0) {

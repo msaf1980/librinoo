@@ -10,10 +10,10 @@
 
 #include "rinoo/fs/module.h"
 
-t_rinoo_inotify *rinoo_inotify(t_rinoosched *sched)
+t_inotify *rinoo_inotify(t_sched *sched)
 {
 	int fd;
-	t_rinoo_inotify *notify;
+	t_inotify *notify;
 
 	fd = inotify_init1(IN_NONBLOCK);
 	if (fd < 0) {
@@ -35,7 +35,7 @@ t_rinoo_inotify *rinoo_inotify(t_rinoosched *sched)
 	return notify;
 }
 
-void rinoo_inotify_destroy(t_rinoo_inotify *notify)
+void rinoo_inotify_destroy(t_inotify *notify)
 {
 	size_t i;
 
@@ -50,12 +50,12 @@ void rinoo_inotify_destroy(t_rinoo_inotify *notify)
 	free(notify);
 }
 
-t_rinoo_inotify_watch *rinoo_inotify_add_watch(t_rinoo_inotify *inotify, const char *path, t_rinoo_inotify_type type, bool recursive)
+t_inotify_watch *rinoo_inotify_add_watch(t_inotify *inotify, const char *path, t_inotify_type type, bool recursive)
 {
 	int wd;
 	int nb;
 	t_fs_entry *entry;
-	t_rinoo_inotify_watch *watch;
+	t_inotify_watch *watch;
 
 	if (inotify->nb_watches >= ARRAY_SIZE(inotify->watches)) {
 		return NULL;
@@ -99,7 +99,7 @@ t_rinoo_inotify_watch *rinoo_inotify_add_watch(t_rinoo_inotify *inotify, const c
 	return watch;
 }
 
-int rinoo_inotify_rm_watch(t_rinoo_inotify *inotify, t_rinoo_inotify_watch *watch)
+int rinoo_inotify_rm_watch(t_inotify *inotify, t_inotify_watch *watch)
 {
 	inotify_rm_watch(inotify->node.fd, watch->wd);
 	inotify->watches[watch->wd] = NULL;
@@ -109,7 +109,7 @@ int rinoo_inotify_rm_watch(t_rinoo_inotify *inotify, t_rinoo_inotify_watch *watc
 	return 0;
 }
 
-static int rinoo_inotify_waitio(t_rinoo_inotify *inotify)
+static int rinoo_inotify_waitio(t_inotify *inotify)
 {
 	inotify->io_calls++;
 	if (inotify->io_calls > 10) {
@@ -121,7 +121,7 @@ static int rinoo_inotify_waitio(t_rinoo_inotify *inotify)
 	return 0;
 }
 
-t_rinoo_inotify_event *rinoo_inotify_event(t_rinoo_inotify *inotify)
+t_inotify_event *rinoo_inotify_event(t_inotify *inotify)
 {
 	ssize_t ret;
 	struct inotify_event *ievent;

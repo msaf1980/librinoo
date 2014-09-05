@@ -10,7 +10,7 @@
 
 #include "rinoo/proto/http/module.h"
 
-int rinoohttp_init(t_rinoosocket *socket, t_rinoohttp *http)
+int rinoo_http_init(t_socket *socket, t_http *http)
 {
 	memset(http, 0, sizeof(*http));
 	http->socket = socket;
@@ -23,12 +23,12 @@ int rinoohttp_init(t_rinoosocket *socket, t_rinoohttp *http)
 		buffer_destroy(http->request.buffer);
 		return -1;
 	}
-	if (rinoohttp_headers_init(&http->request.headers) != 0) {
+	if (rinoo_http_headers_init(&http->request.headers) != 0) {
 		buffer_destroy(http->request.buffer);
 		buffer_destroy(http->response.buffer);
 		return -1;
 	}
-	if (rinoohttp_headers_init(&http->response.headers) != 0) {
+	if (rinoo_http_headers_init(&http->response.headers) != 0) {
 		buffer_destroy(http->request.buffer);
 		buffer_destroy(http->response.buffer);
 		return -1;
@@ -37,7 +37,7 @@ int rinoohttp_init(t_rinoosocket *socket, t_rinoohttp *http)
 	return 0;
 }
 
-void rinoohttp_destroy(t_rinoohttp *http)
+void rinoo_http_destroy(t_http *http)
 {
 	if (http->request.buffer != NULL) {
 		buffer_destroy(http->request.buffer);
@@ -47,11 +47,11 @@ void rinoohttp_destroy(t_rinoohttp *http)
 		buffer_destroy(http->response.buffer);
 		http->response.buffer = NULL;
 	}
-	rinoohttp_headers_flush(&http->request.headers);
-	rinoohttp_headers_flush(&http->response.headers);
+	rinoo_http_headers_flush(&http->request.headers);
+	rinoo_http_headers_flush(&http->response.headers);
 }
 
-void rinoohttp_reset(t_rinoohttp *http)
+void rinoo_http_reset(t_http *http)
 {
 	/* Reset request */
 	memset(&http->request.uri, 0, sizeof(http->request.uri));
@@ -59,12 +59,12 @@ void rinoohttp_reset(t_rinoohttp *http)
 	http->request.content_length = 0;
 	http->request.method = RINOO_HTTP_METHOD_UNKNOWN;
 	buffer_erase(http->request.buffer, buffer_size(http->request.buffer));
-	rinoohttp_headers_flush(&http->request.headers);
+	rinoo_http_headers_flush(&http->request.headers);
 	/* Reset response */
 	memset(&http->response.msg, 0, sizeof(http->response.msg));
 	http->response.code = 0;
 	http->response.headers_length = 0;
 	http->response.content_length = 0;
 	buffer_erase(http->response.buffer, buffer_size(http->response.buffer));
-	rinoohttp_headers_flush(&http->response.headers);
+	rinoo_http_headers_flush(&http->response.headers);
 }

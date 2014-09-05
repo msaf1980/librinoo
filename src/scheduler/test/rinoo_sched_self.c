@@ -10,7 +10,7 @@
 
 #include "rinoo/rinoo.h"
 
-t_rinoosched *sched;
+t_sched *sched;
 
 void task3(void *unused(arg))
 {

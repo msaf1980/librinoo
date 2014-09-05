@@ -16,7 +16,7 @@ int checker[NBSPAWNS + 1];
 
 void task(void *unused(arg))
 {
-	t_rinoosched *cur;
+	t_sched *cur;
 
 	rinoo_log("%s start %d", __FUNCTION__, rinoo_sched_self()->id);
 	/* sleep should return as soon as we get killed by the main scheduler */
@@ -37,7 +37,7 @@ void task(void *unused(arg))
  */
 void wait_and_stop(void *sched)
 {
-	t_rinoosched *cur;
+	t_sched *cur;
 
 	cur = rinoo_sched_self();
 	XTEST(cur == sched);
@@ -58,8 +58,8 @@ void wait_and_stop(void *sched)
 int main()
 {
 	int i;
-	t_rinoosched *cur;
-	t_rinoosched *sched;
+	t_sched *cur;
+	t_sched *sched;
 
 	memset(checker, 0, sizeof(*checker) * NBSPAWNS);
 	sched = rinoo_sched();

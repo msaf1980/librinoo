@@ -13,21 +13,21 @@
 
 #define RINOO_HTTP_SIGNATURE	"RiNOO/" VERSION
 
-typedef enum e_rinoohttp_version {
+typedef enum e_http_version {
 	RINOO_HTTP_VERSION_10 = 0,
 	RINOO_HTTP_VERSION_11,
 	RINOO_HTTP_VERSION_UNKNOWN
-} t_rinoohttp_version;
+} t_http_version;
 
-typedef struct s_rinoohttp {
-	t_rinoosocket *socket;
-	t_rinoohttp_version version;
-	t_rinoohttp_request request;
-	t_rinoohttp_response response;
-} t_rinoohttp;
+typedef struct s_http {
+	t_socket *socket;
+	t_http_version version;
+	t_http_request request;
+	t_http_response response;
+} t_http;
 
-int rinoohttp_init(t_rinoosocket *socket, t_rinoohttp *http);
-void rinoohttp_destroy(t_rinoohttp *http);
-void rinoohttp_reset(t_rinoohttp *http);
+int rinoo_http_init(t_socket *socket, t_http *http);
+void rinoo_http_destroy(t_http *http);
+void rinoo_http_reset(t_http *http);
 
 #endif /* !RINOO_PROTO_HTTP_H_ */

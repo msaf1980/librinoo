@@ -16,7 +16,7 @@ int checker[NBSPAWNS + 1];
 
 void task(void *unused(arg))
 {
-	t_rinoosched *cur;
+	t_sched *cur;
 
 	printf("%s start\n", __FUNCTION__);
 	cur = rinoo_sched_self();
@@ -36,8 +36,8 @@ void task(void *unused(arg))
 int main()
 {
 	int i;
-	t_rinoosched *cur;
-	t_rinoosched *sched;
+	t_sched *cur;
+	t_sched *sched;
 
 	memset(checker, 0, sizeof(*checker) * NBSPAWNS);
 	sched = rinoo_sched();

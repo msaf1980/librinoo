@@ -14,14 +14,14 @@
 typedef struct s_fs_directory {
 	DIR *fd;
 	char *path;
-	t_rinoolist_node stack_node;
+	t_list_node stack_node;
 } t_fs_directory;
 
 typedef struct s_fs_entry {
 	t_buffer *path;
 	struct stat stat;
 	struct dirent *entry;
-	t_rinoolist stack;
+	t_list stack;
 } t_fs_entry;
 
 int rinoo_fs_browse(const char *path, t_fs_entry **last_entry);

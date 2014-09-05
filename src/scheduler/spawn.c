@@ -18,11 +18,11 @@
  *
  * @return 0 on success, otherwise -1
  */
-int rinoo_spawn(t_rinoosched *sched, int count)
+int rinoo_spawn(t_sched *sched, int count)
 {
 	int i;
-	t_rinoosched *child;
-	t_rinoothread *thread;
+	t_sched *child;
+	t_thread *thread;
 
 	if (sched->spawns.count == 0) {
 		thread = calloc(count, sizeof(*thread));
@@ -55,7 +55,7 @@ int rinoo_spawn(t_rinoosched *sched, int count)
  *
  * @param sched
  */
-void rinoo_spawn_destroy(t_rinoosched *sched)
+void rinoo_spawn_destroy(t_sched *sched)
 {
 	if (sched->spawns.thread != NULL) {
 		free(sched->spawns.thread);
@@ -72,7 +72,7 @@ void rinoo_spawn_destroy(t_rinoosched *sched)
  *
  * @return Pointer to the spawn or NULL if an error occured
  */
-t_rinoosched *rinoo_spawn_get(t_rinoosched *sched, int id)
+t_sched *rinoo_spawn_get(t_sched *sched, int id)
 {
 	if (id < 0 || id > sched->spawns.count) {
 		return NULL;
@@ -105,7 +105,7 @@ static void *rinoo_spawn_loop(void *sched)
  */
 static void rinoo_spawn_handler_stop(int unused(sig))
 {
-	t_rinoosched *sched = rinoo_sched_self();
+	t_sched *sched = rinoo_sched_self();
 
 	if (sched != NULL) {
 		rinoo_sched_stop(sched);
@@ -119,7 +119,7 @@ static void rinoo_spawn_handler_stop(int unused(sig))
  *
  * @return 0 on success otherwise -1
  */
-int rinoo_spawn_start(t_rinoosched *sched)
+int rinoo_spawn_start(t_sched *sched)
 {
 	int i;
 	sigset_t oldset;
@@ -148,7 +148,7 @@ int rinoo_spawn_start(t_rinoosched *sched)
  *
  * @param sched Main scheduler
  */
-void rinoo_spawn_stop(t_rinoosched *sched)
+void rinoo_spawn_stop(t_sched *sched)
 {
 	int i;
 
@@ -165,7 +165,7 @@ void rinoo_spawn_stop(t_rinoosched *sched)
  *
  * @param sched Main scheduler
  */
-void rinoo_spawn_join(t_rinoosched *sched)
+void rinoo_spawn_join(t_sched *sched)
 {
 	int i;
 

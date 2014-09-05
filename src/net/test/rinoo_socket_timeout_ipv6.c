@@ -9,12 +9,12 @@
  */
 #include "rinoo/rinoo.h"
 
-extern const t_rinoosocket_class socket_class_tcp6;
+extern const t_socket_class socket_class_tcp6;
 
 void process_client(void *arg)
 {
 	char a;
-	t_rinoosocket *socket = arg;
+	t_socket *socket = arg;
 
 	rinoo_log("server - client accepted");
 	rinoo_log("server - receiving nothing, waiting timeout");
@@ -24,10 +24,10 @@ void process_client(void *arg)
 
 void server_func(void *arg)
 {
-	t_rinoosocket *server;
-	t_rinoosocket *client;
+	t_socket *server;
+	t_socket *client;
 	struct sockaddr_in6 addr = { 0 };
-	t_rinoosched *sched = arg;
+	t_sched *sched = arg;
 
 	server = rinoo_socket(sched, &socket_class_tcp6);
 	XTEST(server != NULL);
@@ -46,8 +46,8 @@ void client_func(void *arg)
 {
 	char a;
 	struct sockaddr_in6 addr = { 0 };
-	t_rinoosocket *socket;
-	t_rinoosched *sched = arg;
+	t_socket *socket;
+	t_sched *sched = arg;
 
 	socket = rinoo_socket(sched, &socket_class_tcp6);
 	XTEST(socket != NULL);
@@ -70,7 +70,7 @@ void client_func(void *arg)
  */
 int main()
 {
-	t_rinoosched *sched;
+	t_sched *sched;
 
 	sched = rinoo_sched();
 	XTEST(sched != NULL);

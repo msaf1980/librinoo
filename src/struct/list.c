@@ -19,7 +19,7 @@
  *
  * @return 0 on success otherwise -1
  */
-int rinoolist(t_rinoolist *list, int (*compare)(t_rinoolist_node *node1, t_rinoolist_node *node2))
+int list(t_list *list, int (*compare)(t_list_node *node1, t_list_node *node2))
 {
 	list->head = NULL;
 	list->tail = NULL;
@@ -34,12 +34,12 @@ int rinoolist(t_rinoolist *list, int (*compare)(t_rinoolist_node *node1, t_rinoo
  * @param list List to flush
  * @param delete Optional delete function to be called for each list node
  */
-void rinoolist_flush(t_rinoolist *list, void (*delete)(t_rinoolist_node *node1))
+void list_flush(t_list *list, void (*delete)(t_list_node *node1))
 {
-	t_rinoolist_node *node;
+	t_list_node *node;
 
 	if (delete != NULL) {
-		while ((node = rinoolist_pop(list)) != NULL) {
+		while ((node = list_pop(list)) != NULL) {
 			delete(node);
 		}
 	}
@@ -55,7 +55,7 @@ void rinoolist_flush(t_rinoolist *list, void (*delete)(t_rinoolist_node *node1))
  *
  * @return List size
  */
-size_t rinoolist_size(t_rinoolist *list)
+size_t list_size(t_list *list)
 {
 	return list->size;
 }
@@ -66,7 +66,7 @@ size_t rinoolist_size(t_rinoolist *list)
  * @param list Pointer to the list
  * @param node Pointer to the node to add
  */
-void rinoolist_put(t_rinoolist *list, t_rinoolist_node *node)
+void list_put(t_list *list, t_list_node *node)
 {
 	node->prev = NULL;
 	node->next = list->head;
@@ -97,7 +97,7 @@ void rinoolist_put(t_rinoolist *list, t_rinoolist_node *node)
  *
  * @return Pointer to the matching node or NULL if not found.
  */
-t_rinoolist_node *rinoolist_get(t_rinoolist *list, t_rinoolist_node *node)
+t_list_node *list_get(t_list *list, t_list_node *node)
 {
 	if (list->compare == NULL) {
 		return NULL;
@@ -120,7 +120,7 @@ t_rinoolist_node *rinoolist_get(t_rinoolist *list, t_rinoolist_node *node)
  *
  * @return 0 on success otherwise -1 if an error occurs
  */
-int rinoolist_remove(t_rinoolist *list, t_rinoolist_node *node)
+int list_remove(t_list *list, t_list_node *node)
 {
 	if (node->prev == NULL && node->next == NULL && list->head != node) {
 		/* Node already removed */
@@ -149,13 +149,13 @@ int rinoolist_remove(t_rinoolist *list, t_rinoolist_node *node)
  *
  * @return First element in the list or NULL if empty
  */
-t_rinoolist_node *rinoolist_pop(t_rinoolist *list)
+t_list_node *list_pop(t_list *list)
 {
-	t_rinoolist_node *node;
+	t_list_node *node;
 
 	node = list->head;
 	if (node != NULL) {
-		rinoolist_remove(list, node);
+		list_remove(list, node);
 	}
 	return node;
 }
@@ -167,7 +167,7 @@ t_rinoolist_node *rinoolist_pop(t_rinoolist *list)
  *
  * @return First element in the list or NULL if empty
  */
-t_rinoolist_node *rinoolist_head(t_rinoolist *list)
+t_list_node *list_head(t_list *list)
 {
 	return list->head;
 }

@@ -16,9 +16,9 @@
  *
  * @return Pointer to the new scheduler, or NULL if an error occurs
  */
-t_rinoosched *rinoo_sched(void)
+t_sched *rinoo_sched(void)
 {
-	t_rinoosched *sched;
+	t_sched *sched;
 
 	sched = calloc(1, sizeof(*sched));
 	if (sched == NULL) {
@@ -32,7 +32,7 @@ t_rinoosched *rinoo_sched(void)
 		rinoo_sched_destroy(sched);
 		return NULL;
 	}
-	if (rinoolist(&sched->nodes, NULL) != 0) {
+	if (list(&sched->nodes, NULL) != 0) {
 		rinoo_sched_destroy(sched);
 		return NULL;
 	}
@@ -40,11 +40,11 @@ t_rinoosched *rinoo_sched(void)
 	return sched;
 }
 
-static void rinoo_sched_cancel_task(t_rinoolist_node *node)
+static void rinoo_sched_cancel_task(t_list_node *node)
 {
-	t_rinoosched_node *sched_node;
+	t_sched_node *sched_node;
 
-	sched_node = container_of(node, t_rinoosched_node, lnode);
+	sched_node = container_of(node, t_sched_node, lnode);
 	sched_node->error = ECANCELED;
 	errno = sched_node->error;
 	if (rinoo_task_resume(sched_node->task) != 0 && sched_node->task != NULL) {
@@ -57,7 +57,7 @@ static void rinoo_sched_cancel_task(t_rinoolist_node *node)
  *
  * @param sched Pointer to the scheduler to destroy
  */
-void rinoo_sched_destroy(t_rinoosched *sched)
+void rinoo_sched_destroy(t_sched *sched)
 {
 	XASSERTN(sched != NULL);
 
@@ -65,7 +65,7 @@ void rinoo_sched_destroy(t_rinoosched *sched)
 	rinoo_sched_stop(sched);
 	/* Destroying all pending tasks. */
 	rinoo_task_driver_stop(sched);
-	rinoolist_flush(&sched->nodes, rinoo_sched_cancel_task);
+	list_flush(&sched->nodes, rinoo_sched_cancel_task);
 	rinoo_task_driver_destroy(sched);
 	rinoo_epoll_destroy(sched);
 	free(sched);
@@ -77,9 +77,9 @@ void rinoo_sched_destroy(t_rinoosched *sched)
  *
  * @return Pointer to the active scheduler or NULL if none.
  */
-t_rinoosched *rinoo_sched_self(void)
+t_sched *rinoo_sched_self(void)
 {
-	t_rinootask *task;
+	t_task *task;
 
 	task = rinoo_task_self();
 	if (task == NULL) {
@@ -96,7 +96,7 @@ t_rinoosched *rinoo_sched_self(void)
  *
  * @return 0 on success, or -1 if an error occurs.
  */
-int rinoo_sched_waitfor(t_rinoosched_node *node, t_rinoosched_mode mode)
+int rinoo_sched_waitfor(t_sched_node *node, t_sched_mode mode)
 {
 	int error;
 
@@ -117,7 +117,7 @@ int rinoo_sched_waitfor(t_rinoosched_node *node, t_rinoosched_mode mode)
 			if (unlikely(rinoo_epoll_insert(node, mode) != 0)) {
 				return -1;
 			}
-			rinoolist_put(&node->sched->nodes, &node->lnode);
+			list_put(&node->sched->nodes, &node->lnode);
 		} else {
 			if (unlikely(rinoo_epoll_addmode(node, node->waiting | mode) != 0)) {
 				return -1;
@@ -171,9 +171,9 @@ int rinoo_sched_waitfor(t_rinoosched_node *node, t_rinoosched_mode mode)
  *
  * @return 0 on success, otherwise -1.
  */
-int rinoo_sched_remove(t_rinoosched_node *node)
+int rinoo_sched_remove(t_sched_node *node)
 {
-	if (rinoolist_remove(&node->sched->nodes, &node->lnode) != 0) {
+	if (list_remove(&node->sched->nodes, &node->lnode) != 0) {
 		/* Node already removed */
 		return -1;
 	}
@@ -192,7 +192,7 @@ int rinoo_sched_remove(t_rinoosched_node *node)
  * @param mode IO Event.
  * @param error Error flag.
  */
-void rinoo_sched_wakeup(t_rinoosched_node *node, t_rinoosched_mode mode, int error)
+void rinoo_sched_wakeup(t_sched_node *node, t_sched_mode mode, int error)
 {
 	if (node->error == 0) {
 		node->error = error;
@@ -212,7 +212,7 @@ void rinoo_sched_wakeup(t_rinoosched_node *node, t_rinoosched_mode mode, int err
  *
  * @param sched Pointer to the scheduler to stop.
  */
-void rinoo_sched_stop(t_rinoosched *sched)
+void rinoo_sched_stop(t_sched *sched)
 {
 	XASSERTN(sched != NULL);
 
@@ -229,7 +229,7 @@ void rinoo_sched_stop(t_rinoosched *sched)
  *
  * @return true if scheduling is over, otherwise false.
  */
-static bool rinoo_sched_end(t_rinoosched *sched)
+static bool rinoo_sched_end(t_sched *sched)
 {
 	return (sched->stop == true || (sched->nbpending == 0 && rinoo_task_driver_nbpending(sched) == 0));
 }
@@ -241,7 +241,7 @@ static bool rinoo_sched_end(t_rinoosched *sched)
  *
  * @return 0 on success, otherwise -1.
  */
-int rinoo_sched_poll(t_rinoosched *sched)
+int rinoo_sched_poll(t_sched *sched)
 {
 	int timeout;
 
@@ -260,7 +260,7 @@ int rinoo_sched_poll(t_rinoosched *sched)
  * @param sched Pointer to the scheduler to use.
  *
  */
-void rinoo_sched_loop(t_rinoosched *sched)
+void rinoo_sched_loop(t_sched *sched)
 {
 	sched->stop = false;
 	if (rinoo_spawn_start(sched) != 0) {

@@ -15,10 +15,10 @@
 typedef struct mytest
 {
 	int val;
-	t_rinoorbtree_node node;
+	t_rbtree_node node;
 } tmytest;
 
-int cmp_func(t_rinoorbtree_node *node1, t_rinoorbtree_node *node2)
+int cmp_func(t_rbtree_node *node1, t_rbtree_node *node2)
 {
 	tmytest *a = container_of(node1, tmytest, node);
 	tmytest *b = container_of(node2, tmytest, node);
@@ -31,33 +31,33 @@ int main()
 	int i;
 	int min;
 	tmytest *head;
-	t_rinoorbtree tree;
-	t_rinoorbtree_node *node;
+	t_rbtree tree;
+	t_rbtree_node *node;
 	tmytest tab[RINOO_HEADTEST_NB_ELEM];
 
-	XTEST(rinoorbtree(&tree, cmp_func, NULL) == 0);
+	XTEST(rbtree(&tree, cmp_func, NULL) == 0);
 	for (i = 0; i < RINOO_HEADTEST_NB_ELEM; i++) {
 		tab[i].val = random();
 		if (i == 0 || min > tab[i].val) {
 			min = tab[i].val;
 		}
-		XTEST(rinoorbtree_put(&tree, &tab[i].node) == 0);
+		XTEST(rbtree_put(&tree, &tab[i].node) == 0);
 		XTEST(tree.head != NULL);
 		head = container_of(tree.head, tmytest, node);
 		XTEST(head->val == min);
 	}
-	rinoorbtree_flush(&tree);
+	rbtree_flush(&tree);
 	for (i = 0; i < RINOO_HEADTEST_NB_ELEM; i++) {
 		tab[i].val = i;
-		XTEST(rinoorbtree_put(&tree, &tab[i].node) == 0);
+		XTEST(rbtree_put(&tree, &tab[i].node) == 0);
 		XTEST(tree.head != NULL);
 	}
 	for (i = 0; i < RINOO_HEADTEST_NB_ELEM; i++) {
-		node = rinoorbtree_head(&tree);
+		node = rbtree_head(&tree);
 		XTEST(node != NULL);
 		head = container_of(node, tmytest, node);
 		XTEST(head->val == i);
-		rinoorbtree_remove(&tree, node);
+		rbtree_remove(&tree, node);
 	}
 	XPASS();
 }

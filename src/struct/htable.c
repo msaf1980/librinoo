@@ -20,7 +20,7 @@
  *
  * @return 0 on success otherwise -1;
  */
-int rinoohtable(t_rinoohtable *htable, size_t size, uint32_t (*hash)(t_rinoohtable_node *node), int (*compare)(t_rinoohtable_node *node1, t_rinoohtable_node *node2))
+int htable(t_htable *htable, size_t size, uint32_t (*hash)(t_htable_node *node), int (*compare)(t_htable_node *node1, t_htable_node *node2))
 {
 	htable->size = 0;
 	htable->table_size = size;
@@ -38,7 +38,7 @@ int rinoohtable(t_rinoohtable *htable, size_t size, uint32_t (*hash)(t_rinoohtab
  *
  * @param htable Hash table to destroy
  */
-void rinoohtable_destroy(t_rinoohtable *htable)
+void htable_destroy(t_htable *htable)
 {
 	if (htable->table != NULL) {
 		free(htable->table);
@@ -52,11 +52,11 @@ void rinoohtable_destroy(t_rinoohtable *htable)
  * @param htable Hash table to flush
  * @param delete Optional delete function to be called for each hash table node
  */
-void rinoohtable_flush(t_rinoohtable *htable, void (*delete)(t_rinoohtable_node *node1))
+void htable_flush(t_htable *htable, void (*delete)(t_htable_node *node1))
 {
 	size_t i;
-	t_rinoohtable_node *node;
-	t_rinoohtable_node *next;
+	t_htable_node *node;
+	t_htable_node *next;
 
 	if (delete != NULL) {
 		for (i = 0; i < htable->table_size; i++) {
@@ -79,7 +79,7 @@ void rinoohtable_flush(t_rinoohtable *htable, void (*delete)(t_rinoohtable_node 
  *
  * @return Hash table size
  */
-size_t rinoohtable_size(t_rinoohtable *htable)
+size_t htable_size(t_htable *htable)
 {
 	return htable->size;
 }
@@ -90,9 +90,9 @@ size_t rinoohtable_size(t_rinoohtable *htable)
  * @param htable Hash table to add to
  * @param node Hash table node to add
  */
-void rinoohtable_put(t_rinoohtable *htable, t_rinoohtable_node *node)
+void htable_put(t_htable *htable, t_htable_node *node)
 {
-	t_rinoohtable_node **head;
+	t_htable_node **head;
 
 	node->hash = htable->hash(node);
 	head = &htable->table[node->hash % htable->table_size];
@@ -121,7 +121,7 @@ void rinoohtable_put(t_rinoohtable *htable, t_rinoohtable_node *node)
  *
  * @return The matching node or NULL if not found.
  */
-t_rinoohtable_node *rinoohtable_get(t_rinoohtable *htable, t_rinoohtable_node *node)
+t_htable_node *htable_get(t_htable *htable, t_htable_node *node)
 {
 	node->hash = htable->hash(node);
 	node->next = htable->table[node->hash % htable->table_size];
@@ -142,7 +142,7 @@ t_rinoohtable_node *rinoohtable_get(t_rinoohtable *htable, t_rinoohtable_node *n
  *
  * @return 0 on success, otherwise -1
  */
-int rinoohtable_remove(t_rinoohtable *htable, t_rinoohtable_node *node)
+int htable_remove(t_htable *htable, t_htable_node *node)
 {
 	if (node->prev != NULL) {
 		node->prev->next = node->next;

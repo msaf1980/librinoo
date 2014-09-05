@@ -35,34 +35,34 @@
 #ifndef RINOO_STRUCT_RBTREE_H_
 #define RINOO_STRUCT_RBTREE_H_
 
-typedef enum e_rinoorbtree_color {
+typedef enum e_rbtree_color {
 	RINOO_RBTREE_RED = 0,
 	RINOO_RBTREE_BLACK
-} t_rinoorbtree_color;
+} t_rbtree_color;
 
-typedef struct s_rinoorbtree_node {
-	t_rinoorbtree_color color;
-	struct s_rinoorbtree_node *left;
-	struct s_rinoorbtree_node *right;
-	struct s_rinoorbtree_node *parent;
-} t_rinoorbtree_node;
+typedef struct s_rbtree_node {
+	t_rbtree_color color;
+	struct s_rbtree_node *left;
+	struct s_rbtree_node *right;
+	struct s_rbtree_node *parent;
+} t_rbtree_node;
 
-typedef struct s_rinoorbtree {
+typedef struct s_rbtree {
 	uint64_t size;
-	t_rinoorbtree_node *root;
-	t_rinoorbtree_node *head;
-	int (*compare)(t_rinoorbtree_node *node1, t_rinoorbtree_node *node2);
-	void (*delete)(t_rinoorbtree_node *node);
-} t_rinoorbtree;
+	t_rbtree_node *root;
+	t_rbtree_node *head;
+	int (*compare)(t_rbtree_node *node1, t_rbtree_node *node2);
+	void (*delete)(t_rbtree_node *node);
+} t_rbtree;
 
-int rinoorbtree(t_rinoorbtree *tree,
-		int (*compare)(t_rinoorbtree_node *node1, t_rinoorbtree_node *node2),
-		void (*delete)(t_rinoorbtree_node *node));
-void rinoorbtree_flush(t_rinoorbtree *tree);
-int rinoorbtree_put(t_rinoorbtree *tree, t_rinoorbtree_node *node);
-void rinoorbtree_remove(t_rinoorbtree *tree, t_rinoorbtree_node *node);
-t_rinoorbtree_node *rinoorbtree_head(t_rinoorbtree *tree);
-t_rinoorbtree_node *rinoorbtree_next(t_rinoorbtree_node *node);
-t_rinoorbtree_node *rinoorbtree_find(t_rinoorbtree *tree, t_rinoorbtree_node *node);
+int rbtree(t_rbtree *tree,
+		int (*compare)(t_rbtree_node *node1, t_rbtree_node *node2),
+		void (*delete)(t_rbtree_node *node));
+void rbtree_flush(t_rbtree *tree);
+int rbtree_put(t_rbtree *tree, t_rbtree_node *node);
+void rbtree_remove(t_rbtree *tree, t_rbtree_node *node);
+t_rbtree_node *rbtree_head(t_rbtree *tree);
+t_rbtree_node *rbtree_next(t_rbtree_node *node);
+t_rbtree_node *rbtree_find(t_rbtree *tree, t_rbtree_node *node);
 
 #endif /* !RINOO_STRUCT_RBTREE_H_ */
