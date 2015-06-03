@@ -51,6 +51,8 @@ int rinoo_dns_query(t_dns *dns, t_dns_type type, const char *host)
 	DNS_QUERY_SET_RD(header.flags, 1);
 	DNS_QUERY_SET_RA(header.flags, 0);
 	DNS_QUERY_SET_Z(header.flags, 0);
+	DNS_QUERY_SET_AD(header.flags, 0);
+	DNS_QUERY_SET_CD(header.flags, 0);
 	DNS_QUERY_SET_RCODE(header.flags, 0);
 	header.flags = htons(header.flags);
 	header.qdcount = htons(1);
@@ -77,6 +79,30 @@ int rinoo_dns_query(t_dns *dns, t_dns_type type, const char *host)
 	tmp = htons(1);
 	buffer_add(&dns->buffer, (char *) &tmp, sizeof(tmp));
 	if (rinoo_socket_writeb(dns->socket, &dns->buffer) <= 0) {
+		return -1;
+	}
+	return 0;
+}
+
+int rinoo_dns_get(t_dns *dns, t_dns_query *query, t_ip *from)
+{
+	ssize_t count;
+	socklen_t len;
+	t_buffer_iterator iterator;
+
+	buffer_erase(&dns->buffer, 0);
+	buffer_set(&query->name.buffer, query->name.value, sizeof(query->name.value));
+	len = sizeof(from->v4);
+	count = rinoo_socket_recvfrom(dns->socket, buffer_ptr(&dns->buffer), buffer_msize(&dns->buffer), (struct sockaddr *) &from->v4, &len);
+	if (count <= 0) {
+		return -1;
+	}
+	dns->buffer.size = count;
+	buffer_iterator_set(&iterator, &dns->buffer);
+	if (rinoo_dns_header_get(&iterator, &dns->header) != 0) {
+		return -1;
+	}
+	if (rinoo_dns_query_get(&iterator, query) != 0) {
 		return -1;
 	}
 	return 0;

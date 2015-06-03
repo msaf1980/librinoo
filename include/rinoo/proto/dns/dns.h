@@ -137,7 +137,9 @@ typedef struct s_dns {
 #define DNS_QUERY_SET_TC(flags, value)		do { flags = (flags & ~0x0200) | (0x0200 & (value << 9)); } while (0)
 #define DNS_QUERY_SET_RD(flags, value)		do { flags = (flags & ~0x0100) | (0x0100 & (value << 8)); } while (0)
 #define DNS_QUERY_SET_RA(flags, value)		do { flags = (flags & ~0x0080) | (0x0080 & (value << 7)); } while (0)
-#define DNS_QUERY_SET_Z(flags, value)		do { flags = (flags & ~0x0070) | (0x0070 & (value << 4)); } while (0)
+#define DNS_QUERY_SET_Z(flags, value)		do { flags = (flags & ~0x0040) | (0x0040 & (value << 6)); } while (0)
+#define DNS_QUERY_SET_AD(flags, value)		do { flags = (flags & ~0x0020) | (0x0020 & (value << 5)); } while (0)
+#define DNS_QUERY_SET_CD(flags, value)		do { flags = (flags & ~0x0010) | (0x0010 & (value << 4)); } while (0)
 #define DNS_QUERY_SET_RCODE(flags, value)	do { flags = (flags & ~0x000f) | (0x000f & (value)); } while (0)
 
 #define DNS_QUERY_GET_QR(flags)			(flags & 0x8000)
@@ -161,5 +163,7 @@ int rinoo_dns_name_get(t_buffer_iterator *iterator, t_buffer *name);
 int rinoo_dns_rdata_get(t_buffer_iterator *iterator, size_t rdlength, t_dns_type type, t_dns_rdata *rdata);
 int rinoo_dns_query_get(t_buffer_iterator *iterator, t_dns_query *query);
 int rinoo_dns_record_get(t_buffer_iterator *iterator, t_dns_record *record);
+int rinoo_dns_get(t_dns *dns, t_dns_query *query, t_ip *from);
+int rinoo_dns_reply_get(t_dns *dns, uint32_t timeout);
 
 #endif /* !RINOO_PROTO_DNS_DNS_H_ */
