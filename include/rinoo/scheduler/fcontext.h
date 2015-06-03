@@ -32,20 +32,13 @@
 #define FCONTEXT_H_
 
 enum {
-	FREG_R8 = 0,
-	FREG_R9,
-	FREG_R10,
-	FREG_R11,
-	FREG_R12,
+	FREG_R12 = 0,
 	FREG_R13,
 	FREG_R14,
 	FREG_R15,
 	FREG_RDI,
-	FREG_RSI,
 	FREG_RBP,
 	FREG_RBX,
-	FREG_RDX,
-	FREG_RCX,
 	FREG_RSP,
 	FREG_RIP,
 	NB_FREG
@@ -57,8 +50,8 @@ typedef struct s_fstack {
 } t_fstack;
 
 typedef struct s_fcontext {
-	struct s_fcontext *link;
 	long int reg[NB_FREG];
+	struct s_fcontext *link;
 	t_fstack stack;
 } t_fcontext;
 
