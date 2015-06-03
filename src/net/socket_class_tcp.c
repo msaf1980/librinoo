@@ -435,9 +435,20 @@ int rinoo_socket_class_tcp_bind(t_socket *socket, const struct sockaddr *addr, s
 	int enabled;
 
 	enabled = 1;
-	if (setsockopt(socket->node.fd, SOL_SOCKET, SO_REUSEADDR, &enabled, sizeof(enabled)) == -1 ||
-	    bind(socket->node.fd, addr, addrlen) == -1 ||
-	    listen(socket->node.fd, backlog) == -1) {
+
+#ifdef SO_REUSEPORT
+	if (setsockopt(socket->node.fd, SOL_SOCKET, SO_REUSEPORT, &enabled, sizeof(enabled)) == -1) {
+		return -1;
+	}
+#endif /* !SO_REUSEPORT */
+
+	if (setsockopt(socket->node.fd, SOL_SOCKET, SO_REUSEADDR, &enabled, sizeof(enabled)) == -1) {
+		return -1;
+	}
+	if (bind(socket->node.fd, addr, addrlen) == -1) {
+		return -1;
+	}
+	if (listen(socket->node.fd, backlog) == -1) {
 		return -1;
 	}
 	return 0;
