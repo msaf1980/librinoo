@@ -207,9 +207,7 @@ static void rbtree_remove_color(t_rbtree *tree, t_rbtree_node *parent, t_rbtree_
 	}
 }
 
-int rbtree(t_rbtree *tree,
-		int (*compare)(t_rbtree_node *node1, t_rbtree_node *node2),
-		void (*delete)(t_rbtree_node *node))
+int rbtree(t_rbtree *tree, int (*compare)(t_rbtree_node *node1, t_rbtree_node *node2), void (*delete)(t_rbtree_node *node))
 {
 	XASSERT(tree != NULL, -1);
 	XASSERT(compare != NULL, -1);
