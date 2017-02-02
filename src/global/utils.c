@@ -1,7 +1,7 @@
 /**
  * @file   utils.c
  * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
- * @date   Tue Mar 20 18:15:13 2012
+ * @date   Wed Feb  1 18:56:27 2017
  *
  * @brief  Utility functions
  *
@@ -15,7 +15,7 @@
  *
  * @param format printf's like format.
  */
-void rinoo_log(const char *format, ...)
+void rn_log(const char *format, ...)
 {
 	uint32_t i;
 	uint32_t res;
@@ -26,24 +26,24 @@ void rinoo_log(const char *format, ...)
 	struct tm tmp;
 	struct timeval tv;
 
-	logline = malloc(sizeof(*logline) * RINOO_LOG_MAXLENGTH);
+	logline = malloc(sizeof(*logline) * RN_LOG_MAXLENGTH);
 	XASSERTN(logline != NULL);
-	esclogline = malloc(sizeof(*esclogline) * RINOO_LOG_MAXLENGTH);
+	esclogline = malloc(sizeof(*esclogline) * RN_LOG_MAXLENGTH);
 	XASSERTN(esclogline != NULL);
 	XASSERTN(gettimeofday(&tv, NULL) == 0);
 	XASSERTN(localtime_r(&tv.tv_sec, &tmp) != NULL);
-	offset = strftime(logline, RINOO_LOG_MAXLENGTH, "[%Y/%m/%d %T.", &tmp);
+	offset = strftime(logline, RN_LOG_MAXLENGTH, "[%Y/%m/%d %T.", &tmp);
 	if (offset == 0) {
 		free(logline);
 		free(esclogline);
 		XASSERTN(0);
 	}
-	offset += snprintf(logline + offset, RINOO_LOG_MAXLENGTH - offset, "%03d] ", (int) (tv.tv_usec / 1000));
+	offset += snprintf(logline + offset, RN_LOG_MAXLENGTH - offset, "%03d] ", (int) (tv.tv_usec / 1000));
 	va_start(ap, format);
-	res = vsnprintf(logline + offset, RINOO_LOG_MAXLENGTH - offset, format, ap);
+	res = vsnprintf(logline + offset, RN_LOG_MAXLENGTH - offset, format, ap);
 	va_end(ap);
-	res = (offset + res > RINOO_LOG_MAXLENGTH ? RINOO_LOG_MAXLENGTH : offset + res);
-	for (i = 0, offset = 0; i < res && offset < RINOO_LOG_MAXLENGTH - 3; i++, offset++) {
+	res = (offset + res > RN_LOG_MAXLENGTH ? RN_LOG_MAXLENGTH : offset + res);
+	for (i = 0, offset = 0; i < res && offset < RN_LOG_MAXLENGTH - 3; i++, offset++) {
 		switch (logline[i]) {
 		case '\a':
 			strcpy(esclogline + offset, "\\a");
@@ -89,7 +89,7 @@ void rinoo_log(const char *format, ...)
 				 * by their octal value
 				 */
 				snprintf(esclogline + offset,
-					 RINOO_LOG_MAXLENGTH - offset,
+					 RN_LOG_MAXLENGTH - offset,
 					 "\\%03o",
 					 (unsigned char) logline[i]);
 				offset += 2;

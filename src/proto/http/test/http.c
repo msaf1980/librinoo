@@ -1,7 +1,7 @@
 /**
  * @file   http.c
- * @author reginaldl <reginald.l@gmail.com> - Copyright 2013
- * @date   Mon Feb 25 14:48:20 2013
+ * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
+ * @date   Wed Feb  1 18:56:27 2017
  *
  * @brief  http client/server unit test
  *
@@ -14,48 +14,48 @@
 
 void http_client(void *sched)
 {
-	t_http http;
-	t_socket *client;
+	rn_http_t http;
+	rn_socket_t *client;
 
-	client = rinoo_tcp_client(sched, IP_LOOPBACK, 4242, 0);
+	client = rn_tcp_client(sched, IP_LOOPBACK, 4242, 0);
 	XTEST(client != NULL);
-	XTEST(rinoo_http_init(client, &http) == 0);
-	XTEST(rinoo_http_request_send(&http, RINOO_HTTP_METHOD_GET, "/", NULL) == 0);
-	XTEST(rinoo_http_response_get(&http));
-	XTEST(buffer_size(&http.response.content) == strlen(HTTP_CONTENT));
+	XTEST(rn_http_init(client, &http) == 0);
+	XTEST(rn_http_request_send(&http, RINOO_HTTP_METHOD_GET, "/", NULL) == 0);
+	XTEST(rn_http_response_get(&http));
+	XTEST(rn_buffer_size(&http.response.content) == strlen(HTTP_CONTENT));
 	XTEST(http.response.code == 200);
-	rinoo_http_destroy(&http);
-	rinoo_socket_destroy(client);
+	rn_http_destroy(&http);
+	rn_socket_destroy(client);
 }
 
 void http_server_process(void *socket)
 {
-	t_buffer content;
-	t_http http;
+	rn_buffer_t content;
+	rn_http_t http;
 
-	XTEST(rinoo_http_init(socket, &http) == 0);
-	XTEST(rinoo_http_request_get(&http));
+	XTEST(rn_http_init(socket, &http) == 0);
+	XTEST(rn_http_request_get(&http));
 	http.response.code = 200;
-	strtobuffer(&content, HTTP_CONTENT);
-	XTEST(rinoo_http_response_send(&http, &content) == 0);
-	rinoo_http_destroy(&http);
-	rinoo_socket_destroy(socket);
+	rn_strtobuffer(&content, HTTP_CONTENT);
+	XTEST(rn_http_response_send(&http, &content) == 0);
+	rn_http_destroy(&http);
+	rn_socket_destroy(socket);
 }
 
 void http_server(void *sched)
 {
-	t_ip ip;
+	rn_ip_t ip;
 	uint16_t port;
-	t_socket *server;
-	t_socket *client;
+	rn_socket_t *server;
+	rn_socket_t *client;
 
-	server = rinoo_tcp_server(sched, IP_ANY, 4242);
+	server = rn_tcp_server(sched, IP_ANY, 4242);
 	XTEST(server != NULL);
-	client = rinoo_tcp_accept(server, &ip, &port);
+	client = rn_tcp_accept(server, &ip, &port);
 	XTEST(client != NULL);
-	rinoo_log("server - accepting client (%s:%d)", inet_ntoa(*(struct in_addr *) &ip), port);
-	rinoo_task_start(sched, http_server_process, client);
-	rinoo_socket_destroy(server);
+	rn_log("server - accepting client (%s:%d)", inet_ntoa(*(struct in_addr *) &ip), port);
+	rn_task_start(sched, http_server_process, client);
+	rn_socket_destroy(server);
 }
 
 /**
@@ -66,13 +66,13 @@ void http_server(void *sched)
  */
 int main()
 {
-	t_sched *sched;
+	rn_sched_t *sched;
 
-	sched = rinoo_sched();
+	sched = rn_sched();
 	XTEST(sched != NULL);
-	XTEST(rinoo_task_start(sched, http_server, sched) == 0);
-	XTEST(rinoo_task_start(sched, http_client, sched) == 0);
-	rinoo_sched_loop(sched);
-	rinoo_sched_destroy(sched);
+	XTEST(rn_task_start(sched, http_server, sched) == 0);
+	XTEST(rn_task_start(sched, http_client, sched) == 0);
+	rn_sched_loop(sched);
+	rn_sched_destroy(sched);
 	XPASS();
 }

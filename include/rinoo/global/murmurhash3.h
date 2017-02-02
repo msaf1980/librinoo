@@ -1,7 +1,7 @@
 /**
  * @file   module.h
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2014
- * @date   Thu May  8 20:36:32 2014
+ * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2014
+ * @date   Wed Feb  1 18:56:27 2017
  *
  * @brief  Header file for murmurhash.
  *

@@ -1,7 +1,7 @@
 /**
- * @file   list.c
- * @author reginaldl <reginald.@gmail.com> - Copyright 2014
- * @date   Thu Jul 31 22:44:54 2014
+ * @file   rn_list.c
+ * @author Reginald Lips <reginald.@gmail.com> - Copyright 2014
+ * @date   Wed Feb  1 18:56:27 2017
  *
  * @brief  Hash table functions
  *
@@ -13,21 +13,21 @@
 /**
  * Initializes a hash table.
  *
- * @param htable Hash table initialize
+ * @param rn_htable Hash table initialize
  * @param size Hash table size
  * @param hash Hash function
  * @param compare Hash table node compare function
  *
  * @return 0 on success otherwise -1;
  */
-int htable(t_htable *htable, size_t size, uint32_t (*hash)(t_htable_node *node), int (*compare)(t_htable_node *node1, t_htable_node *node2))
+int rn_htable(rn_htable_t *rn_htable, size_t size, uint32_t (*hash)(rn_htable_node_t *node), int (*compare)(rn_htable_node_t *node1, rn_htable_node_t *node2))
 {
-	htable->size = 0;
-	htable->table_size = size;
-	htable->hash = hash;
-	htable->compare = compare;
-	htable->table = calloc(size, sizeof(*htable->table));
-	if (htable->table == NULL) {
+	rn_htable->size = 0;
+	rn_htable->table_size = size;
+	rn_htable->hash = hash;
+	rn_htable->compare = compare;
+	rn_htable->table = calloc(size, sizeof(*rn_htable->table));
+	if (rn_htable->table == NULL) {
 		return -1;
 	}
 	return 0;
@@ -36,69 +36,69 @@ int htable(t_htable *htable, size_t size, uint32_t (*hash)(t_htable_node *node),
 /**
  * Free allocated memory inside a hash table.
  *
- * @param htable Hash table to destroy
+ * @param rn_htable Hash table to destroy
  */
-void htable_destroy(t_htable *htable)
+void rn_htable_destroy(rn_htable_t *rn_htable)
 {
-	if (htable->table != NULL) {
-		free(htable->table);
-		htable->table = NULL;
+	if (rn_htable->table != NULL) {
+		free(rn_htable->table);
+		rn_htable->table = NULL;
 	}
 }
 
 /**
  * Flushes hash table content.
  *
- * @param htable Hash table to flush
+ * @param rn_htable Hash table to flush
  * @param delete Optional delete function to be called for each hash table node
  */
-void htable_flush(t_htable *htable, void (*delete)(t_htable_node *node1))
+void rn_htable_flush(rn_htable_t *rn_htable, void (*delete)(rn_htable_node_t *node1))
 {
 	size_t i;
-	t_htable_node *node;
-	t_htable_node *next;
+	rn_htable_node_t *node;
+	rn_htable_node_t *next;
 
 	if (delete != NULL) {
-		for (i = 0; i < htable->table_size; i++) {
-			node = htable->table[i];
+		for (i = 0; i < rn_htable->table_size; i++) {
+			node = rn_htable->table[i];
 			while (node != NULL) {
 				next = node->next;
 				delete(node);
 				node = next;
 			}
-			htable->table[i] = NULL;
+			rn_htable->table[i] = NULL;
 		}
 	}
-	htable->size = 0;
+	rn_htable->size = 0;
 }
 
 /**
  * Gets hash table size.
  *
- * @param htable Hash table to use
+ * @param rn_htable Hash table to use
  *
  * @return Hash table size
  */
-size_t htable_size(t_htable *htable)
+size_t rn_htable_size(rn_htable_t *rn_htable)
 {
-	return htable->size;
+	return rn_htable->size;
 }
 
 /**
  * Adds an element to a hash table.
  *
- * @param htable Hash table to add to
+ * @param rn_htable Hash table to add to
  * @param node Hash table node to add
  */
-void htable_put(t_htable *htable, t_htable_node *node)
+void rn_htable_put(rn_htable_t *rn_htable, rn_htable_node_t *node)
 {
-	t_htable_node **head;
+	rn_htable_node_t **head;
 
-	node->hash = htable->hash(node);
-	head = &htable->table[node->hash % htable->table_size];
+	node->hash = rn_htable->hash(node);
+	head = &rn_htable->table[node->hash % rn_htable->table_size];
 	node->prev = NULL;
 	node->next = *head;
-	while (node->next != NULL && htable->compare(node->next, node) < 0) {
+	while (node->next != NULL && rn_htable->compare(node->next, node) < 0) {
 		node->prev = node->next;
 		node->next = node->next->next;
 	}
@@ -110,23 +110,23 @@ void htable_put(t_htable *htable, t_htable_node *node)
 	if (node->next != NULL) {
 		node->next->prev = node;
 	}
-	htable->size++;
+	rn_htable->size++;
 }
 
 /**
  * Gets a node from a hash table.
  *
- * @param htable Hash table to use
+ * @param rn_htable Hash table to use
  * @param node Dummy node used for comparison
  *
  * @return The matching node or NULL if not found.
  */
-t_htable_node *htable_get(t_htable *htable, t_htable_node *node)
+rn_htable_node_t *rn_htable_get(rn_htable_t *rn_htable, rn_htable_node_t *node)
 {
-	node->hash = htable->hash(node);
-	node->next = htable->table[node->hash % htable->table_size];
+	node->hash = rn_htable->hash(node);
+	node->next = rn_htable->table[node->hash % rn_htable->table_size];
 	while (node->next != NULL) {
-		if (htable->compare(node->next, node) == 0) {
+		if (rn_htable->compare(node->next, node) == 0) {
 			return node->next;
 		}
 		node->next = node->next->next;
@@ -137,22 +137,22 @@ t_htable_node *htable_get(t_htable *htable, t_htable_node *node)
 /**
  * Removes an element from a hash table.
  *
- * @param htable Hash table to use
+ * @param rn_htable Hash table to use
  * @param node Hash table node to remove
  *
  * @return 0 on success, otherwise -1
  */
-int htable_remove(t_htable *htable, t_htable_node *node)
+int rn_htable_remove(rn_htable_t *rn_htable, rn_htable_node_t *node)
 {
 	if (node->prev != NULL) {
 		node->prev->next = node->next;
 	} else {
-		htable->table[node->hash % htable->table_size] = node->next;
+		rn_htable->table[node->hash % rn_htable->table_size] = node->next;
 	}
 	if (node->next != NULL) {
 		node->next->prev = node->prev;
 	}
-	htable->size--;
+	rn_htable->size--;
 	node->prev = NULL;
 	node->next = NULL;
 	return 0;

@@ -1,7 +1,7 @@
 /**
  * @file   spawn.c
  * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
- * @date   Tue Sep 22 16:52:09 2013
+ * @date   Wed Feb  1 18:56:27 2017
  *
  * @brief RiNOO scheduler spawning functions
  *
@@ -18,11 +18,11 @@
  *
  * @return 0 on success, otherwise -1
  */
-int rinoo_spawn(t_sched *sched, int count)
+int rn_spawn(rn_sched_t *sched, int count)
 {
 	int i;
-	t_sched *child;
-	t_thread *thread;
+	rn_sched_t *child;
+	rn_thread_t *thread;
 
 	if (sched->spawns.count == 0) {
 		thread = calloc(count, sizeof(*thread));
@@ -37,7 +37,7 @@ int rinoo_spawn(t_sched *sched, int count)
 	}
 	sched->spawns.thread = thread;
 	for (i = sched->spawns.count; i < sched->spawns.count + count; i++) {
-		child = rinoo_sched();
+		child = rn_sched();
 		if (child == NULL) {
 			sched->spawns.count = i;
 			return -1;
@@ -55,7 +55,7 @@ int rinoo_spawn(t_sched *sched, int count)
  *
  * @param sched
  */
-void rinoo_spawn_destroy(t_sched *sched)
+void rn_spawn_destroy(rn_sched_t *sched)
 {
 	if (sched->spawns.thread != NULL) {
 		free(sched->spawns.thread);
@@ -72,7 +72,7 @@ void rinoo_spawn_destroy(t_sched *sched)
  *
  * @return Pointer to the spawn or NULL if an error occured
  */
-t_sched *rinoo_spawn_get(t_sched *sched, int id)
+rn_sched_t *rn_spawn_get(rn_sched_t *sched, int id)
 {
 	if (id < 0 || id > sched->spawns.count) {
 		return NULL;
@@ -90,10 +90,10 @@ t_sched *rinoo_spawn_get(t_sched *sched, int id)
  *
  * @return NULL
  */
-static void *rinoo_spawn_loop(void *sched)
+static void *rn_spawn_loop(void *sched)
 {
-	rinoo_sched_loop(sched);
-	rinoo_sched_destroy(sched);
+	rn_sched_loop(sched);
+	rn_sched_destroy(sched);
 	return NULL;
 }
 
@@ -103,12 +103,12 @@ static void *rinoo_spawn_loop(void *sched)
  *
  * @param unused Signal number
  */
-static void rinoo_spawn_handler_stop(int unused(sig))
+static void rn_spawn_handler_stop(int unused(sig))
 {
-	t_sched *sched = rinoo_sched_self();
+	rn_sched_t *sched = rn_sched_self();
 
 	if (sched != NULL) {
-		rinoo_sched_stop(sched);
+		rn_sched_stop(sched);
 	}
 }
 
@@ -119,7 +119,7 @@ static void rinoo_spawn_handler_stop(int unused(sig))
  *
  * @return 0 on success otherwise -1
  */
-int rinoo_spawn_start(t_sched *sched)
+int rn_spawn_start(rn_sched_t *sched)
 {
 	int i;
 	sigset_t oldset;
@@ -129,12 +129,12 @@ int rinoo_spawn_start(t_sched *sched)
 	if (sigaddset(&newset, SIGINT) < 0) {
 		return -1;
 	}
-	if (sigaction(SIGUSR2, &(struct sigaction){ .sa_handler = rinoo_spawn_handler_stop }, NULL) != 0) {
+	if (sigaction(SIGUSR2, &(struct sigaction){ .sa_handler = rn_spawn_handler_stop }, NULL) != 0) {
 		return -1;
 	}
 	pthread_sigmask(SIG_BLOCK, &newset, &oldset);
 	for (i = 0; i < sched->spawns.count; i++) {
-		if (pthread_create(&sched->spawns.thread[i].id, NULL, rinoo_spawn_loop, sched->spawns.thread[i].sched) != 0) {
+		if (pthread_create(&sched->spawns.thread[i].id, NULL, rn_spawn_loop, sched->spawns.thread[i].sched) != 0) {
 			pthread_sigmask(SIG_SETMASK, &oldset, NULL);
 			return -1;
 		}
@@ -148,7 +148,7 @@ int rinoo_spawn_start(t_sched *sched)
  *
  * @param sched Main scheduler
  */
-void rinoo_spawn_stop(t_sched *sched)
+void rn_spawn_stop(rn_sched_t *sched)
 {
 	int i;
 
@@ -165,7 +165,7 @@ void rinoo_spawn_stop(t_sched *sched)
  *
  * @param sched Main scheduler
  */
-void rinoo_spawn_join(t_sched *sched)
+void rn_spawn_join(rn_sched_t *sched)
 {
 	int i;
 

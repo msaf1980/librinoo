@@ -1,7 +1,7 @@
 /**
  * @file   http_header.c
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2013
- * @date   Sun Jan  9 18:59:50 2011
+ * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
+ * @date   Wed Feb  1 18:56:27 2017
  *
  * @brief  Functions to manager HTTP headers
  *
@@ -18,13 +18,13 @@
  *
  * @return -1 if they are different (no need to sort them), 0 if they are equal
  */
-static int rinoo_http_header_cmp(t_rbtree_node *node1, t_rbtree_node *node2)
+static int rn_http_header_cmp(rn_rbtree_node_t *node1, rn_rbtree_node_t *node2)
 {
 
-	t_http_header *header1 = container_of(node1, t_http_header, node);
-	t_http_header *header2 = container_of(node2, t_http_header, node);
+	rn_http_header_t *header1 = container_of(node1, rn_http_header_t, node);
+	rn_http_header_t *header2 = container_of(node2, rn_http_header_t, node);
 
-	return buffer_cmp(&header1->key, &header2->key);
+	return rn_buffer_cmp(&header1->key, &header2->key);
 }
 
 /**
@@ -32,12 +32,12 @@ static int rinoo_http_header_cmp(t_rbtree_node *node1, t_rbtree_node *node2)
  *
  * @param node Pointer to the HTTP header.
  */
-static void rinoo_http_header_free(t_rbtree_node *node)
+static void rn_http_header_free(rn_rbtree_node_t *node)
 {
-	t_http_header *header = container_of(node, t_http_header, node);
+	rn_http_header_t *header = container_of(node, rn_http_header_t, node);
 
-	free(buffer_ptr(&header->key));
-	free(buffer_ptr(&header->value));
+	free(rn_buffer_ptr(&header->key));
+	free(rn_buffer_ptr(&header->value));
 	free(header);
 }
 
@@ -48,9 +48,9 @@ static void rinoo_http_header_free(t_rbtree_node *node)
  *
  * @return 0 on success, otherwise -1
  */
-int rinoo_http_headers_init(t_rbtree *tree)
+int rn_http_headers_init(rn_rbtree_t *tree)
 {
-	return rbtree(tree, rinoo_http_header_cmp, rinoo_http_header_free);
+	return rn_rbtree(tree, rn_http_header_cmp, rn_http_header_free);
 }
 
 /**
@@ -58,9 +58,9 @@ int rinoo_http_headers_init(t_rbtree *tree)
  *
  * @param headertree Pointer to the hashtable to destroy.
  */
-void rinoo_http_headers_flush(t_rbtree *headertree)
+void rn_http_headers_flush(rn_rbtree_t *headertree)
 {
-	rbtree_flush(headertree);
+	rn_rbtree_flush(headertree);
 }
 
 /**
@@ -73,25 +73,25 @@ void rinoo_http_headers_flush(t_rbtree *headertree)
  *
  * @return 0 on success, or -1 if an error occurs.
  */
-int rinoo_http_header_setdata(t_rbtree *headertree, const char *key, const char *value, uint32_t size)
+int rn_http_header_setdata(rn_rbtree_t *headertree, const char *key, const char *value, uint32_t size)
 {
 	char *new_value;
-	t_http_header *new;
-	t_http_header dummy;
-	t_rbtree_node *found;
+	rn_http_header_t *new;
+	rn_http_header_t dummy;
+	rn_rbtree_node_t *found;
 
 	XASSERT(headertree != NULL, -1);
 	XASSERT(key != NULL, -1);
 	XASSERT(value != NULL, -1);
 	XASSERT(size > 0, -1);
 
-	strtobuffer(&dummy.key, key);
+	rn_strtobuffer(&dummy.key, key);
 	new_value = strndup(value, size);
-	found = rbtree_find(headertree, &dummy.node);
+	found = rn_rbtree_find(headertree, &dummy.node);
 	if (found != NULL) {
-		new = container_of(found, t_http_header, node);
+		new = container_of(found, rn_http_header_t, node);
 		free(new->value.ptr);
-		strtobuffer(&new->value, new_value);
+		rn_strtobuffer(&new->value, new_value);
 		return 0;
 	}
 
@@ -106,10 +106,10 @@ int rinoo_http_header_setdata(t_rbtree *headertree, const char *key, const char 
 		free(new);
 		return -1;
 	}
-	strtobuffer(&new->key, key);
-	strtobuffer(&new->value, new_value);
-	if (rbtree_put(headertree, &new->node) != 0) {
-		rinoo_http_header_free(&new->node);
+	rn_strtobuffer(&new->key, key);
+	rn_strtobuffer(&new->value, new_value);
+	if (rn_rbtree_put(headertree, &new->node) != 0) {
+		rn_http_header_free(&new->node);
 		return -1;
 	}
 	return 0;
@@ -124,9 +124,9 @@ int rinoo_http_header_setdata(t_rbtree *headertree, const char *key, const char 
  *
  * @return 0 on success, or -1 if an error occurs.
  */
-int rinoo_http_header_set(t_rbtree *headertree, const char *key, const char *value)
+int rn_http_header_set(rn_rbtree_t *headertree, const char *key, const char *value)
 {
-	return rinoo_http_header_setdata(headertree, key, value, strlen(value));
+	return rn_http_header_setdata(headertree, key, value, strlen(value));
 }
 
 /**
@@ -135,18 +135,18 @@ int rinoo_http_header_set(t_rbtree *headertree, const char *key, const char *val
  * @param headertree Pointer to the hashtable to use.
  * @param key HTTP header key.
  */
-void rinoo_http_header_remove(t_rbtree *headertree, const char *key)
+void rn_http_header_remove(rn_rbtree_t *headertree, const char *key)
 {
-	t_http_header dummy;
-	t_rbtree_node *toremove;
+	rn_http_header_t dummy;
+	rn_rbtree_node_t *toremove;
 
 	XASSERTN(headertree != NULL);
 	XASSERTN(key != NULL);
 
-	strtobuffer(&dummy.key, key);
-	toremove = rbtree_find(headertree, &dummy.node);
+	rn_strtobuffer(&dummy.key, key);
+	toremove = rn_rbtree_find(headertree, &dummy.node);
 	if (toremove != NULL) {
-		rbtree_remove(headertree, toremove);
+		rn_rbtree_remove(headertree, toremove);
 	}
 }
 
@@ -158,18 +158,18 @@ void rinoo_http_header_remove(t_rbtree *headertree, const char *key)
  *
  * @return A pointer to a HTTP header structure, or NULL if not found.
  */
-t_http_header *rinoo_http_header_get(t_rbtree *headertree, const char *key)
+rn_http_header_t *rn_http_header_get(rn_rbtree_t *headertree, const char *key)
 {
-	t_http_header dummy;
-	t_rbtree_node *node;
+	rn_http_header_t dummy;
+	rn_rbtree_node_t *node;
 
 	XASSERT(headertree != NULL, NULL);
 	XASSERT(key != NULL, NULL);
 
-	strtobuffer(&dummy.key, key);
-	node = rbtree_find(headertree, &dummy.node);
+	rn_strtobuffer(&dummy.key, key);
+	node = rn_rbtree_find(headertree, &dummy.node);
 	if (node == NULL) {
 		return NULL;
 	}
-	return container_of(node, t_http_header, node);
+	return container_of(node, rn_http_header_t, node);
 }

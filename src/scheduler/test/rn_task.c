@@ -1,9 +1,9 @@
 /**
- * @file   rinoo_task.c
+ * @file   rn_task.c
  * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
- * @date   Fri Jan 13 18:07:14 2012
+ * @date   Wed Feb  1 18:56:27 2017
  *
- * @brief  rinoo_task unit test
+ * @brief  rn_task unit test
  *
  *
  */
@@ -21,23 +21,23 @@ void task3(void *unused(arg))
 
 void task2(void *arg)
 {
-	t_sched *sched = arg;
+	rn_sched_t *sched = arg;
 
 	printf("%s start\n", __FUNCTION__);
 	XTEST(checker == 1);
-	rinoo_task_run(sched, task3, sched);
+	rn_task_run(sched, task3, sched);
 	XTEST(checker == 3);
 	printf("%s end\n", __FUNCTION__);
 }
 
 void task1(void *arg)
 {
-	t_sched *sched = arg;
+	rn_sched_t *sched = arg;
 
 	printf("%s start\n", __FUNCTION__);
 	XTEST(checker == 0);
 	checker = 1;
-	rinoo_task_run(sched, task2, sched);
+	rn_task_run(sched, task2, sched);
 	XTEST(checker == 3);
 	printf("%s end\n", __FUNCTION__);
 }
@@ -50,12 +50,12 @@ void task1(void *arg)
  */
 int main()
 {
-	t_sched *sched;
+	rn_sched_t *sched;
 
-	sched = rinoo_sched();
+	sched = rn_sched();
 	XTEST(sched != NULL);
-	XTEST(rinoo_task_run(sched, task1, sched) == 0);
-	rinoo_sched_destroy(sched);
+	XTEST(rn_task_run(sched, task1, sched) == 0);
+	rn_sched_destroy(sched);
 	XTEST(checker == 3);
 	XPASS();
 }

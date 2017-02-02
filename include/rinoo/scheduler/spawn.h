@@ -1,7 +1,7 @@
 /**
  * @file   spawn.h
  * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
- * @date   Tue Sep 22 16:58:02 2013
+ * @date   Wed Feb  1 18:56:27 2017
  *
  * @brief  RiNOO scheduler spawning functions
  *
@@ -12,23 +12,23 @@
 #define RINOO_SCHEDULER_SPAWN_H_
 
 /* Defined in scheduler.h */
-struct s_sched;
+struct rn_sched_s;
 
-typedef struct s_thread {
+typedef struct rn_thread_s {
 	pthread_t id;
-	struct s_sched *sched;
-} t_thread;
+	struct rn_sched_s *sched;
+} rn_thread_t;
 
-typedef struct s_sched_spawns {
+typedef struct rn_sched_spawns_s {
 	int count;
-	t_thread *thread;
-} t_sched_spawns;
+	rn_thread_t *thread;
+} rn_sched_spawns_t;
 
-int rinoo_spawn(struct s_sched *sched, int count);
-void rinoo_spawn_destroy(struct s_sched *sched);
-struct s_sched *rinoo_spawn_get(struct s_sched *sched, int id);
-int rinoo_spawn_start(struct s_sched *sched);
-void rinoo_spawn_stop(struct s_sched *sched);
-void rinoo_spawn_join(struct s_sched *sched);
+int rn_spawn(struct rn_sched_s *sched, int count);
+void rn_spawn_destroy(struct rn_sched_s *sched);
+struct rn_sched_s *rn_spawn_get(struct rn_sched_s *sched, int id);
+int rn_spawn_start(struct rn_sched_s *sched);
+void rn_spawn_stop(struct rn_sched_s *sched);
+void rn_spawn_join(struct rn_sched_s *sched);
 
 #endif /* !RINOO_SCHEDULER_SPAWN_H_ */

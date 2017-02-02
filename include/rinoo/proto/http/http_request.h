@@ -1,7 +1,7 @@
 /**
  * @file   http_request.h
  * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
- * @date   Tue Apr 17 17:55:30 2012
+ * @date   Wed Feb  1 18:56:27 2017
  *
  * @brief  Header file for HTTP request
  *
@@ -12,9 +12,9 @@
 #define RINOO_PROTO_HTTP_REQUEST_H_
 
 /* Defined in http.h */
-struct s_http;
+struct rn_http_s;
 
-typedef enum e_http_method {
+typedef enum rn_http_method_e {
 	RINOO_HTTP_METHOD_UNKNOWN = 0,
 	RINOO_HTTP_METHOD_OPTIONS = 1,
 	RINOO_HTTP_METHOD_GET = 2,
@@ -24,21 +24,21 @@ typedef enum e_http_method {
 	RINOO_HTTP_METHOD_DELETE = 32,
 	RINOO_HTTP_METHOD_TRACE = 64,
 	RINOO_HTTP_METHOD_CONNECT = 128,
-} t_http_method;
+} rn_http_method_t;
 
-typedef struct s_http_request {
-	t_buffer uri;
-	t_buffer content;
-	t_buffer *buffer;
+typedef struct rn_http_request_s {
+	rn_buffer_t uri;
+	rn_buffer_t content;
+	rn_buffer_t *buffer;
 	size_t headers_length;
 	size_t content_length;
-	t_rbtree headers;
-	t_http_method method;
-} t_http_request;
+	rn_rbtree_t headers;
+	rn_http_method_t method;
+} rn_http_request_t;
 
-int rinoo_http_request_parse(struct s_http *http);
-bool rinoo_http_request_get(struct s_http *http);
-void rinoo_http_request_setdefaultheaders(struct s_http *http);
-int rinoo_http_request_send(struct s_http *http, t_http_method method, const char *uri, t_buffer *body);
+int rn_http_request_parse(struct rn_http_s *http);
+bool rn_http_request_get(struct rn_http_s *http);
+void rn_http_request_setdefaultheaders(struct rn_http_s *http);
+int rn_http_request_send(struct rn_http_s *http, rn_http_method_t method, const char *uri, rn_buffer_t *body);
 
 #endif /* !RINOO_PROTO_HTTP_REQUEST_H_ */

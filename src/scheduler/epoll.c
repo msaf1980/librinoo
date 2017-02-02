@@ -1,7 +1,7 @@
 /**
  * @file   epoll.c
  * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
- * @date   Tue Mar 20 15:37:04 2012
+ * @date   Wed Feb  1 18:56:27 2017
  *
  * @brief  This file manages the poll API working with epoll.
  *
@@ -18,7 +18,7 @@
  *
  * @return 0 if succeeds, else -1.
  */
-int rinoo_epoll_init(t_sched *sched)
+int rn_epoll_init(rn_sched_t *sched)
 {
 	XASSERT(sched != NULL, -1);
 
@@ -37,7 +37,7 @@ int rinoo_epoll_init(t_sched *sched)
  *
  * @param sched Pointer to the scheduler to use.
  */
-void rinoo_epoll_destroy(t_sched *sched)
+void rn_epoll_destroy(rn_sched_t *sched)
 {
 	XASSERTN(sched != NULL);
 
@@ -54,7 +54,7 @@ void rinoo_epoll_destroy(t_sched *sched)
  *
  * @return 0 if succeeds, else -1.
  */
-int rinoo_epoll_insert(t_sched_node *node, t_sched_mode mode)
+int rn_epoll_insert(rn_sched_node_t *node, rn_sched_mode_t mode)
 {
 	struct epoll_event ev = { 0, { 0 } };
 
@@ -80,7 +80,7 @@ int rinoo_epoll_insert(t_sched_node *node, t_sched_mode mode)
  *
  * @return 0 if succeeds, else -1.
  */
-int rinoo_epoll_addmode(t_sched_node *node, t_sched_mode mode)
+int rn_epoll_addmode(rn_sched_node_t *node, rn_sched_mode_t mode)
 {
 	struct epoll_event ev = { 0, { 0 } };
 
@@ -105,7 +105,7 @@ int rinoo_epoll_addmode(t_sched_node *node, t_sched_mode mode)
  *
  * @return 0 if succeeds, else -1.
  */
-int rinoo_epoll_remove(t_sched_node *node)
+int rn_epoll_remove(rn_sched_node_t *node)
 {
 	if (unlikely(epoll_ctl(node->sched->epoll.fd, EPOLL_CTL_DEL, node->fd, NULL) != 0)) {
 		return -1;
@@ -124,29 +124,29 @@ int rinoo_epoll_remove(t_sched_node *node)
  *
  * @return 0 if succeeds, else -1.
  */
-int rinoo_epoll_poll(t_sched *sched, int timeout)
+int rn_epoll_poll(rn_sched_t *sched, int timeout)
 {
 	int nbevents;
 	struct epoll_event *event;
 
 	XASSERT(sched != NULL, -1);
 
-	nbevents = epoll_wait(sched->epoll.fd, sched->epoll.events, RINOO_EPOLL_MAX_EVENTS, timeout);
+	nbevents = epoll_wait(sched->epoll.fd, sched->epoll.events, RN_EPOLL_MAX_EVENTS, timeout);
 	if (unlikely(nbevents == -1)) {
 		/* We don't want to raise an error in this case */
 		return 0;
 	}
 	for (sched->epoll.curevent = 0; sched->epoll.curevent < nbevents; sched->epoll.curevent++) {
 		event = &sched->epoll.events[sched->epoll.curevent];
-		/* Check event->data.ptr for every event as one event could call rinoo_epoll_remove and destroy ptr */
+		/* Check event->data.ptr for every event as one event could call rn_epoll_remove and destroy ptr */
 		if (event->data.ptr != NULL && (event->events & EPOLLIN) == EPOLLIN) {
-			rinoo_sched_wakeup(event->data.ptr, RINOO_MODE_IN, 0);
+			rn_sched_wakeup(event->data.ptr, RINOO_MODE_IN, 0);
 		}
 		if (event->data.ptr != NULL && (event->events & EPOLLOUT) == EPOLLOUT) {
-			rinoo_sched_wakeup(event->data.ptr, RINOO_MODE_OUT, 0);
+			rn_sched_wakeup(event->data.ptr, RINOO_MODE_OUT, 0);
 		}
 		if (event->data.ptr != NULL && (((event->events & EPOLLERR) == EPOLLERR || (event->events & EPOLLHUP) == EPOLLHUP))) {
-			rinoo_sched_wakeup(event->data.ptr, RINOO_MODE_NONE, ECONNRESET);
+			rn_sched_wakeup(event->data.ptr, RINOO_MODE_NONE, ECONNRESET);
 		}
 	}
 	sched->epoll.curevent = -1;

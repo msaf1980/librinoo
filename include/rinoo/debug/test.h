@@ -1,7 +1,7 @@
 /**
  * @file   test.h
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2013
- * @date   Mon Oct 26 13:28:47 2009
+ * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
+ * @date   Wed Feb  1 18:56:27 2017
  *
  * @brief  Header file for test macro declarations
  *

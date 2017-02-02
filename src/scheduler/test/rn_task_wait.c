@@ -1,9 +1,9 @@
 /**
- * @file   rinoo_task_wait.c
+ * @file   rn_task_wait.c
  * @author Reginad Lips <reginald.l@gmail.com> - Copyright 2013
- * @date   Wed Feb 27 15:25:13 2013
+ * @date   Wed Feb  1 18:56:27 2017
  *
- * @brief  rinoo_task_wait unit test
+ * @brief  rn_task_wait unit test
  *
  *
  */
@@ -29,7 +29,7 @@ int check_time(struct timeval *prev, uint32_t ms)
 	timersub(&cur, prev, &diff);
 	diffms = diff.tv_sec * 1000;
 	diffms += diff.tv_usec / 1000;
-	rinoo_log("Time diff found: %u, expected: %u - %u", diffms, ms, LATENCY);
+	rn_log("Time diff found: %u, expected: %u - %u", diffms, ms, LATENCY);
 	if (diffms > ms) {
 		diffms = diffms - ms;
 	} else {
@@ -48,13 +48,13 @@ void task_func(void *sched)
 
 	printf("%s start\n", __FUNCTION__);
 	XTEST(gettimeofday(&prev, NULL) == 0);
-	rinoo_task_wait(sched, 100);
+	rn_task_wait(sched, 100);
 	XTEST(check_time(&prev, 100) == 0);
-	rinoo_task_wait(sched, 200);
+	rn_task_wait(sched, 200);
 	XTEST(check_time(&prev, 200) == 0);
-	rinoo_task_wait(sched, 500);
+	rn_task_wait(sched, 500);
 	XTEST(check_time(&prev, 500) == 0);
-	rinoo_task_wait(sched, 1000);
+	rn_task_wait(sched, 1000);
 	XTEST(check_time(&prev, 1000) == 0);
 	printf("%s end\n", __FUNCTION__);
 }
@@ -67,12 +67,12 @@ void task_func(void *sched)
  */
 int main()
 {
-	t_sched *sched;
+	rn_sched_t *sched;
 
-	sched = rinoo_sched();
+	sched = rn_sched();
 	XTEST(sched != NULL);
-	XTEST(rinoo_task_start(sched, task_func, sched) == 0);
-	rinoo_sched_loop(sched);
-	rinoo_sched_destroy(sched);
+	XTEST(rn_task_start(sched, task_func, sched) == 0);
+	rn_sched_loop(sched);
+	rn_sched_destroy(sched);
 	XPASS();
 }

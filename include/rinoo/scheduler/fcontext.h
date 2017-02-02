@@ -1,7 +1,7 @@
 /**
  * @file   fcontext.h
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2013
- * @date   Wed Oct 10 15:18:43 2012
+ * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
+ * @date   Wed Feb  1 18:56:27 2017
  *
  * @brief  Header file for fast context.
  *
@@ -44,19 +44,19 @@ enum {
 	NB_FREG
 };
 
-typedef struct s_fstack {
+typedef struct rn_fstack_s {
 	void *sp;
 	size_t size;
-} t_fstack;
+} rn_fstack_t;
 
-typedef struct s_fcontext {
+typedef struct rn_fcontext_s {
 	long int reg[NB_FREG];
-	struct s_fcontext *link;
-	t_fstack stack;
-} t_fcontext;
+	struct rn_fcontext_s *link;
+	rn_fstack_t stack;
+} rn_fcontext_t;
 
-void fcontext(t_fcontext *ctx, void (*func)(void *ptr), void *arg);
+void fcontext(rn_fcontext_t *ctx, void (*func)(void *ptr), void *arg);
 void fcontext_jump(void);
-int fcontext_swap(t_fcontext *octx, t_fcontext *nctx);
+int fcontext_swap(rn_fcontext_t *octx, rn_fcontext_t *nctx);
 
 #endif /* !FCONTEXT_H_ */

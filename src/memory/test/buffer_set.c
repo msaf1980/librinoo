@@ -1,9 +1,9 @@
 /**
- * @file   buffer_add.c
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2013
- * @date   Sat Feb 8 18:27:58 2014
+ * @file   rn_buffer_add.c
+ * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
+ * @date   Wed Feb  1 18:56:27 2017
  *
- * @brief  buffer_set unit test
+ * @brief  rn_buffer_set unit test
  *
  *
  */
@@ -18,25 +18,25 @@
  */
 int main()
 {
-	t_buffer buffer;
+	rn_buffer_t buffer;
 	char memory[25];
 
-	buffer_set(&buffer, memory, sizeof(memory));
+	rn_buffer_set(&buffer, memory, sizeof(memory));
 	XTEST(buffer.ptr == memory);
 	XTEST(buffer.class != NULL);
 	XTEST(buffer.size == 0);
 	XTEST(buffer.msize == sizeof(memory));
-	XTEST(buffer_add(&buffer, "blablabla", 9) == 9);
+	XTEST(rn_buffer_add(&buffer, "blablabla", 9) == 9);
 	XTEST(buffer.ptr != NULL);
 	XTEST(memcmp(memory, "blablabla", 9) == 0);
 	XTEST(buffer.size == 9);
 	XTEST(buffer.msize == sizeof(memory));
-	XTEST(buffer_add(&buffer, "blablabla", 9) == 9);
+	XTEST(rn_buffer_add(&buffer, "blablabla", 9) == 9);
 	XTEST(buffer.ptr != NULL);
 	XTEST(memcmp(memory, "blablablablablabla", 18) == 0);
 	XTEST(buffer.size == 18);
 	XTEST(buffer.msize == sizeof(memory));
-	XTEST(buffer_add(&buffer, "blablabla", 9) == -1);
+	XTEST(rn_buffer_add(&buffer, "blablabla", 9) == -1);
 	XTEST(buffer.ptr != NULL);
 	XTEST(buffer.size == 18);
 	XTEST(buffer.msize == sizeof(memory));

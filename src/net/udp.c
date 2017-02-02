@@ -1,7 +1,7 @@
 /**
  * @file   udp.c
  * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
- * @date   Mon Oct 21 22:52:23 2013
+ * @date   Wed Feb  1 18:56:27 2017
  *
  * @brief  UDP socket management
  *
@@ -10,13 +10,13 @@
 
 #include "rinoo/net/module.h"
 
-extern const t_socket_class socket_class_udp;
-extern const t_socket_class socket_class_udp6;
+extern const rn_socket_class_t socket_class_udp;
+extern const rn_socket_class_t socket_class_udp6;
 
-t_socket *rinoo_udp_client(t_sched *sched, t_ip *ip, uint16_t port)
+rn_socket_t *rn_udp_client(rn_sched_t *sched, rn_ip_t *ip, uint16_t port)
 {
-	t_ip loopback;
-	t_socket *socket;
+	rn_ip_t loopback;
+	rn_socket_t *socket;
 	socklen_t addr_len;
 	struct sockaddr *addr;
 
@@ -26,7 +26,7 @@ t_socket *rinoo_udp_client(t_sched *sched, t_ip *ip, uint16_t port)
 		loopback.v4.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 		ip = &loopback;
 	}
-	socket = rinoo_socket(sched, (IS_IPV6(ip) ? &socket_class_udp6 : &socket_class_udp));
+	socket = rn_socket(sched, (IS_IPV6(ip) ? &socket_class_udp6 : &socket_class_udp));
 	if (unlikely(socket == NULL)) {
 		return NULL;
 	}
@@ -39,8 +39,8 @@ t_socket *rinoo_udp_client(t_sched *sched, t_ip *ip, uint16_t port)
 		addr = (struct sockaddr *) &ip->v6;
 		addr_len = sizeof(ip->v6);
 	}
-	if (rinoo_socket_connect(socket, addr, addr_len) != 0) {
-		rinoo_socket_destroy(socket);
+	if (rn_socket_connect(socket, addr, addr_len) != 0) {
+		rn_socket_destroy(socket);
 		return NULL;
 	}
 	return socket;

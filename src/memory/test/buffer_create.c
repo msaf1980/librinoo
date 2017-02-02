@@ -1,9 +1,9 @@
 /**
- * @file   buffer_create.c
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2013
- * @date   Thu Jan 21 18:27:58 2010
+ * @file   rn_buffer_create.c
+ * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
+ * @date   Wed Feb  1 18:56:27 2017
  *
- * @brief  buffer_create unit test
+ * @brief  rn_buffer_create unit test
  *
  *
  */
@@ -18,14 +18,14 @@
  */
 int main()
 {
-	t_buffer *buffer;
+	rn_buffer_t *buffer;
 
-	buffer = buffer_create(NULL);
+	buffer = rn_buffer_create(NULL);
 	XTEST(buffer != NULL);
 	XTEST(buffer->ptr != NULL);
 	XTEST(buffer->size == 0);
-	XTEST(buffer->msize == RINOO_BUFFER_HELPER_INISIZE);
+	XTEST(buffer->msize == RN_BUFFER_HELPER_INISIZE);
 	XTEST(buffer->class != NULL);
-	buffer_destroy(buffer);
+	rn_buffer_destroy(buffer);
 	XPASS();
 }

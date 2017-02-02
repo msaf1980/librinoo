@@ -1,7 +1,7 @@
 /**
  * @file   vector.c
  * @author Reginald Lips <reginald.@gmail.com> - Copyright 2014
- * @date   Wed Apr 30 18:48:49 2014
+ * @date   Wed Feb  1 18:56:27 2017
  *
  * @brief  Vector functions
  *
@@ -18,7 +18,7 @@
  *
  * @return 0 on success, otherwise -1
  */
-int vector_add(t_vector *vector, void *item)
+int rn_vector_add(rn_vector_t *vector, void *item)
 {
 	void *ptr;
 	size_t msize;
@@ -50,7 +50,7 @@ int vector_add(t_vector *vector, void *item)
  *
  * @param vector Vector to destroy
  */
-void vector_destroy(t_vector *vector)
+void rn_vector_destroy(rn_vector_t *vector)
 {
 	if (vector == NULL || vector->msize == 0 || vector->ptr == NULL) {
 		return;
@@ -67,7 +67,7 @@ void vector_destroy(t_vector *vector)
  *
  * @return 0 on success, otherwise -1
  */
-int vector_remove(t_vector *vector, uint32_t i)
+int rn_vector_remove(rn_vector_t *vector, uint32_t i)
 {
 	if (vector == NULL || i >= vector->size) {
 		return -1;
@@ -87,7 +87,7 @@ int vector_remove(t_vector *vector, uint32_t i)
  *
  * @return Pointer to the element on success, otherwise NULL
  */
-void *vector_get(t_vector *vector, uint32_t i)
+void *rn_vector_get(rn_vector_t *vector, uint32_t i)
 {
 	if (vector == NULL || i >= vector->size) {
 		return NULL;
@@ -102,7 +102,7 @@ void *vector_get(t_vector *vector, uint32_t i)
  *
  * @return Size of the vector
  */
-size_t vector_size(t_vector *vector)
+size_t rn_vector_size(rn_vector_t *vector)
 {
 	if (vector == NULL) {
 		return 0;

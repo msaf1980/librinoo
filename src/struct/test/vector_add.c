@@ -1,9 +1,9 @@
 /**
- * @file   vector_add.c
+ * @file   rn_vector_add.c
  * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2014
- * @date   Wed Apr 30 18:49:23 2014
+ * @date   Wed Feb  1 18:56:27 2017
  *
- * @brief  vector_add unit test
+ * @brief  rn_vector_add unit test
  *
  *
  */
@@ -27,10 +27,10 @@ int main()
 {
 	int i;
 	size_t prev = 4;
-	t_vector vector = { 0 };
+	rn_vector_t vector = { 0 };
 
 	for (i = 0; i < 1000; i++) {
-		XTEST(vector_add(&vector, INT_TO_PTR(i)) == 0);
+		XTEST(rn_vector_add(&vector, INT_TO_PTR(i)) == 0);
 		XTEST(vector.size == (size_t) i + 1);
 		XTEST(vector.msize == prev * 2);
 		if ((size_t) (i + 1) >= vector.msize) {
@@ -38,9 +38,9 @@ int main()
 		}
 	}
 	for (i = 0; i < 1000; i++) {
-		XTEST(vector_get(&vector, (uint32_t) i) == INT_TO_PTR(i));
+		XTEST(rn_vector_get(&vector, (uint32_t) i) == INT_TO_PTR(i));
 	}
-	XTEST(vector_get(&vector, 1000) == NULL);
-	vector_destroy(&vector);
+	XTEST(rn_vector_get(&vector, 1000) == NULL);
+	rn_vector_destroy(&vector);
 	XPASS();
 }

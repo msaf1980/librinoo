@@ -1,7 +1,7 @@
 /**
  * @file   node.h
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2013
- * @date   Mon Dec 28 00:14:20 2009
+ * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
+ * @date   Wed Feb  1 18:56:27 2017
  *
  * @brief  Header file for scheduler node structures.
  *
@@ -12,23 +12,23 @@
 #define RINOO_SCHEDULER_NODE_H_
 
 /* Declared in scheduler.h */
-struct s_sched;
+struct rn_sched_s;
 
-typedef enum e_sched_mode {
+typedef enum rn_sched_mode_e {
 	RINOO_MODE_NONE = 0,
 	RINOO_MODE_IN = 1,
 	RINOO_MODE_OUT = 2,
-} t_sched_mode;
+} rn_sched_mode_t;
 
-typedef struct s_sched_node {
+typedef struct rn_sched_node_s {
 	int fd;
 	int error;
-	t_task *task;
-	t_list_node lnode;
-	t_sched_mode mode;
-	t_sched_mode waiting;
-	t_sched_mode received;
-	struct s_sched *sched;
-} t_sched_node;
+	rn_task_t *task;
+	rn_list_node_t lnode;
+	rn_sched_mode_t mode;
+	rn_sched_mode_t waiting;
+	rn_sched_mode_t received;
+	struct rn_sched_s *sched;
+} rn_sched_node_t;
 
 #endif /* !RINOO_SCHEDULER_NODE_H_ */

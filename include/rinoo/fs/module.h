@@ -1,7 +1,7 @@
 /**
  * @file   module.h
  * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2014
- * @date   Tue Jul 15 19:36:13 2014
+ * @date   Wed Feb  1 18:56:27 2017
  *
  * @brief  Header file for fs module.
  *

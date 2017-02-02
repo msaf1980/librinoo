@@ -1,7 +1,7 @@
 /**
  * @file   task.c
  * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
- * @date   Thu Oct 13 22:15:13 2011
+ * @date   Wed Feb  1 18:56:27 2017
  *
  * @brief  Scheduler task functions
  *
@@ -14,12 +14,12 @@
 # include <valgrind/valgrind.h>
 #endif
 
-static __thread t_task *current_task = NULL;
+static __thread rn_task_t *current_task = NULL;
 
-static int rinoo_task_cmp(t_rbtree_node *node1, t_rbtree_node *node2)
+static int rn_task_cmp(rn_rbtree_node_t *node1, rn_rbtree_node_t *node2)
 {
-	t_task *task1 = container_of(node1, t_task, proc_node);
-	t_task *task2 = container_of(node2, t_task, proc_node);
+	rn_task_t *task1 = container_of(node1, rn_task_t, proc_node);
+	rn_task_t *task2 = container_of(node2, rn_task_t, proc_node);
 
 	if (task1 == task2) {
 		return 0;
@@ -38,11 +38,11 @@ static int rinoo_task_cmp(t_rbtree_node *node1, t_rbtree_node *node2)
  *
  * @return 0 on success, -1 if an error occurs
  */
-int rinoo_task_driver_init(t_sched *sched)
+int rn_task_driver_init(rn_sched_t *sched)
 {
 	XASSERT(sched != NULL, -1);
 
-	if (rbtree(&sched->driver.proc_tree, rinoo_task_cmp, NULL) != 0) {
+	if (rn_rbtree(&sched->driver.proc_tree, rn_task_cmp, NULL) != 0) {
 		return -1;
 	}
 	sched->driver.main.sched = sched;
@@ -56,11 +56,11 @@ int rinoo_task_driver_init(t_sched *sched)
  *
  * @param sched Pointer to the scheduler to use
  */
-void rinoo_task_driver_destroy(t_sched *sched)
+void rn_task_driver_destroy(rn_sched_t *sched)
 {
 	XASSERTN(sched != NULL);
 
-	rbtree_flush(&sched->driver.proc_tree);
+	rn_rbtree_flush(&sched->driver.proc_tree);
 }
 
 /**
@@ -71,19 +71,19 @@ void rinoo_task_driver_destroy(t_sched *sched)
  *
  * @return Time before next task in ms or -1 if no task is queued
  */
-int rinoo_task_driver_run(t_sched *sched)
+int rn_task_driver_run(rn_sched_t *sched)
 {
-	t_task *task;
+	rn_task_t *task;
 	struct timeval tv;
-	t_rbtree_node *head;
+	rn_rbtree_node_t *head;
 
 	XASSERT(sched != NULL, -1);
 
-	while ((head = rbtree_head(&sched->driver.proc_tree)) != NULL) {
-		task = container_of(head, t_task, proc_node);
+	while ((head = rn_rbtree_head(&sched->driver.proc_tree)) != NULL) {
+		task = container_of(head, rn_task_t, proc_node);
 		if (timercmp(&task->tv, &sched->clock, <=)) {
-			rinoo_task_unschedule(task);
-			rinoo_task_resume(task);
+			rn_task_unschedule(task);
+			rn_task_resume(task);
 		} else {
 			timersub(&task->tv, &sched->clock, &tv);
 			return (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
@@ -99,18 +99,18 @@ int rinoo_task_driver_run(t_sched *sched)
  *
  * @return 0 on success otherwise -1 if an error occurs
  */
-int rinoo_task_driver_stop(t_sched *sched)
+int rn_task_driver_stop(rn_sched_t *sched)
 {
-	t_task *task;
-	t_rbtree_node *head;
+	rn_task_t *task;
+	rn_rbtree_node_t *head;
 
 	XASSERT(sched != NULL, -1);
 	XASSERT(sched->stop == true, -1);
 
-	while ((head = rbtree_head(&sched->driver.proc_tree)) != NULL) {
-		task = container_of(head, t_task, proc_node);
-		rinoo_task_unschedule(task);
-		rinoo_task_resume(task);
+	while ((head = rn_rbtree_head(&sched->driver.proc_tree)) != NULL) {
+		task = container_of(head, rn_task_t, proc_node);
+		rn_task_unschedule(task);
+		rn_task_resume(task);
 	}
 	return 0;
 }
@@ -122,7 +122,7 @@ int rinoo_task_driver_stop(t_sched *sched)
  *
  * @return Number of pending tasks.
  */
-uint32_t rinoo_task_driver_nbpending(t_sched *sched)
+uint32_t rn_task_driver_nbpending(rn_sched_t *sched)
 {
 	return sched->driver.proc_tree.size;
 }
@@ -134,7 +134,7 @@ uint32_t rinoo_task_driver_nbpending(t_sched *sched)
  *
  * @return Pointer to the current task
  */
-t_task *rinoo_task_driver_getcurrent(t_sched *sched)
+rn_task_t *rn_task_driver_getcurrent(rn_sched_t *sched)
 {
 	return sched->driver.current;
 }
@@ -148,9 +148,9 @@ t_task *rinoo_task_driver_getcurrent(t_sched *sched)
  *
  * @return Pointer to the created task, or NULL if an error occurs
  */
-t_task *rinoo_task(t_sched *sched, t_task *parent, void (*function)(void *arg), void *arg)
+rn_task_t *rn_task(rn_sched_t *sched, rn_task_t *parent, void (*function)(void *arg), void *arg)
 {
-	t_task *task;
+	rn_task_t *task;
 
 	XASSERT(sched != NULL, NULL);
 	XASSERT(parent != NULL, NULL);
@@ -182,14 +182,14 @@ t_task *rinoo_task(t_sched *sched, t_task *parent, void (*function)(void *arg), 
  *
  * @param task Pointer to the task to destroy
  */
-void rinoo_task_destroy(t_task *task)
+void rn_task_destroy(rn_task_t *task)
 {
 	XASSERTN(task != NULL);
 
 #ifdef RINOO_DEBUG
 	VALGRIND_STACK_DEREGISTER(task->valgrind_stackid);
 #endif /* !RINOO_DEBUG */
-	rinoo_task_unschedule(task);
+	rn_task_unschedule(task);
 	free(task);
 }
 
@@ -202,15 +202,15 @@ void rinoo_task_destroy(t_task *task)
  *
  * @return 0 on success, otherwise -1
  */
-int rinoo_task_start(t_sched *sched, void (*function)(void *arg), void *arg)
+int rn_task_start(rn_sched_t *sched, void (*function)(void *arg), void *arg)
 {
-	t_task *task;
+	rn_task_t *task;
 
-	task = rinoo_task(sched, &sched->driver.main, function, arg);
+	task = rn_task(sched, &sched->driver.main, function, arg);
 	if (task == NULL) {
 		return -1;
 	}
-	rinoo_task_schedule(task, NULL);
+	rn_task_schedule(task, NULL);
 	return 0;
 }
 
@@ -224,15 +224,15 @@ int rinoo_task_start(t_sched *sched, void (*function)(void *arg), void *arg)
  *
  * @return 0 on success, otherwise -1
  */
-int rinoo_task_run(t_sched *sched, void (*function)(void *arg), void *arg)
+int rn_task_run(rn_sched_t *sched, void (*function)(void *arg), void *arg)
 {
-	t_task *task;
+	rn_task_t *task;
 
-	task = rinoo_task(sched, sched->driver.current, function, arg);
+	task = rn_task(sched, sched->driver.current, function, arg);
 	if (task == NULL) {
 		return -1;
 	}
-	return rinoo_task_resume(task);
+	return rn_task_resume(task);
 }
 
 /**
@@ -243,11 +243,11 @@ int rinoo_task_run(t_sched *sched, void (*function)(void *arg), void *arg)
  *
  * @return 1 if the given task has been executed and is over, 0 if it's been released, -1 if an error occurs
  */
-int rinoo_task_resume(t_task *task)
+int rn_task_resume(rn_task_t *task)
 {
 	int ret;
-	t_task *old;
-	t_task_driver *driver;
+	rn_task_t *old;
+	rn_task_driver_t *driver;
 
 	XASSERT(task != NULL, -1);
 
@@ -260,7 +260,7 @@ int rinoo_task_resume(t_task *task)
 	current_task = old;
 	if (ret == 0) {
 		/* This task is finished */
-		rinoo_task_destroy(task);
+		rn_task_destroy(task);
 	}
 	return ret;
 }
@@ -272,7 +272,7 @@ int rinoo_task_resume(t_task *task)
  *
  * @return 0 on success or -1 if an error occurs
  */
-int rinoo_task_release(t_sched *sched)
+int rn_task_release(rn_sched_t *sched)
 {
 	XASSERT(sched != NULL, -1);
 
@@ -292,13 +292,13 @@ int rinoo_task_release(t_sched *sched)
  *
  * @return 0 on success or -1 if an error occurs
  */
-int rinoo_task_schedule(t_task *task, struct timeval *tv)
+int rn_task_schedule(rn_task_t *task, struct timeval *tv)
 {
 	XASSERT(task != NULL, -1);
 	XASSERT(task->sched != NULL, -1);
 
 	if (task->scheduled == true) {
-		rbtree_remove(&task->sched->driver.proc_tree, &task->proc_node);
+		rn_rbtree_remove(&task->sched->driver.proc_tree, &task->proc_node);
 		task->scheduled = false;
 	}
 	if (tv != NULL) {
@@ -306,7 +306,7 @@ int rinoo_task_schedule(t_task *task, struct timeval *tv)
 	} else {
 		memset(&task->tv, 0, sizeof(task->tv));
 	}
-	if (rbtree_put(&task->sched->driver.proc_tree, &task->proc_node) != 0) {
+	if (rn_rbtree_put(&task->sched->driver.proc_tree, &task->proc_node) != 0) {
 		return -1;
 	}
 	task->scheduled = true;
@@ -320,13 +320,13 @@ int rinoo_task_schedule(t_task *task, struct timeval *tv)
  *
  * @return 0 on success or -1 if an error occurs
  */
-int rinoo_task_unschedule(t_task *task)
+int rn_task_unschedule(rn_task_t *task)
 {
 	XASSERT(task != NULL, -1);
 	XASSERT(task->sched != NULL, -1);
 
 	if (task->scheduled == true) {
-		rbtree_remove(&task->sched->driver.proc_tree, &task->proc_node);
+		rn_rbtree_remove(&task->sched->driver.proc_tree, &task->proc_node);
 		memset(&task->tv, 0, sizeof(task->tv));
 		task->scheduled = false;
 	}
@@ -341,24 +341,24 @@ int rinoo_task_unschedule(t_task *task)
  *
  * @return 0 on success or -1 if an error occurs
  */
-int rinoo_task_wait(t_sched *sched, uint32_t ms)
+int rn_task_wait(rn_sched_t *sched, uint32_t ms)
 {
 	struct timeval res;
 	struct timeval toadd;
 
 	if (ms == 0) {
-		if (rinoo_task_schedule(rinoo_task_driver_getcurrent(sched), NULL) != 0) {
+		if (rn_task_schedule(rn_task_driver_getcurrent(sched), NULL) != 0) {
 			return -1;
 		}
 	} else {
 		toadd.tv_sec = ms / 1000;
 		toadd.tv_usec = (ms % 1000) * 1000;
 		timeradd(&sched->clock, &toadd, &res);
-		if (rinoo_task_schedule(rinoo_task_driver_getcurrent(sched), &res) != 0) {
+		if (rn_task_schedule(rn_task_driver_getcurrent(sched), &res) != 0) {
 			return -1;
 		}
 	}
-	return rinoo_task_release(sched);
+	return rn_task_release(sched);
 }
 
 /**
@@ -369,31 +369,31 @@ int rinoo_task_wait(t_sched *sched, uint32_t ms)
  *
  * @return 0 on success or -1 if an error occurs
  */
-int rinoo_task_pause(t_sched *sched)
+int rn_task_pause(rn_sched_t *sched)
 {
-	t_task *task;
+	rn_task_t *task;
 	struct timeval tv;
 
-	task = rinoo_task_driver_getcurrent(sched);
+	task = rn_task_driver_getcurrent(sched);
 	if (task == &sched->driver.main) {
 		return 0;
 	}
 	if (task->scheduled == true) {
 		tv = task->tv;
-		if (rinoo_task_schedule(task, NULL) != 0) {
+		if (rn_task_schedule(task, NULL) != 0) {
 			return -1;
 		}
-		if (rinoo_task_release(sched) != 0) {
+		if (rn_task_release(sched) != 0) {
 			return -1;
 		}
-		if (rinoo_task_schedule(task, &tv) != 0) {
+		if (rn_task_schedule(task, &tv) != 0) {
 			return -1;
 		}
 	} else {
-		if (rinoo_task_schedule(task, NULL) != 0) {
+		if (rn_task_schedule(task, NULL) != 0) {
 			return -1;
 		}
-		if (rinoo_task_release(sched) != 0) {
+		if (rn_task_release(sched) != 0) {
 			return -1;
 		}
 	}
@@ -406,7 +406,7 @@ int rinoo_task_pause(t_sched *sched)
  *
  * @return Pointer to the active task or NULL if no task is running
  */
-t_task *rinoo_task_self(void)
+rn_task_t *rn_task_self(void)
 {
 	return current_task;
 }

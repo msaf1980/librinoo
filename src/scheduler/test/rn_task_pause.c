@@ -1,9 +1,9 @@
 /**
- * @file   rinoo_task_pause.c
- * @author reginaldl <reginald.l@gmail.com> - Copyright 2013
- * @date   Wed Feb 27 15:25:13 2013
+ * @file   rn_task_pause.c
+ * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
+ * @date   Wed Feb  1 18:56:27 2017
  *
- * @brief  rinoo_task_pause unit test
+ * @brief  rn_task_pause unit test
  *
  *
  */
@@ -21,7 +21,7 @@ void task1(void *sched)
 		check++;
 		printf("%s - %d\n", __FUNCTION__, check);
 		XTEST(check == 1);
-		rinoo_task_pause(sched);
+		rn_task_pause(sched);
 	}
 	printf("%s end\n", __FUNCTION__);
 }
@@ -35,7 +35,7 @@ void task2(void *sched)
 		check++;
 		printf("%s - %d\n", __FUNCTION__, check);
 		XTEST(check == 2);
-		rinoo_task_pause(sched);
+		rn_task_pause(sched);
 	}
 	printf("%s end\n", __FUNCTION__);
 }
@@ -50,7 +50,7 @@ void task3(void *sched)
 		printf("%s - %d\n", __FUNCTION__, check);
 		XTEST(check == 3);
 		check = 0;
-		rinoo_task_pause(sched);
+		rn_task_pause(sched);
 	}
 	printf("%s end\n", __FUNCTION__);
 }
@@ -63,14 +63,14 @@ void task3(void *sched)
  */
 int main()
 {
-	t_sched *sched;
+	rn_sched_t *sched;
 
-	sched = rinoo_sched();
+	sched = rn_sched();
 	XTEST(sched != NULL);
-	XTEST(rinoo_task_start(sched, task1, sched) == 0);
-	XTEST(rinoo_task_start(sched, task2, sched) == 0);
-	XTEST(rinoo_task_start(sched, task3, sched) == 0);
-	rinoo_sched_loop(sched);
-	rinoo_sched_destroy(sched);
+	XTEST(rn_task_start(sched, task1, sched) == 0);
+	XTEST(rn_task_start(sched, task2, sched) == 0);
+	XTEST(rn_task_start(sched, task3, sched) == 0);
+	rn_sched_loop(sched);
+	rn_sched_destroy(sched);
 	XPASS();
 }

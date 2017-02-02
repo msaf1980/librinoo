@@ -1,7 +1,7 @@
 /**
  * @file   inotify.h
  * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2014
- * @date   Tue Jul 15 19:35:23 2014
+ * @date   Wed Feb  1 18:56:27 2017
  *
  * @brief  inotify structures and functions.
  *
@@ -11,7 +11,7 @@
 #ifndef RINOO_FS_INOTIFY_H_
 #define RINOO_FS_INOTIFY_H_
 
-typedef enum e_inotify_type {
+typedef enum rn_inotify_type_e {
 	INOTIFY_ACCESS = IN_ACCESS,
 	INOTIFY_ATTRIB = IN_ATTRIB,
 	INOTIFY_CLOSE = IN_CLOSE,
@@ -35,32 +35,32 @@ typedef enum e_inotify_type {
 	INOTIFY_ISDIR = IN_ISDIR,
 	INOTIFY_Q_OVERFLOW = IN_Q_OVERFLOW,
 	INOTIFY_UNMOUNT = IN_UNMOUNT
-} t_inotify_type;
+} rn_inotify_type_t;
 
-typedef struct s_inotify_watch {
+typedef struct rn_inotify_watch_s {
 	int wd;
 	char *path;
-} t_inotify_watch;
+} rn_inotify_watch_t;
 
-typedef struct s_inotify_event {
-	t_buffer *path;
-	t_inotify_type type;
-	t_inotify_watch *watch;
-} t_inotify_event;
+typedef struct rn_inotify_event_s {
+	rn_buffer_t *path;
+	rn_inotify_type_t type;
+	rn_inotify_watch_t *watch;
+} rn_inotify_event_t;
 
-typedef struct s_inotify {
-	t_sched_node node;
+typedef struct rn_inotify_s {
+	rn_sched_node_t node;
 	size_t io_calls;
 	size_t nb_watches;
-	t_inotify_watch *watches[500];
+	rn_inotify_watch_t *watches[500];
 	char read_buffer[4096];
-	t_inotify_event event;
-} t_inotify;
+	rn_inotify_event_t event;
+} rn_inotify_t;
 
-t_inotify *rinoo_inotify(t_sched *sched);
-void rinoo_inotify_destroy(t_inotify *notify);
-t_inotify_watch *rinoo_inotify_add_watch(t_inotify *inotify, const char *path, t_inotify_type type, bool recursive);
-int rinoo_inotify_rm_watch(t_inotify *inotify, t_inotify_watch *watch);
-t_inotify_event *rinoo_inotify_event(t_inotify *inotify);
+rn_inotify_t *rn_inotify(rn_sched_t *sched);
+void rn_inotify_destroy(rn_inotify_t *notify);
+rn_inotify_watch_t *rn_inotify_add_watch(rn_inotify_t *inotify, const char *path, rn_inotify_type_t type, bool recursive);
+int rn_inotify_rm_watch(rn_inotify_t *inotify, rn_inotify_watch_t *watch);
+rn_inotify_event_t *rn_inotify_event(rn_inotify_t *inotify);
 
 #endif /* !RINOO_FS_INOTIFY_H_ */

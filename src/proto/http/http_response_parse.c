@@ -3,7 +3,7 @@
 /**
  * @file   http_response_parse.rl
  * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
- * @date   Sun Apr 15 22:29:07 2012
+ * @date   Wed Feb  1 18:56:27 2017
  *
  * @brief  HTTP response parsing
  *
@@ -143,11 +143,11 @@ static const int httpres_reader_en_main = 1;
 
 
 
-int rinoo_http_response_parse(t_http *http)
+int rn_http_response_parse(rn_http_t *http)
 {
 	int cs = 0;
-	char *p = buffer_ptr(http->response.buffer);
-	char *pe = (char *) buffer_ptr(http->response.buffer) + buffer_size(http->response.buffer);
+	char *p = rn_buffer_ptr(http->response.buffer);
+	char *pe = (char *) rn_buffer_ptr(http->response.buffer) + rn_buffer_size(http->response.buffer);
 	char *eof = NULL;
 	char *code_start = NULL;
 	char *msg_start = NULL;
@@ -281,7 +281,7 @@ _match:
 	  if (hd_start != NULL && hd_end != NULL && hdv_start != NULL) {
 		  tmp = *hd_end;
 		  *hd_end = 0;
-		  rinoo_http_header_setdata(&http->response.headers, hd_start, hdv_start, (hdv_end - hdv_start));
+		  rn_http_header_setdata(&http->response.headers, hd_start, hdv_start, (hdv_end - hdv_start));
 		  *hd_end = tmp;
 	  }
   }
@@ -290,7 +290,7 @@ _match:
 #line 34 "./http_response_parse.rl"
 	{
 	  http->response.code = atoi(code_start);
-	  buffer_static(&http->response.msg, msg_start, msg_end - msg_start);
+	  rn_buffer_static(&http->response.msg, msg_start, msg_end - msg_start);
 	  if (cl_start != NULL && cl_end != NULL)
 	  {
 		  tmp = *cl_end;
@@ -298,7 +298,7 @@ _match:
 		  http->response.content_length = atoi(cl_start);
 		  *cl_end = tmp;
 	  }
-	  http->response.headers_length = p - ((char *) buffer_ptr(http->response.buffer)) + 1;
+	  http->response.headers_length = p - ((char *) rn_buffer_ptr(http->response.buffer)) + 1;
 	  return 1;
   }
 	break;

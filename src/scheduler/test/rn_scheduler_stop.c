@@ -1,7 +1,7 @@
 /**
  * @file   rinoo_scheduler_stop.c
- * @author reginaldl <reginald.l@gmail.com> - Copyright 2013
- * @date   Wed Jan  2 15:13:07 2013
+ * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
+ * @date   Wed Feb  1 18:56:27 2017
  *
  * @brief  RiNOO Scheduler stop unit test
  *
@@ -28,13 +28,13 @@ void task(void *unused(arg))
  */
 int main()
 {
-	t_sched *sched;
+	rn_sched_t *sched;
 
-	sched = rinoo_sched();
+	sched = rn_sched();
 	XTEST(sched != NULL);
-	XTEST(rinoo_task_start(sched, task, sched) == 0);
-	rinoo_sched_loop(sched);
-	rinoo_sched_destroy(sched);
+	XTEST(rn_task_start(sched, task, sched) == 0);
+	rn_sched_loop(sched);
+	rn_sched_destroy(sched);
 	XTEST(checker == 1);
 	XPASS();
 }

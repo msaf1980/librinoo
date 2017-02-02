@@ -1,7 +1,7 @@
 /**
- * @file   rbtree.c
+ * @file   rn_rbtree.c
  * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
- * @date   Fri Apr 13 10:55:43 2012
+ * @date   Wed Feb  1 18:56:27 2017
  *
  * @brief Red-Black tree implementation.
  *
@@ -15,9 +15,9 @@
  * modification, are permitted provided that the following conditions
  * are met:
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *    notice, this rn_list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
+ *    notice, this rn_list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
@@ -34,9 +34,9 @@
 
 #include "rinoo/struct/module.h"
 
-static inline void rbtree_rotate_left(t_rbtree *tree, t_rbtree_node *node)
+static inline void rn_rbtree_rotate_left(rn_rbtree_t *tree, rn_rbtree_node_t *node)
 {
-	t_rbtree_node *current;
+	rn_rbtree_node_t *current;
 
 	current = node->right;
 	node->right = current->left;
@@ -57,9 +57,9 @@ static inline void rbtree_rotate_left(t_rbtree *tree, t_rbtree_node *node)
 	node->parent = current;
 }
 
-static inline void rbtree_rotate_right(t_rbtree *tree, t_rbtree_node *node)
+static inline void rn_rbtree_rotate_right(rn_rbtree_t *tree, rn_rbtree_node_t *node)
 {
-	t_rbtree_node *current;
+	rn_rbtree_node_t *current;
 
 	current = node->left;
 	node->left = current->right;
@@ -80,11 +80,11 @@ static inline void rbtree_rotate_right(t_rbtree *tree, t_rbtree_node *node)
 	node->parent = current;
 }
 
-static void rbtree_insert_color(t_rbtree *tree, t_rbtree_node *node)
+static void rn_rbtree_insert_color(rn_rbtree_t *tree, rn_rbtree_node_t *node)
 {
-	t_rbtree_node *parent;
-	t_rbtree_node *gparent;
-	t_rbtree_node *current;
+	rn_rbtree_node_t *parent;
+	rn_rbtree_node_t *gparent;
+	rn_rbtree_node_t *current;
 
 	parent = node->parent;
 	while ((parent = node->parent) != NULL &&
@@ -100,14 +100,14 @@ static void rbtree_insert_color(t_rbtree *tree, t_rbtree_node *node)
 				node = gparent;
 			} else {
 				if (parent->right == node) {
-					rbtree_rotate_left(tree, parent);
+					rn_rbtree_rotate_left(tree, parent);
 					current = parent;
 					parent = node;
 					node = current;
 				}
 				parent->color = RINOO_RBTREE_BLACK;
 				gparent->color = RINOO_RBTREE_RED;
-				rbtree_rotate_right(tree, gparent);
+				rn_rbtree_rotate_right(tree, gparent);
 			}
 		} else {
 			current = gparent->left;
@@ -118,23 +118,23 @@ static void rbtree_insert_color(t_rbtree *tree, t_rbtree_node *node)
 				node = gparent;
 			} else {
 				if (parent->left == node) {
-					rbtree_rotate_right(tree, parent);
+					rn_rbtree_rotate_right(tree, parent);
 					current = parent;
 					parent = node;
 					node = current;
 				}
 				parent->color = RINOO_RBTREE_BLACK;
 				gparent->color = RINOO_RBTREE_RED;
-				rbtree_rotate_left(tree, gparent);
+				rn_rbtree_rotate_left(tree, gparent);
 			}
 		}
 	}
 	tree->root->color = RINOO_RBTREE_BLACK;
 }
 
-static void rbtree_remove_color(t_rbtree *tree, t_rbtree_node *parent, t_rbtree_node *node)
+static void rn_rbtree_remove_color(rn_rbtree_t *tree, rn_rbtree_node_t *parent, rn_rbtree_node_t *node)
 {
-	t_rbtree_node *current;
+	rn_rbtree_node_t *current;
 
 	while ((node == NULL || node->color == RINOO_RBTREE_BLACK) && node != tree->root && parent != NULL) {
 		if (parent->left == node) {
@@ -142,7 +142,7 @@ static void rbtree_remove_color(t_rbtree *tree, t_rbtree_node *parent, t_rbtree_
 			if (current->color == RINOO_RBTREE_RED) {
 				current->color = RINOO_RBTREE_BLACK;
 				parent->color = RINOO_RBTREE_RED;
-				rbtree_rotate_left(tree, parent);
+				rn_rbtree_rotate_left(tree, parent);
 				current = parent->right;
 			}
 			if ((current->left == NULL || current->left->color == RINOO_RBTREE_BLACK) &&
@@ -156,7 +156,7 @@ static void rbtree_remove_color(t_rbtree *tree, t_rbtree_node *parent, t_rbtree_
 						current->left->color = RINOO_RBTREE_BLACK;
 					}
 					current->color = RINOO_RBTREE_RED;
-					rbtree_rotate_right(tree, current);
+					rn_rbtree_rotate_right(tree, current);
 					current = parent->right;
 				}
 				current->color = parent->color;
@@ -164,7 +164,7 @@ static void rbtree_remove_color(t_rbtree *tree, t_rbtree_node *parent, t_rbtree_
 				if (current->right != NULL) {
 					current->right->color = RINOO_RBTREE_BLACK;
 				}
-				rbtree_rotate_left(tree, parent);
+				rn_rbtree_rotate_left(tree, parent);
 				node = tree->root;
 				break;
 			}
@@ -173,7 +173,7 @@ static void rbtree_remove_color(t_rbtree *tree, t_rbtree_node *parent, t_rbtree_
 			if (current->color == RINOO_RBTREE_RED) {
 				current->color = RINOO_RBTREE_BLACK;
 				parent->color = RINOO_RBTREE_RED;
-				rbtree_rotate_right(tree, parent);
+				rn_rbtree_rotate_right(tree, parent);
 				current = parent->left;
 			}
 			if ((current->left == NULL || current->left->color == RINOO_RBTREE_BLACK) &&
@@ -187,7 +187,7 @@ static void rbtree_remove_color(t_rbtree *tree, t_rbtree_node *parent, t_rbtree_
 						current->right->color = RINOO_RBTREE_BLACK;
 					}
 					current->color = RINOO_RBTREE_RED;
-					rbtree_rotate_left(tree, current);
+					rn_rbtree_rotate_left(tree, current);
 					current = parent->left;
 				}
 				current->color = parent->color;
@@ -195,7 +195,7 @@ static void rbtree_remove_color(t_rbtree *tree, t_rbtree_node *parent, t_rbtree_
 				if (current->left != NULL) {
 					current->left->color = RINOO_RBTREE_BLACK;
 				}
-				rbtree_rotate_right(tree, parent);
+				rn_rbtree_rotate_right(tree, parent);
 				node = tree->root;
 				break;
 			}
@@ -207,7 +207,7 @@ static void rbtree_remove_color(t_rbtree *tree, t_rbtree_node *parent, t_rbtree_
 	}
 }
 
-int rbtree(t_rbtree *tree, int (*compare)(t_rbtree_node *node1, t_rbtree_node *node2), void (*delete)(t_rbtree_node *node))
+int rn_rbtree(rn_rbtree_t *tree, int (*compare)(rn_rbtree_node_t *node1, rn_rbtree_node_t *node2), void (*delete)(rn_rbtree_node_t *node))
 {
 	XASSERT(tree != NULL, -1);
 	XASSERT(compare != NULL, -1);
@@ -219,10 +219,10 @@ int rbtree(t_rbtree *tree, int (*compare)(t_rbtree_node *node1, t_rbtree_node *n
 	return 0;
 }
 
-void rbtree_flush(t_rbtree *tree)
+void rn_rbtree_flush(rn_rbtree_t *tree)
 {
-	t_rbtree_node *old;
-	t_rbtree_node *current;
+	rn_rbtree_node_t *old;
+	rn_rbtree_node_t *current;
 
 	XASSERTN(tree != NULL);
 
@@ -257,12 +257,12 @@ void rbtree_flush(t_rbtree *tree)
 	tree->head = NULL;
 }
 
-int rbtree_put(t_rbtree *tree, t_rbtree_node *node)
+int rn_rbtree_put(rn_rbtree_t *tree, rn_rbtree_node_t *node)
 {
 	int cmp;
 	int head;
-	t_rbtree_node *parent;
-	t_rbtree_node *current;
+	rn_rbtree_node_t *parent;
+	rn_rbtree_node_t *current;
 
 	XASSERT(tree != NULL, -1);
 	XASSERT(node != NULL, -1);
@@ -301,18 +301,18 @@ int rbtree_put(t_rbtree *tree, t_rbtree_node *node)
 		tree->head = node;
 	}
 
-	rbtree_insert_color(tree, node);
+	rn_rbtree_insert_color(tree, node);
 	tree->size++;
 
 	return 0;
 }
 
-void rbtree_remove(t_rbtree *tree, t_rbtree_node *node)
+void rn_rbtree_remove(rn_rbtree_t *tree, rn_rbtree_node_t *node)
 {
-	t_rbtree_node *old;
-	t_rbtree_node *child;
-	t_rbtree_node *parent;
-	t_rbtree_color color;
+	rn_rbtree_node_t *old;
+	rn_rbtree_node_t *child;
+	rn_rbtree_node_t *parent;
+	rn_rbtree_color_t color;
 
 	XASSERTN(tree != NULL);
 	XASSERTN(node != NULL);
@@ -385,7 +385,7 @@ void rbtree_remove(t_rbtree *tree, t_rbtree_node *node)
 	}
 color:
 	if (color == RINOO_RBTREE_BLACK) {
-		rbtree_remove_color(tree, parent, child);
+		rn_rbtree_remove_color(tree, parent, child);
 	}
 
 	if (tree->delete != NULL) {
@@ -394,14 +394,14 @@ color:
 	tree->size--;
 }
 
-t_rbtree_node *rbtree_head(t_rbtree *tree)
+rn_rbtree_node_t *rn_rbtree_head(rn_rbtree_t *tree)
 {
 	XASSERT(tree != NULL, NULL);
 
 	return tree->head;
 }
 
-t_rbtree_node *rbtree_next(t_rbtree_node *node)
+rn_rbtree_node_t *rn_rbtree_next(rn_rbtree_node_t *node)
 {
 	if (node->right != NULL) {
 		node = node->right;
@@ -422,10 +422,10 @@ t_rbtree_node *rbtree_next(t_rbtree_node *node)
 	return node;
 }
 
-t_rbtree_node *rbtree_find(t_rbtree *tree, t_rbtree_node *node)
+rn_rbtree_node_t *rn_rbtree_find(rn_rbtree_t *tree, rn_rbtree_node_t *node)
 {
 	int cmp;
-	t_rbtree_node *tmp;
+	rn_rbtree_node_t *tmp;
 
 	XASSERT(tree != NULL, NULL);
 	XASSERT(node != NULL, NULL);

@@ -1,7 +1,7 @@
 /**
- * @file   rinoo_fs_browse.c
+ * @file   rn_fs_browse.c
  * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2014
- * @date   Mon Jul 21 18:21:24 2014
+ * @date   Wed Feb  1 18:56:27 2017
  *
  * @brief  Test file for rinoo fs browse.
  *
@@ -18,10 +18,10 @@
  */
 int main()
 {
-	t_fs_entry *entry = NULL;
+	rn_fs_entry_t *entry = NULL;
 
-	while (rinoo_fs_browse(".", &entry) == 0 && entry != NULL) {
-		rinoo_log("%s", buffer_ptr(entry->path));
+	while (rn_fs_browse(".", &entry) == 0 && entry != NULL) {
+		rn_log("%s", rn_buffer_ptr(entry->path));
 	}
 	XPASS();
 }

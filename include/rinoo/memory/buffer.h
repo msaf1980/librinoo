@@ -1,7 +1,7 @@
 /**
  * @file   buffer.h
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2013
- * @date   Tue Dec 15 02:20:19 2009
+ * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
+ * @date   Wed Feb  1 18:56:27 2017
  *
  * @brief  Header file for buffer management
  *
@@ -11,43 +11,43 @@
 #ifndef RINOO_MEMORY_BUFFER_H_
 #define RINOO_MEMORY_BUFFER_H_
 
-#define RINOO_BUFFER_INCREMENT	2048
+#define RN_BUFFER_INCREMENT	2048
 
-typedef struct s_buffer {
+typedef struct rn_buffer_s {
 	void *ptr;
 	size_t size;
 	size_t msize;
-	t_buffer_class *class;
-} t_buffer;
+	rn_buffer_class_t *class;
+} rn_buffer_t;
 
-#define buffer_ptr(buffer)			((buffer)->ptr)
-#define buffer_size(buffer)			((buffer)->size)
-#define buffer_msize(buffer)			((buffer)->msize)
-#define buffer_isfull(buffer)			((buffer)->size == (buffer)->msize || (buffer)->msize == 0)
-#define buffer_setsize(buffer, newsize)		do { (buffer)->size = newsize; } while (0)
-#define strtobuffer(buffer, str)		do { buffer_static(buffer, (void *)(str), strlen(str)); } while (0)
+#define rn_buffer_ptr(buffer)			((buffer)->ptr)
+#define rn_buffer_size(buffer)			((buffer)->size)
+#define rn_buffer_msize(buffer)			((buffer)->msize)
+#define rn_buffer_isfull(buffer)			((buffer)->size == (buffer)->msize || (buffer)->msize == 0)
+#define rn_buffer_setsize(buffer, newsize)		do { (buffer)->size = newsize; } while (0)
+#define rn_strtobuffer(buffer, str)		do { rn_buffer_static(buffer, (void *)(str), strlen(str)); } while (0)
 
-t_buffer *buffer_create(t_buffer_class *class);
-void buffer_static(t_buffer *buffer, void *ptr, size_t size);
-void buffer_set(t_buffer *buffer, void *ptr, size_t msize);
-int buffer_destroy(t_buffer *buffer);
-int buffer_extend(t_buffer *buffer, size_t size);
-int buffer_vprint(t_buffer *buffer, const char *format, va_list ap);
-int buffer_print(t_buffer *buffer, const char *format, ...);
-int buffer_add(t_buffer *buffer, const char *data, size_t size);
-int buffer_addstr(t_buffer *buffer, const char *str);
-int buffer_addnull(t_buffer *buf);
-int buffer_erase(t_buffer *buffer, size_t size);
-t_buffer *buffer_dup(t_buffer *buffer);
-int buffer_cmp(t_buffer *buffer1, t_buffer *buffer2);
-int buffer_strcmp(t_buffer *buffer, const char *str);
-int buffer_strncmp(t_buffer *buffer, const char *str, size_t len);
-int buffer_strcasecmp(t_buffer *buffer, const char *str);
-int buffer_strncasecmp(t_buffer *buffer, const char *str, size_t len);
-long int buffer_tolong(t_buffer *buffer, size_t *len, int base);
-unsigned long int buffer_toulong(t_buffer *buffer, size_t *len, int base);
-float buffer_tofloat(t_buffer *buffer, size_t *len);
-double buffer_todouble(t_buffer *buffer, size_t *len);
-char *buffer_tostr(t_buffer *buffer);
+rn_buffer_t *rn_buffer_create(rn_buffer_class_t *class);
+void rn_buffer_static(rn_buffer_t *buffer, void *ptr, size_t size);
+void rn_buffer_set(rn_buffer_t *buffer, void *ptr, size_t msize);
+int rn_buffer_destroy(rn_buffer_t *buffer);
+int rn_buffer_extend(rn_buffer_t *buffer, size_t size);
+int rn_buffer_vprint(rn_buffer_t *buffer, const char *format, va_list ap);
+int rn_buffer_print(rn_buffer_t *buffer, const char *format, ...);
+int rn_buffer_add(rn_buffer_t *buffer, const char *data, size_t size);
+int rn_buffer_addstr(rn_buffer_t *buffer, const char *str);
+int rn_buffer_addnull(rn_buffer_t *buf);
+int rn_buffer_erase(rn_buffer_t *buffer, size_t size);
+rn_buffer_t *rn_buffer_dup(rn_buffer_t *buffer);
+int rn_buffer_cmp(rn_buffer_t *buffer1, rn_buffer_t *buffer2);
+int rn_buffer_strcmp(rn_buffer_t *buffer, const char *str);
+int rn_buffer_strncmp(rn_buffer_t *buffer, const char *str, size_t len);
+int rn_buffer_strcasecmp(rn_buffer_t *buffer, const char *str);
+int rn_buffer_strncasecmp(rn_buffer_t *buffer, const char *str, size_t len);
+long int rn_buffer_tolong(rn_buffer_t *buffer, size_t *len, int base);
+unsigned long int rn_buffer_toulong(rn_buffer_t *buffer, size_t *len, int base);
+float rn_buffer_tofloat(rn_buffer_t *buffer, size_t *len);
+double rn_buffer_todouble(rn_buffer_t *buffer, size_t *len);
+char *rn_buffer_tostr(rn_buffer_t *buffer);
 
 #endif /* !RINOO_MEMORY_BUFFER_H_ */

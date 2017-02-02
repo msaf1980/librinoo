@@ -1,7 +1,7 @@
 /**
- * @file   rbtree.h
+ * @file   rn_rbtree.h
  * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
- * @date   Fri Apr 13 10:43:43 2012
+ * @date   Wed Feb  1 18:56:27 2017
  *
  * @brief Header file for Red-Black tree implementation.
  *
@@ -15,9 +15,9 @@
  * modification, are permitted provided that the following conditions
  * are met:
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *    notice, this rn_list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
+ *    notice, this rn_list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
  *
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
@@ -35,34 +35,34 @@
 #ifndef RINOO_STRUCT_RBTREE_H_
 #define RINOO_STRUCT_RBTREE_H_
 
-typedef enum e_rbtree_color {
+typedef enum rn_rbtree_color_e {
 	RINOO_RBTREE_RED = 0,
 	RINOO_RBTREE_BLACK
-} t_rbtree_color;
+} rn_rbtree_color_t;
 
-typedef struct s_rbtree_node {
-	t_rbtree_color color;
-	struct s_rbtree_node *left;
-	struct s_rbtree_node *right;
-	struct s_rbtree_node *parent;
-} t_rbtree_node;
+typedef struct rn_rbtree_node_s {
+	rn_rbtree_color_t color;
+	struct rn_rbtree_node_s *left;
+	struct rn_rbtree_node_s *right;
+	struct rn_rbtree_node_s *parent;
+} rn_rbtree_node_t;
 
-typedef struct s_rbtree {
+typedef struct rn_rbtree_s {
 	uint64_t size;
-	t_rbtree_node *root;
-	t_rbtree_node *head;
-	int (*compare)(t_rbtree_node *node1, t_rbtree_node *node2);
-	void (*delete)(t_rbtree_node *node);
-} t_rbtree;
+	rn_rbtree_node_t *root;
+	rn_rbtree_node_t *head;
+	int (*compare)(rn_rbtree_node_t *node1, rn_rbtree_node_t *node2);
+	void (*delete)(rn_rbtree_node_t *node);
+} rn_rbtree_t;
 
-int rbtree(t_rbtree *tree,
-		int (*compare)(t_rbtree_node *node1, t_rbtree_node *node2),
-		void (*delete)(t_rbtree_node *node));
-void rbtree_flush(t_rbtree *tree);
-int rbtree_put(t_rbtree *tree, t_rbtree_node *node);
-void rbtree_remove(t_rbtree *tree, t_rbtree_node *node);
-t_rbtree_node *rbtree_head(t_rbtree *tree);
-t_rbtree_node *rbtree_next(t_rbtree_node *node);
-t_rbtree_node *rbtree_find(t_rbtree *tree, t_rbtree_node *node);
+int rn_rbtree(rn_rbtree_t *tree,
+		int (*compare)(rn_rbtree_node_t *node1, rn_rbtree_node_t *node2),
+		void (*delete)(rn_rbtree_node_t *node));
+void rn_rbtree_flush(rn_rbtree_t *tree);
+int rn_rbtree_put(rn_rbtree_t *tree, rn_rbtree_node_t *node);
+void rn_rbtree_remove(rn_rbtree_t *tree, rn_rbtree_node_t *node);
+rn_rbtree_node_t *rn_rbtree_head(rn_rbtree_t *tree);
+rn_rbtree_node_t *rn_rbtree_next(rn_rbtree_node_t *node);
+rn_rbtree_node_t *rn_rbtree_find(rn_rbtree_t *tree, rn_rbtree_node_t *node);
 
 #endif /* !RINOO_STRUCT_RBTREE_H_ */

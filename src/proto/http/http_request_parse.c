@@ -3,7 +3,7 @@
 /**
  * @file   http_request_parse.rl
  * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
- * @date   Sun Apr 15 22:29:07 2012
+ * @date   Wed Feb  1 18:56:27 2017
  *
  * @brief  HTTP request parsing
  *
@@ -217,11 +217,11 @@ static const int httpreq_reader_en_main = 1;
 
 
 
-int rinoo_http_request_parse(t_http *http)
+int rn_http_request_parse(rn_http_t *http)
 {
 	int cs = 0;
-	char *p = buffer_ptr(http->request.buffer);
-	char *pe = (char *) buffer_ptr(http->request.buffer) + buffer_size(http->request.buffer);
+	char *p = rn_buffer_ptr(http->request.buffer);
+	char *pe = (char *) rn_buffer_ptr(http->request.buffer) + rn_buffer_size(http->request.buffer);
 	char *eof = NULL;
 	char *uri_start = NULL;
 	char *uri_end = NULL;
@@ -350,7 +350,7 @@ _match:
 	  if (hd_start != NULL && hd_end != NULL && hdv_start != NULL) {
 		  tmp = *hd_end;
 		  *hd_end = 0;
-		  rinoo_http_header_setdata(&http->request.headers, hd_start, hdv_start, (hdv_end - hdv_start));
+		  rn_http_header_setdata(&http->request.headers, hd_start, hdv_start, (hdv_end - hdv_start));
 		  *hd_end = tmp;
 	  }
   }
@@ -358,7 +358,7 @@ _match:
 	case 8:
 #line 33 "http_request_parse.rl"
 	{
-	  buffer_static(&http->request.uri, uri_start, uri_end - uri_start);
+	  rn_buffer_static(&http->request.uri, uri_start, uri_end - uri_start);
 	  if (cl_start != NULL && cl_end != NULL)
 	  {
 		  tmp = *cl_end;
@@ -366,7 +366,7 @@ _match:
 		  http->request.content_length = atoi(cl_start);
 		  *cl_end = tmp;
 	  }
-	  http->request.headers_length = p - ((char *) buffer_ptr(http->request.buffer)) + 1;
+	  http->request.headers_length = p - ((char *) rn_buffer_ptr(http->request.buffer)) + 1;
 	  return 1;
   }
 	break;

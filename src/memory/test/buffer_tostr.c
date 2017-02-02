@@ -1,9 +1,9 @@
 /**
- * @file   buffer_tostr.c
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2013
- * @date   Thu Apr  7 18:20:26 2011
+ * @file   rn_buffer_tostr.c
+ * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
+ * @date   Wed Feb  1 18:56:27 2017
  *
- * @brief  buffer_tostr unit test
+ * @brief  rn_buffer_tostr unit test
  *
  *
  */
@@ -18,17 +18,17 @@
  */
 int main()
 {
-	t_buffer *buffer;
+	rn_buffer_t *buffer;
 	char *result;
 
-	buffer = buffer_create(NULL);
+	buffer = rn_buffer_create(NULL);
 	XTEST(buffer != NULL);
-	XTEST(buffer_add(buffer, "qwertyuiop", 10) == 10);
-	result = buffer_tostr(buffer);
+	XTEST(rn_buffer_add(buffer, "qwertyuiop", 10) == 10);
+	result = rn_buffer_tostr(buffer);
 	XTEST(result != NULL);
 	XTEST(strlen(result) == 10);
 	XTEST(strcmp(result, "qwertyuiop") == 0);
-	XTEST(buffer_size(buffer) == 11);
-	buffer_destroy(buffer);
+	XTEST(rn_buffer_size(buffer) == 11);
+	rn_buffer_destroy(buffer);
 	XPASS();
 }

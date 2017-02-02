@@ -1,24 +1,24 @@
 /**
- * @file   list_put.c
+ * @file   rn_list_put.c
  * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2014
- * @date   Fri Apr 13 14:58:37 2014
+ * @date   Wed Feb  1 18:56:27 2017
  *
- * @brief  rinoo list add unit test
+ * @brief  rinoo rn_list add unit test
  *
  *
  */
 
 #include "rinoo/rinoo.h"
 
-#define RINOO_LISTTEST_NB_ELEM 10000
+#define RN_LISTTEST_NB_ELEM 10000
 
 typedef struct mytest
 {
 	int val;
-	t_list_node node;
+	rn_list_node_t node;
 } tmytest;
 
-int cmp_func(t_list_node *node1, t_list_node *node2)
+int cmp_func(rn_list_node_t *node1, rn_list_node_t *node2)
 {
 	tmytest *a = container_of(node1, tmytest, node);
 	tmytest *b = container_of(node2, tmytest, node);
@@ -32,25 +32,25 @@ int main()
 	int min;
 	int last;
 	tmytest *head;
-	t_list mylist;
-	t_list_node *node;
-	tmytest tab[RINOO_LISTTEST_NB_ELEM];
+	rn_list_t mylist;
+	rn_list_node_t *node;
+	tmytest tab[RN_LISTTEST_NB_ELEM];
 
-	XTEST(list(&mylist, cmp_func) == 0);
-	for (i = 0; i < RINOO_LISTTEST_NB_ELEM; i++) {
+	XTEST(rn_list(&mylist, cmp_func) == 0);
+	for (i = 0; i < RN_LISTTEST_NB_ELEM; i++) {
 		tab[i].val = random();
 		if (i == 0 || min > tab[i].val) {
 			min = tab[i].val;
 		}
-		list_put(&mylist, &tab[i].node);
+		rn_list_put(&mylist, &tab[i].node);
 		XTEST(mylist.head != NULL);
 		head = container_of(mylist.head, tmytest, node);
 		XTEST(head->val == min);
 	}
-	XTEST(list_size(&mylist) == RINOO_LISTTEST_NB_ELEM);
+	XTEST(rn_list_size(&mylist) == RN_LISTTEST_NB_ELEM);
 	last = head->val;
-	for (i = 0; i < RINOO_LISTTEST_NB_ELEM; i++) {
-		node = list_pop(&mylist);
+	for (i = 0; i < RN_LISTTEST_NB_ELEM; i++) {
+		node = rn_list_pop(&mylist);
 		XTEST(node != NULL);
 		head = container_of(node, tmytest, node);
 		XTEST(head->val >= last);

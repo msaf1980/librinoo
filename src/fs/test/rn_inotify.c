@@ -1,7 +1,7 @@
 /**
  * @file   rinoo_socket_inotify.c
  * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2014
- * @date   Wed Jul 16 22:18:10 2014
+ * @date   Wed Feb  1 18:56:27 2017
  *
  * @brief  Test file for rinoo inotify.
  *
@@ -24,41 +24,41 @@ void event_generator(void *sched)
 	int fd;
 	char path[100];
 
-	rinoo_task_wait(sched, 200);
+	rn_task_wait(sched, 200);
 	for (i = 0; i < NB_EVENT / 2; i++) {
 		snprintf(path, sizeof(path), TEST_DIRECTORY ".inotify.XXXXXX");
 		fd = mkstemp(path);
 		close(fd);
-		rinoo_log("Event generator: file created.");
+		rn_log("Event generator: file created.");
 		nb_create++;
-		rinoo_task_wait(sched, 200);
+		rn_task_wait(sched, 200);
 		unlink(path);
 		nb_rm++;
-		rinoo_log("Event generator: file removed.");
-		rinoo_task_wait(sched, 200);
+		rn_log("Event generator: file removed.");
+		rn_task_wait(sched, 200);
 	}
 }
 
 void check_file(void *sched)
 {
 	int i;
-	t_inotify *inotify;
-	t_inotify_event *event;
+	rn_inotify_t *inotify;
+	rn_inotify_event_t *event;
 
-	inotify = rinoo_inotify(sched);
-	rinoo_inotify_add_watch(inotify, "/tmp", INOTIFY_CREATE | INOTIFY_DELETE, true);
-	for (i = 0; i < NB_EVENT && (event = rinoo_inotify_event(inotify)) != NULL; i++) {
+	inotify = rn_inotify(sched);
+	rn_inotify_add_watch(inotify, "/tmp", INOTIFY_CREATE | INOTIFY_DELETE, true);
+	for (i = 0; i < NB_EVENT && (event = rn_inotify_event(inotify)) != NULL; i++) {
 		if (event->type & INOTIFY_CREATE) {
-			rinoo_log("File created.");
+			rn_log("File created.");
 			nb_create_event++;
 		} else if (event->type & INOTIFY_DELETE) {
-			rinoo_log("File deleted.");
+			rn_log("File deleted.");
 			nb_rm_event++;
 		}
 	}
 	XTEST(nb_create_event == nb_create);
 	XTEST(nb_rm_event == nb_rm);
-	rinoo_inotify_destroy(inotify);
+	rn_inotify_destroy(inotify);
 }
 
 /**
@@ -69,15 +69,15 @@ void check_file(void *sched)
  */
 int main()
 {
-	t_sched *sched;
+	rn_sched_t *sched;
 
 	mkdir(TEST_DIRECTORY, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-	sched = rinoo_sched();
+	sched = rn_sched();
 	XTEST(sched != NULL);
-	XTEST(rinoo_task_start(sched, check_file, sched) == 0);
-	XTEST(rinoo_task_start(sched, event_generator, sched) == 0);
-	rinoo_sched_loop(sched);
-	rinoo_sched_destroy(sched);
+	XTEST(rn_task_start(sched, check_file, sched) == 0);
+	XTEST(rn_task_start(sched, event_generator, sched) == 0);
+	rn_sched_loop(sched);
+	rn_sched_destroy(sched);
 	rmdir(TEST_DIRECTORY);
 	XPASS();
 }

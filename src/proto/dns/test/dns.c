@@ -1,7 +1,7 @@
 /**
  * @file   dns.c
  * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
- * @date   Mon Feb 25 14:48:20 2013
+ * @date   Wed Feb  1 18:56:27 2017
  *
  * @brief  DNS unit test
  *
@@ -12,10 +12,10 @@
 
 void dns_test(void *arg)
 {
-	t_ip ip;
+	rn_ip_t ip;
 
-	XTEST(rinoo_dns_ip_get(arg, "google.com", &ip) == 0);
-	rinoo_log("IP: %s", inet_ntoa(ip.v4.sin_addr));
+	XTEST(rn_dns_ip_get(arg, "google.com", &ip) == 0);
+	rn_log("IP: %s", inet_ntoa(ip.v4.sin_addr));
 }
 
 /**
@@ -26,12 +26,12 @@ void dns_test(void *arg)
  */
 int main()
 {
-	t_sched *sched;
+	rn_sched_t *sched;
 
-	sched = rinoo_sched();
+	sched = rn_sched();
 	XTEST(sched != NULL);
-	XTEST(rinoo_task_start(sched, dns_test, sched) == 0);
-	rinoo_sched_loop(sched);
-	rinoo_sched_destroy(sched);
+	XTEST(rn_task_start(sched, dns_test, sched) == 0);
+	rn_sched_loop(sched);
+	rn_sched_destroy(sched);
 	XPASS();
 }

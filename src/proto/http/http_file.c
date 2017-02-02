@@ -1,7 +1,7 @@
 /**
  * @file   http_file.c
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2013
- * @date   Wed Feb 16 23:36:42 2011
+ * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
+ * @date   Wed Feb  1 18:56:27 2017
  *
  * @brief  HTTP Server file sending
  *
@@ -10,14 +10,14 @@
 
 #include "rinoo/proto/http/module.h"
 
-int rinoo_http_send_dir(t_http *http, const char *path)
+int rn_http_send_dir(rn_http_t *http, const char *path)
 {
 	int ret;
 	int flag;
 	DIR *dir;
 	char *hl;
 	char *de;
-	t_buffer *result;
+	rn_buffer_t *result;
 	struct stat stats;
 	struct dirent *curentry;
 
@@ -34,13 +34,13 @@ int rinoo_http_send_dir(t_http *http, const char *path)
 	if (dir == NULL) {
 		return -1;
 	}
-	result = buffer_create(NULL);
+	result = rn_buffer_create(NULL);
 	if (result == NULL) {
 		closedir(dir);
 		errno = ENOMEM;
 		return -1;
 	}
-	buffer_print(result,
+	rn_buffer_print(result,
 		     "<html>\n"
 		     "  <head>\n"
 		     "    <title>Directory listing</title>\n"
@@ -48,7 +48,7 @@ int rinoo_http_send_dir(t_http *http, const char *path)
 		     "      body { font-family: Monospace; color: #666; font-size: 14px; }\n"
 		     "      #shadow { width: 800px; border-radius: 100% / 33px; box-shadow: 0 8px 3px -5px rgba(0, 0, 0, .2); margin: 20px auto; }\n"
 		     "      #dirlist { border-radius: 5px; background: -webkit-linear-gradient(top, rgba(249, 249, 249, 1) 50%, rgba(240, 240, 240, 1) 100%); box-shadow: 0 -3px 1px rgba(255, 255, 255, .6), inset 0 1px 1px rgba(255, 255, 255, .97), 0 0 3px 0px rgba(0, 0, 0, .7); padding: 0px; }\n"
-		     "      #dirlist ul { padding: 10px; margin: 0; list-style: none; }\n"
+		     "      #dirlist ul { padding: 10px; margin: 0; rn_list-style: none; }\n"
 		     "      #dirlist li { padding: 0; margin: 0; }\n"
 		     "      #dirlist li a { display: block; padding: 2px 10px; height: 15px; border-radius: 5px;  margin: 3px 0; }\n"
 		     "      a { margin: 0px; text-decoration: none; color: #666; }\n"
@@ -84,7 +84,7 @@ int rinoo_http_send_dir(t_http *http, const char *path)
 			} else {
 				de = "";
 			}
-			buffer_print(result,
+			rn_buffer_print(result,
 				     "<li>\n"
 				     "  <a href=\"%s%s\"%s>\n"
 				     "    <div class=\"dl_en\">%s%s</div>\n"
@@ -100,7 +100,7 @@ int rinoo_http_send_dir(t_http *http, const char *path)
 			flag = !flag;
 		}
 	}
-	buffer_print(result,
+	rn_buffer_print(result,
 		     "        </ul>\n"
 		     "      </div>\n"
 		     "    </div>\n"
@@ -109,17 +109,17 @@ int rinoo_http_send_dir(t_http *http, const char *path)
 	closedir(dir);
 
 	http->response.code = 200;
-	ret = rinoo_http_response_send(http, result);
-	buffer_destroy(result);
+	ret = rn_http_response_send(http, result);
+	rn_buffer_destroy(result);
 	return ret;
 }
 
-int rinoo_http_send_file(t_http *http, const char *path)
+int rn_http_send_file(rn_http_t *http, const char *path)
 {
 	int ret;
 	int fd;
 	void *ptr;
-	t_buffer dummy;
+	rn_buffer_t dummy;
 	struct stat stats;
 
 	XASSERT(http != NULL, -1);
@@ -129,14 +129,14 @@ int rinoo_http_send_file(t_http *http, const char *path)
 		return -1;
 	}
 	if (S_ISDIR(stats.st_mode)) {
-		return rinoo_http_send_dir(http, path);
+		return rn_http_send_dir(http, path);
 	}
 	if (S_ISREG(stats.st_mode) == 0) {
 		return -1;
 	}
 	if (stats.st_size == 0) {
 		http->response.code = 200;
-		return rinoo_http_response_send(http, NULL);
+		return rn_http_response_send(http, NULL);
 	}
 	fd = open(path, O_RDONLY);
 	if (fd < 0) {
@@ -150,8 +150,8 @@ int rinoo_http_send_file(t_http *http, const char *path)
 		return -1;
 	}
 	http->response.code = 200;
-	buffer_static(&dummy, ptr, stats.st_size);
-	ret = rinoo_http_response_send(http, &dummy);
+	rn_buffer_static(&dummy, ptr, stats.st_size);
+	ret = rn_http_response_send(http, &dummy);
 	munmap(ptr, stats.st_size);
 	close(fd);
 	return ret;

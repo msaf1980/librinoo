@@ -1,7 +1,7 @@
 /**
  * @file   buffer_helper.c
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2013
- * @date   Mon Oct 21 14:22:10 2012
+ * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
+ * @date   Wed Feb  1 18:56:27 2017
  *
  * @brief  Buffer helper functions
  *
@@ -10,7 +10,7 @@
 
 #include "rinoo/memory/module.h"
 
-size_t buffer_helper_growthsize(t_buffer *buffer, size_t newsize)
+size_t rn_buffer_helper_growthsize(rn_buffer_t *buffer, size_t newsize)
 {
 	if (newsize >= buffer->class->maxsize) {
 		return buffer->class->maxsize;
@@ -21,17 +21,17 @@ size_t buffer_helper_growthsize(t_buffer *buffer, size_t newsize)
 	return (size_t)(newsize * 1.5);
 }
 
-void *buffer_helper_malloc(t_buffer *unused(buffer), size_t size)
+void *rn_buffer_helper_malloc(rn_buffer_t *unused(buffer), size_t size)
 {
 	return malloc(size);
 }
 
-void *buffer_helper_realloc(t_buffer *buffer, size_t newsize)
+void *rn_buffer_helper_realloc(rn_buffer_t *buffer, size_t newsize)
 {
 	return realloc(buffer->ptr, newsize);
 }
 
-int buffer_helper_free(t_buffer *buffer)
+int rn_buffer_helper_free(rn_buffer_t *buffer)
 {
 	free(buffer->ptr);
 	buffer->ptr = NULL;

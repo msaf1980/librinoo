@@ -1,7 +1,7 @@
 /**
  * @file   rinoo_ssl_gen.c
  * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
- * @date   Tue Mar 20 16:59:54 2012
+ * @date   Wed Feb  1 18:56:27 2017
  *
  * @brief  Test file for rinoossl function
  *
@@ -17,10 +17,10 @@
  */
 int main()
 {
-	t_ssl_ctx *ssl;
+	rn_ssl_ctx_t *ssl;
 
-	ssl = rinoo_ssl_context();
+	ssl = rn_ssl_context();
 	XTEST(ssl != NULL);
-	rinoo_ssl_context_destroy(ssl);
+	rn_ssl_context_destroy(ssl);
 	XPASS();
 }

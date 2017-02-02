@@ -1,7 +1,7 @@
 /**
  * @file   http_easy.c
- * @author reginaldl <reginald.l@gmail.com> - Copyright 2013
- * @date   Tue Apr 30 10:35:46 2013
+ * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
+ * @date   Wed Feb  1 18:56:27 2017
  *
  * @brief  Easy HTTP interface
  *
@@ -16,47 +16,47 @@
  * @param http Pointer to a HTTP context
  * @param route Pointer to the route to call
  */
-static void rinoo_http_easy_route_call(t_http *http, t_http_route *route)
+static void rn_http_easy_route_call(rn_http_t *http, rn_http_route_t *route)
 {
-	t_buffer body;
-	t_buffer *uri;
+	rn_buffer_t body;
+	rn_buffer_t *uri;
 
 	http->response.code = route->code;
 	switch (route->type) {
 	case RINOO_HTTP_ROUTE_STATIC:
-		strtobuffer(&body, route->content);
-		rinoo_http_response_send(http, &body);
+		rn_strtobuffer(&body, route->content);
+		rn_http_response_send(http, &body);
 		break;
 	case RINOO_HTTP_ROUTE_FUNC:
 		if (route->func(http, route) != 0) {
 			http->response.code = 500;
-			strtobuffer(&body, RINOO_HTTP_ERROR_500);
-			rinoo_http_response_send(http, &body);
+			rn_strtobuffer(&body, RN_HTTP_ERROR_500);
+			rn_http_response_send(http, &body);
 		}
 		break;
 	case RINOO_HTTP_ROUTE_FILE:
-		if (rinoo_http_send_file(http, route->file) != 0) {
+		if (rn_http_send_file(http, route->file) != 0) {
 			http->response.code = 404;
-			strtobuffer(&body, RINOO_HTTP_ERROR_404);
-			rinoo_http_response_send(http, &body);
+			rn_strtobuffer(&body, RN_HTTP_ERROR_404);
+			rn_http_response_send(http, &body);
 		}
 		break;
 	case RINOO_HTTP_ROUTE_DIR:
-		uri = buffer_create(NULL);
-		buffer_addstr(uri, route->path);
-		buffer_addstr(uri, "/");
-		buffer_add(uri, buffer_ptr(&http->request.uri), buffer_size(&http->request.uri));
-		buffer_addnull(uri);
-		if (rinoo_http_send_file(http, buffer_ptr(uri)) != 0) {
+		uri = rn_buffer_create(NULL);
+		rn_buffer_addstr(uri, route->path);
+		rn_buffer_addstr(uri, "/");
+		rn_buffer_add(uri, rn_buffer_ptr(&http->request.uri), rn_buffer_size(&http->request.uri));
+		rn_buffer_addnull(uri);
+		if (rn_http_send_file(http, rn_buffer_ptr(uri)) != 0) {
 			http->response.code = 404;
-			strtobuffer(&body, RINOO_HTTP_ERROR_404);
-			rinoo_http_response_send(http, &body);
+			rn_strtobuffer(&body, RN_HTTP_ERROR_404);
+			rn_http_response_send(http, &body);
 		}
-		buffer_destroy(uri);
+		rn_buffer_destroy(uri);
 		break;
 	case RINOO_HTTP_ROUTE_REDIRECT:
-		rinoo_http_header_set(&http->response.headers, "Location", route->location);
-		rinoo_http_response_send(http, NULL);
+		rn_http_header_set(&http->response.headers, "Location", route->location);
+		rn_http_response_send(http, NULL);
 		break;
 	}
 }
@@ -66,33 +66,33 @@ static void rinoo_http_easy_route_call(t_http *http, t_http_route *route)
  *
  * @param context Pointer to a HTTP easy context
  */
-static void rinoo_http_easy_client_process(void *context)
+static void rn_http_easy_client_process(void *context)
 {
 	int i;
 	bool found;
-	t_buffer body;
-	t_http http;
-	t_http_easy_context *econtext = context;
+	rn_buffer_t body;
+	rn_http_t http;
+	rn_http_easy_context_t *econtext = context;
 
-	rinoo_http_init(econtext->socket, &http);
-	while (rinoo_http_request_get(&http)) {
+	rn_http_init(econtext->socket, &http);
+	while (rn_http_request_get(&http)) {
 		for (i = 0, found = false; i < econtext->nbroutes && found == false; i++) {
 			if (econtext->routes[i].uri == NULL ||
-			buffer_strcmp(&http.request.uri, econtext->routes[i].uri) == 0 ||
-			(econtext->routes[i].type == RINOO_HTTP_ROUTE_DIR && buffer_strncmp(&http.request.uri, econtext->routes[i].uri, strlen(econtext->routes[i].uri)) == 0)) {
-				rinoo_http_easy_route_call(&http, &econtext->routes[i]);
+			rn_buffer_strcmp(&http.request.uri, econtext->routes[i].uri) == 0 ||
+			(econtext->routes[i].type == RINOO_HTTP_ROUTE_DIR && rn_buffer_strncmp(&http.request.uri, econtext->routes[i].uri, strlen(econtext->routes[i].uri)) == 0)) {
+				rn_http_easy_route_call(&http, &econtext->routes[i]);
 				found = true;
 			}
 		}
 		if (found == false) {
 			http.response.code = 404;
-			strtobuffer(&body, RINOO_HTTP_ERROR_404);
-			rinoo_http_response_send(&http, &body);
+			rn_strtobuffer(&body, RN_HTTP_ERROR_404);
+			rn_http_response_send(&http, &body);
 		}
-		rinoo_http_reset(&http);
+		rn_http_reset(&http);
 	}
-	rinoo_http_destroy(&http);
-	rinoo_socket_destroy(econtext->socket);
+	rn_http_destroy(&http);
+	rn_socket_destroy(econtext->socket);
 	free(econtext);
 }
 
@@ -101,26 +101,26 @@ static void rinoo_http_easy_client_process(void *context)
  *
  * @param context Pointer to a HTTP easy context
  */
-static void rinoo_http_easy_server_process(void *context)
+static void rn_http_easy_server_process(void *context)
 {
-	t_socket *client;
-	t_http_easy_context *c_context;
-	t_http_easy_context *s_context = context;
+	rn_socket_t *client;
+	rn_http_easy_context_t *c_context;
+	rn_http_easy_context_t *s_context = context;
 
-	while ((client = rinoo_tcp_accept(s_context->socket, NULL, NULL)) != NULL) {
+	while ((client = rn_tcp_accept(s_context->socket, NULL, NULL)) != NULL) {
 		c_context = malloc(sizeof(*c_context));
 		if (c_context == NULL) {
-			rinoo_socket_destroy(client);
-			rinoo_socket_destroy(s_context->socket);
+			rn_socket_destroy(client);
+			rn_socket_destroy(s_context->socket);
 			free(s_context);
 			return;
 		}
 		c_context->socket = client;
 		c_context->routes = s_context->routes;
 		c_context->nbroutes = s_context->nbroutes;
-		rinoo_task_start(s_context->socket->node.sched, rinoo_http_easy_client_process, c_context);
+		rn_task_start(s_context->socket->node.sched, rn_http_easy_client_process, c_context);
 	}
-	rinoo_socket_destroy(s_context->socket);
+	rn_socket_destroy(s_context->socket);
 	free(s_context);
 }
 
@@ -135,15 +135,15 @@ static void rinoo_http_easy_server_process(void *context)
  *
  * @return 0 on success, or -1 if an error occurs
  */
-int rinoo_http_easy_server(t_sched *sched, t_ip *ip, uint16_t port, t_http_route *routes, int size)
+int rn_http_easy_server(rn_sched_t *sched, rn_ip_t *ip, uint16_t port, rn_http_route_t *routes, int size)
 {
-	t_socket *server;
-	t_http_easy_context *context;
+	rn_socket_t *server;
+	rn_http_easy_context_t *context;
 
 	if (routes == NULL) {
 		return -1;
 	}
-	server = rinoo_tcp_server(sched, ip, port);
+	server = rn_tcp_server(sched, ip, port);
 	if (server == NULL) {
 		return -1;
 	}
@@ -154,7 +154,7 @@ int rinoo_http_easy_server(t_sched *sched, t_ip *ip, uint16_t port, t_http_route
 	context->socket = server;
 	context->routes = routes;
 	context->nbroutes = size;
-	if (rinoo_task_start(sched, rinoo_http_easy_server_process, context) != 0) {
+	if (rn_task_start(sched, rn_http_easy_server_process, context) != 0) {
 		free(context);
 		return -1;
 	}

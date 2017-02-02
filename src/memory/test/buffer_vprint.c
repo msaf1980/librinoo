@@ -1,32 +1,32 @@
 /**
- * @file   buffer_vprint.c
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2013
- * @date   Thu Jan 21 18:27:58 2010
+ * @file   rn_buffer_vprint.c
+ * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
+ * @date   Wed Feb  1 18:56:27 2017
  *
- * @brief  buffer_vprint unit test
+ * @brief  rn_buffer_vprint unit test
  *
  *
  */
 
 #include "rinoo/rinoo.h"
 
-static t_buffer_class test_class = {
+static rn_buffer_class_t test_class = {
 	.inisize = 10,
-	.maxsize = RINOO_BUFFER_HELPER_MAXSIZE,
+	.maxsize = RN_BUFFER_HELPER_MAXSIZE,
 	.init = NULL,
-	.growthsize = buffer_helper_growthsize,
-	.malloc = buffer_helper_malloc,
-	.realloc = buffer_helper_realloc,
-	.free = buffer_helper_free,
+	.growthsize = rn_buffer_helper_growthsize,
+	.malloc = rn_buffer_helper_malloc,
+	.realloc = rn_buffer_helper_realloc,
+	.free = rn_buffer_helper_free,
 };
 
-int test_vprint(t_buffer *buffer, const char *format, ...)
+int test_vprint(rn_buffer_t *buffer, const char *format, ...)
 {
 	int res;
 	va_list ap;
 
 	va_start(ap, format);
-	res = buffer_vprint(buffer, format, ap);
+	res = rn_buffer_vprint(buffer, format, ap);
 	va_end(ap);
 	return res;
 }
@@ -39,9 +39,9 @@ int test_vprint(t_buffer *buffer, const char *format, ...)
  */
 int main()
 {
-	t_buffer *buffer;
+	rn_buffer_t *buffer;
 
-	buffer = buffer_create(&test_class);
+	buffer = rn_buffer_create(&test_class);
 	XTEST(buffer != NULL);
 	XTEST(buffer->ptr != NULL);
 	XTEST(buffer->size == 0);
@@ -56,9 +56,9 @@ int main()
 	XTEST(memcmp(buffer->ptr, "42 42 42 42 42", 14) == 0);
 	XTEST(buffer->size == 14);
 	XTEST(buffer->msize == buffer->class->growthsize(buffer, 14));
-	buffer_destroy(buffer);
+	rn_buffer_destroy(buffer);
 	test_class.inisize = 4;
-	buffer = buffer_create(&test_class);
+	buffer = rn_buffer_create(&test_class);
 	XTEST(buffer != NULL);
 	XTEST(buffer->ptr != NULL);
 	XTEST(buffer->size == 0);
@@ -68,6 +68,6 @@ int main()
 	XTEST(memcmp(buffer->ptr, "4242", 4) == 0);
 	XTEST(buffer->size == 4);
 	XTEST(buffer->msize == buffer->class->growthsize(buffer, 4));
-	buffer_destroy(buffer);
+	rn_buffer_destroy(buffer);
 	XPASS();
 }

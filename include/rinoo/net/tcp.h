@@ -1,7 +1,7 @@
 /**
  * @file   tcp.h
  * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
- * @date   Tue Mar 20 18:10:17 2012
+ * @date   Wed Feb  1 18:56:27 2017
  *
  * @brief  Header file for TCP function declarations
  *
@@ -11,10 +11,10 @@
 #ifndef RINOO_NET_TCP_H_
 #define RINOO_NET_TCP_H_
 
-#define RINOO_TCP_BACKLOG	128
+#define RN_TCP_BACKLOG	128
 
-t_socket *rinoo_tcp_client(t_sched *sched, t_ip *ip, uint16_t port, uint32_t timeout);
-t_socket *rinoo_tcp_server(t_sched *sched, t_ip *ip, uint16_t port);
-t_socket *rinoo_tcp_accept(t_socket *socket, t_ip *fromip, uint16_t *fromport);
+rn_socket_t *rn_tcp_client(rn_sched_t *sched, rn_ip_t *ip, uint16_t port, uint32_t timeout);
+rn_socket_t *rn_tcp_server(rn_sched_t *sched, rn_ip_t *ip, uint16_t port);
+rn_socket_t *rn_tcp_accept(rn_socket_t *socket, rn_ip_t *fromip, uint16_t *fromport);
 
 #endif /* !RINOO_NET_TCP_H_ */

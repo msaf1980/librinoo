@@ -1,7 +1,7 @@
 /**
- * @file   list.h
- * @author reginaldl <reginald.@gmail.com> - Copyright 2013
- * @date   Sun Mar 24 23:18:12 2013
+ * @file   rn_list.h
+ * @author Reginald Lips <reginald.@gmail.com> - Copyright 2013
+ * @date   Wed Feb  1 18:56:27 2017
  *
  * @brief  LIST structure
  *
@@ -11,25 +11,25 @@
 #ifndef RINOO_STRUCT_LIST_H_
 #define RINOO_STRUCT_LIST_H_
 
-typedef struct s_list_node {
-	struct s_list_node *prev;
-	struct s_list_node *next;
-} t_list_node;
+typedef struct rn_list_node_s {
+	struct rn_list_node_s *prev;
+	struct rn_list_node_s *next;
+} rn_list_node_t;
 
-typedef struct s_list {
+typedef struct rn_list_s {
 	size_t size;
-	t_list_node *head;
-	t_list_node *tail;
-	int (*compare)(t_list_node *node1, t_list_node *node2);
-} t_list;
+	rn_list_node_t *head;
+	rn_list_node_t *tail;
+	int (*compare)(rn_list_node_t *node1, rn_list_node_t *node2);
+} rn_list_t;
 
-int list(t_list *list, int (*compare)(t_list_node *node1, t_list_node *node2));
-void list_flush(t_list *list, void (*delete)(t_list_node *node1));
-size_t list_size(t_list *list);
-void list_put(t_list *list, t_list_node *node);
-t_list_node *list_get(t_list *list, t_list_node *node);
-int list_remove(t_list *list, t_list_node *node);
-t_list_node *list_pop(t_list *list);
-t_list_node *list_head(t_list *list);
+int rn_list(rn_list_t *rn_list, int (*compare)(rn_list_node_t *node1, rn_list_node_t *node2));
+void rn_list_flush(rn_list_t *rn_list, void (*delete)(rn_list_node_t *node1));
+size_t rn_list_size(rn_list_t *rn_list);
+void rn_list_put(rn_list_t *rn_list, rn_list_node_t *node);
+rn_list_node_t *rn_list_get(rn_list_t *rn_list, rn_list_node_t *node);
+int rn_list_remove(rn_list_t *rn_list, rn_list_node_t *node);
+rn_list_node_t *rn_list_pop(rn_list_t *rn_list);
+rn_list_node_t *rn_list_head(rn_list_t *rn_list);
 
 #endif /* !RINOO_STRUCT_LIST_H_ */

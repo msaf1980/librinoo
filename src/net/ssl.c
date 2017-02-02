@@ -1,7 +1,7 @@
 /**
  * @file   ssl.c
  * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
- * @date   Tue Jun  5 10:26:46 2012
+ * @date   Wed Feb  1 18:56:27 2017
  *
  * @brief  Secure connection management
  *
@@ -10,8 +10,8 @@
 
 #include "rinoo/net/module.h"
 
-extern const t_socket_class socket_class_ssl;
-extern const t_socket_class socket_class_ssl6;
+extern const rn_socket_class_t socket_class_ssl;
+extern const rn_socket_class_t socket_class_ssl6;
 
 /**
  * Creates a simple SSL context.
@@ -19,14 +19,14 @@ extern const t_socket_class socket_class_ssl6;
  *
  * @return SSL context pointer
  */
-t_ssl_ctx *rinoo_ssl_context(void)
+rn_ssl_ctx_t *rn_ssl_context(void)
 {
 	RSA *rsa;
 	X509 *x509;
 	SSL_CTX *ctx;
 	EVP_PKEY *pkey;
 	X509_NAME *name;
-	t_ssl_ctx *ssl;
+	rn_ssl_ctx_t *ssl;
 
 	/* SSL_library_init is not reentrant! */
 	SSL_library_init();
@@ -85,11 +85,11 @@ t_ssl_ctx *rinoo_ssl_context(void)
 	ssl->pkey = pkey;
 	ssl->ctx = ctx;
 	if (SSL_CTX_use_certificate(ctx, x509) == 0) {
-		rinoo_ssl_context_destroy(ssl);
+		rn_ssl_context_destroy(ssl);
 		return NULL;
 	}
 	if (SSL_CTX_use_PrivateKey(ctx, pkey) == 0) {
-		rinoo_ssl_context_destroy(ssl);
+		rn_ssl_context_destroy(ssl);
 		return NULL;
 	}
 	return ssl;
@@ -100,7 +100,7 @@ t_ssl_ctx *rinoo_ssl_context(void)
  *
  * @param ctx SSL contextt pointer
  */
-void rinoo_ssl_context_destroy(t_ssl_ctx *ctx)
+void rn_ssl_context_destroy(rn_ssl_ctx_t *ctx)
 {
 	if (ctx != NULL) {
 		X509_free(ctx->x509);
@@ -117,9 +117,9 @@ void rinoo_ssl_context_destroy(t_ssl_ctx *ctx)
  *
  * @return SSL socket pointer
  */
-t_ssl *rinoo_ssl_get(t_socket *socket)
+rn_ssl_t *rn_ssl_get(rn_socket_t *socket)
 {
-	return container_of(socket, t_ssl, socket);
+	return container_of(socket, rn_ssl_t, socket);
 }
 
 /**
@@ -133,11 +133,11 @@ t_ssl *rinoo_ssl_get(t_socket *socket)
  *
  * @return Socket pointer on success or NULL if an error occurs
  */
-t_socket *rinoo_ssl_client(t_sched *sched, t_ssl_ctx *ctx, t_ip *ip, uint32_t port, uint32_t timeout)
+rn_socket_t *rn_ssl_client(rn_sched_t *sched, rn_ssl_ctx_t *ctx, rn_ip_t *ip, uint32_t port, uint32_t timeout)
 {
-	t_ip loopback;
-	t_ssl *ssl;
-	t_socket *socket;
+	rn_ip_t loopback;
+	rn_ssl_t *ssl;
+	rn_socket_t *socket;
 	socklen_t addr_len;
 	struct sockaddr *addr;
 
@@ -147,14 +147,14 @@ t_socket *rinoo_ssl_client(t_sched *sched, t_ssl_ctx *ctx, t_ip *ip, uint32_t po
 		loopback.v4.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 		ip = &loopback;
 	}
-	socket = rinoo_socket(sched, (IS_IPV6(ip) ? &socket_class_ssl6 : &socket_class_ssl));
+	socket = rn_socket(sched, (IS_IPV6(ip) ? &socket_class_ssl6 : &socket_class_ssl));
 	if (unlikely(socket == NULL)) {
 		return NULL;
 	}
-	ssl = rinoo_ssl_get(socket);
+	ssl = rn_ssl_get(socket);
 	ssl->ctx = ctx;
-	if (timeout != 0 && rinoo_socket_timeout(socket, timeout) != 0) {
-		rinoo_socket_destroy(socket);
+	if (timeout != 0 && rn_socket_timeout(socket, timeout) != 0) {
+		rn_socket_destroy(socket);
 		return NULL;
 	}
 	if (ip->v4.sin_family == AF_INET) {
@@ -166,8 +166,8 @@ t_socket *rinoo_ssl_client(t_sched *sched, t_ssl_ctx *ctx, t_ip *ip, uint32_t po
 		addr = (struct sockaddr *) &ip->v6;
 		addr_len = sizeof(ip->v6);
 	}
-	if (rinoo_socket_connect(socket, addr, addr_len) != 0) {
-		rinoo_socket_destroy(socket);
+	if (rn_socket_connect(socket, addr, addr_len) != 0) {
+		rn_socket_destroy(socket);
 		return NULL;
 	}
 	return socket;
@@ -183,11 +183,11 @@ t_socket *rinoo_ssl_client(t_sched *sched, t_ssl_ctx *ctx, t_ip *ip, uint32_t po
  *
  * @return Socket pointer on success or NULL if an error occurs
  */
-t_socket *rinoo_ssl_server(t_sched *sched, t_ssl_ctx *ctx, t_ip *ip, uint32_t port)
+rn_socket_t *rn_ssl_server(rn_sched_t *sched, rn_ssl_ctx_t *ctx, rn_ip_t *ip, uint32_t port)
 {
-	t_ip any;
-	t_ssl *ssl;
-	t_socket *socket;
+	rn_ip_t any;
+	rn_ssl_t *ssl;
+	rn_socket_t *socket;
 	socklen_t addr_len;
 	struct sockaddr *addr;
 
@@ -197,11 +197,11 @@ t_socket *rinoo_ssl_server(t_sched *sched, t_ssl_ctx *ctx, t_ip *ip, uint32_t po
 		any.v4.sin_addr.s_addr = INADDR_ANY;
 		ip = &any;
 	}
-	socket = rinoo_socket(sched, (IS_IPV6(ip) ? &socket_class_ssl6 : &socket_class_ssl));
+	socket = rn_socket(sched, (IS_IPV6(ip) ? &socket_class_ssl6 : &socket_class_ssl));
 	if (unlikely(socket == NULL)) {
 		return NULL;
 	}
-	ssl = rinoo_ssl_get(socket);
+	ssl = rn_ssl_get(socket);
 	ssl->ctx = ctx;
 	if (ip->v4.sin_family == AF_INET) {
 		ip->v4.sin_port = htons(port);
@@ -212,8 +212,8 @@ t_socket *rinoo_ssl_server(t_sched *sched, t_ssl_ctx *ctx, t_ip *ip, uint32_t po
 		addr = (struct sockaddr *) &ip->v6;
 		addr_len = sizeof(ip->v6);
 	}
-	if (rinoo_socket_bind(socket, addr, addr_len, RINOO_TCP_BACKLOG) != 0) {
-		rinoo_socket_destroy(socket);
+	if (rn_socket_bind(socket, addr, addr_len, RN_TCP_BACKLOG) != 0) {
+		rn_socket_destroy(socket);
 		return NULL;
 	}
 	return socket;
@@ -223,19 +223,19 @@ t_socket *rinoo_ssl_server(t_sched *sched, t_ssl_ctx *ctx, t_ip *ip, uint32_t po
  * Accepts a new connection from a listening socket.
  *
  * @param socket Pointer to the socket which is listening to
- * @param fromip Pointer to a t_ip where to store the from_ip
+ * @param fromip Pointer to a rn_ip_t where to store the from_ip
  * @param fromport Pointer to a uint32_t where to store the from_port
  *
  * @return A pointer to the new socket on success or NULL if an error occurs
  */
-t_socket *rinoo_ssl_accept(t_socket *socket, t_ip *fromip, uint32_t *fromport)
+rn_socket_t *rn_ssl_accept(rn_socket_t *socket, rn_ip_t *fromip, uint32_t *fromport)
 {
-	t_ip addr;
+	rn_ip_t addr;
 	socklen_t addr_len;
-	t_socket *new;
+	rn_socket_t *new;
 
 	addr_len = sizeof(addr);
-	new = rinoo_socket_accept(socket, (struct sockaddr *) &addr, &addr_len);
+	new = rn_socket_accept(socket, (struct sockaddr *) &addr, &addr_len);
 	if (fromip != NULL) {
 		*fromip = addr;
 	}

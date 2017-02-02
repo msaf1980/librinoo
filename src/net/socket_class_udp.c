@@ -1,7 +1,7 @@
 /**
  * @file   socket_class_udp.c
- * @author reginaldl <reginald.l@gmail.com> - Copyright 2013
- * @date   Fri Mar  8 16:01:17 2013
+ * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
+ * @date   Wed Feb  1 18:56:27 2017
  *
  * @brief  UDP socket class
  *
@@ -10,41 +10,41 @@
 
 #include "rinoo/net/module.h"
 
-const t_socket_class socket_class_udp = {
+const rn_socket_class_t socket_class_udp = {
 	.domain = AF_INET,
 	.type = SOCK_DGRAM,
-	.create = rinoo_socket_class_udp_create,
-	.destroy = rinoo_socket_class_udp_destroy,
-	.open = rinoo_socket_class_udp_open,
-	.dup = rinoo_socket_class_udp_dup,
-	.close = rinoo_socket_class_udp_close,
-	.read = rinoo_socket_class_udp_read,
-	.recvfrom = rinoo_socket_class_udp_recvfrom,
-	.write = rinoo_socket_class_udp_write,
-	.writev = rinoo_socket_class_udp_writev,
-	.sendto = rinoo_socket_class_udp_sendto,
+	.create = rn_socket_class_udp_create,
+	.destroy = rn_socket_class_udp_destroy,
+	.open = rn_socket_class_udp_open,
+	.dup = rn_socket_class_udp_dup,
+	.close = rn_socket_class_udp_close,
+	.read = rn_socket_class_udp_read,
+	.recvfrom = rn_socket_class_udp_recvfrom,
+	.write = rn_socket_class_udp_write,
+	.writev = rn_socket_class_udp_writev,
+	.sendto = rn_socket_class_udp_sendto,
 	.sendfile = NULL,
-	.connect = rinoo_socket_class_udp_connect,
-	.bind = rinoo_socket_class_udp_bind,
+	.connect = rn_socket_class_udp_connect,
+	.bind = rn_socket_class_udp_bind,
 	.accept = NULL
 };
 
-const t_socket_class socket_class_udp6 = {
+const rn_socket_class_t socket_class_udp6 = {
 	.domain = AF_INET6,
 	.type = SOCK_DGRAM,
-	.create = rinoo_socket_class_udp_create,
-	.destroy = rinoo_socket_class_udp_destroy,
-	.open = rinoo_socket_class_udp_open,
-	.dup = rinoo_socket_class_udp_dup,
-	.close = rinoo_socket_class_udp_close,
-	.read = rinoo_socket_class_udp_read,
-	.recvfrom = rinoo_socket_class_udp_recvfrom,
-	.write = rinoo_socket_class_udp_write,
-	.writev = rinoo_socket_class_udp_writev,
-	.sendto = rinoo_socket_class_udp_sendto,
+	.create = rn_socket_class_udp_create,
+	.destroy = rn_socket_class_udp_destroy,
+	.open = rn_socket_class_udp_open,
+	.dup = rn_socket_class_udp_dup,
+	.close = rn_socket_class_udp_close,
+	.read = rn_socket_class_udp_read,
+	.recvfrom = rn_socket_class_udp_recvfrom,
+	.write = rn_socket_class_udp_write,
+	.writev = rn_socket_class_udp_writev,
+	.sendto = rn_socket_class_udp_sendto,
 	.sendfile = NULL,
-	.connect = rinoo_socket_class_udp_connect,
-	.bind = rinoo_socket_class_udp_bind,
+	.connect = rn_socket_class_udp_connect,
+	.bind = rn_socket_class_udp_bind,
 	.accept = NULL
 };
 
@@ -55,9 +55,9 @@ const t_socket_class socket_class_udp6 = {
  *
  * @return Pointer to the new socket or NULL if an error occurs
  */
-t_socket *rinoo_socket_class_udp_create(t_sched *sched)
+rn_socket_t *rn_socket_class_udp_create(rn_sched_t *sched)
 {
-	t_socket *socket;
+	rn_socket_t *socket;
 
 	socket = calloc(1, sizeof(*socket));
 	if (unlikely(socket == NULL)) {
@@ -72,7 +72,7 @@ t_socket *rinoo_socket_class_udp_create(t_sched *sched)
  *
  * @param socket Socket pointer
  */
-void rinoo_socket_class_udp_destroy(t_socket *socket)
+void rn_socket_class_udp_destroy(rn_socket_t *socket)
 {
 	free(socket);
 }
@@ -84,7 +84,7 @@ void rinoo_socket_class_udp_destroy(t_socket *socket)
  *
  * @return 0 on success or -1 if an error occurs
  */
-int rinoo_socket_class_udp_open(t_socket *sock)
+int rn_socket_class_udp_open(rn_socket_t *sock)
 {
 	int fd;
 	int enabled;
@@ -112,9 +112,9 @@ int rinoo_socket_class_udp_open(t_socket *sock)
  *
  * @return Pointer to the new socket or NULL if an error occurs
  */
-t_socket *rinoo_socket_class_udp_dup(t_sched *destination, t_socket *socket)
+rn_socket_t *rn_socket_class_udp_dup(rn_sched_t *destination, rn_socket_t *socket)
 {
-	t_socket *new;
+	rn_socket_t *new;
 
 	new = calloc(1, sizeof(*new));
 	if (unlikely(new == NULL)) {
@@ -137,7 +137,7 @@ t_socket *rinoo_socket_class_udp_dup(t_sched *destination, t_socket *socket)
  *
  * @return 0 on success or -1 if an error occurs
  */
-int rinoo_socket_class_udp_close(t_socket *socket)
+int rn_socket_class_udp_close(rn_socket_t *socket)
 {
 	XASSERT(socket != NULL, -1);
 
@@ -154,11 +154,11 @@ int rinoo_socket_class_udp_close(t_socket *socket)
  *
  * @return The number of bytes read on success or -1 if an error occurs
  */
-ssize_t rinoo_socket_class_udp_read(t_socket *socket, void *buf, size_t count)
+ssize_t rn_socket_class_udp_read(rn_socket_t *socket, void *buf, size_t count)
 {
 	ssize_t ret;
 
-	if (rinoo_socket_waitio(socket) != 0) {
+	if (rn_socket_waitio(socket) != 0) {
 		return -1;
 	}
 	errno = 0;
@@ -166,7 +166,7 @@ ssize_t rinoo_socket_class_udp_read(t_socket *socket, void *buf, size_t count)
 		if (errno != EAGAIN && errno != EWOULDBLOCK) {
 			return -1;
 		}
-		if (rinoo_socket_waitin(socket) != 0) {
+		if (rn_socket_waitin(socket) != 0) {
 			return -1;
 		}
 		errno = 0;
@@ -189,11 +189,11 @@ ssize_t rinoo_socket_class_udp_read(t_socket *socket, void *buf, size_t count)
  *
  * @return The number of bytes read on success or -1 if an error occurs
  */
-ssize_t rinoo_socket_class_udp_recvfrom(t_socket *socket, void *buf, size_t count, struct sockaddr *addrfrom, socklen_t *addrlen)
+ssize_t rn_socket_class_udp_recvfrom(rn_socket_t *socket, void *buf, size_t count, struct sockaddr *addrfrom, socklen_t *addrlen)
 {
 	ssize_t ret;
 
-	if (rinoo_socket_waitio(socket) != 0) {
+	if (rn_socket_waitio(socket) != 0) {
 		return -1;
 	}
 	errno = 0;
@@ -201,7 +201,7 @@ ssize_t rinoo_socket_class_udp_recvfrom(t_socket *socket, void *buf, size_t coun
 		if (errno != EAGAIN && errno != EWOULDBLOCK) {
 			return -1;
 		}
-		if (rinoo_socket_waitin(socket) != 0) {
+		if (rn_socket_waitin(socket) != 0) {
 			return -1;
 		}
 		errno = 0;
@@ -222,14 +222,14 @@ ssize_t rinoo_socket_class_udp_recvfrom(t_socket *socket, void *buf, size_t coun
  *
  * @return The number of bytes written on success or -1 if an error occurs
  */
-ssize_t	rinoo_socket_class_udp_write(t_socket *socket, const void *buf, size_t count)
+ssize_t	rn_socket_class_udp_write(rn_socket_t *socket, const void *buf, size_t count)
 {
 	size_t sent;
 	ssize_t ret;
 
 	sent = count;
 	while (count > 0) {
-		if (rinoo_socket_waitio(socket) != 0) {
+		if (rn_socket_waitio(socket) != 0) {
 			return -1;
 		}
 		errno = 0;
@@ -240,7 +240,7 @@ ssize_t	rinoo_socket_class_udp_write(t_socket *socket, const void *buf, size_t c
 			if (errno != EAGAIN && errno != EWOULDBLOCK) {
 				return -1;
 			}
-			if (rinoo_socket_waitout(socket) != 0) {
+			if (rn_socket_waitout(socket) != 0) {
 				return -1;
 			}
 			ret = 0;
@@ -261,7 +261,7 @@ ssize_t	rinoo_socket_class_udp_write(t_socket *socket, const void *buf, size_t c
  *
  * @return The number of bytes written on success or -1 if an error occurs
  */
-ssize_t	rinoo_socket_class_udp_writev(t_socket *socket, t_buffer **buffers, int count)
+ssize_t	rn_socket_class_udp_writev(rn_socket_t *socket, rn_buffer_t **buffers, int count)
 {
 	int i;
 	ssize_t ret;
@@ -275,13 +275,13 @@ ssize_t	rinoo_socket_class_udp_writev(t_socket *socket, t_buffer **buffers, int 
 	}
 	iov = alloca(sizeof(*iov) * count);
 	for (i = 0, total = 0; i < count; i++) {
-		iov[i].iov_base = buffer_ptr(buffers[i]);
-		iov[i].iov_len = buffer_size(buffers[i]);
-		total += buffer_size(buffers[i]);
+		iov[i].iov_base = rn_buffer_ptr(buffers[i]);
+		iov[i].iov_len = rn_buffer_size(buffers[i]);
+		total += rn_buffer_size(buffers[i]);
 	}
 	sent = 0;
 	while (count > 0) {
-		if (rinoo_socket_waitio(socket) != 0) {
+		if (rn_socket_waitio(socket) != 0) {
 			return -1;
 		}
 		errno = 0;
@@ -292,7 +292,7 @@ ssize_t	rinoo_socket_class_udp_writev(t_socket *socket, t_buffer **buffers, int 
 			if (errno != EAGAIN && errno != EWOULDBLOCK) {
 				return -1;
 			}
-			if (rinoo_socket_waitout(socket) != 0) {
+			if (rn_socket_waitout(socket) != 0) {
 				return -1;
 			}
 			ret = 0;
@@ -317,7 +317,7 @@ ssize_t	rinoo_socket_class_udp_writev(t_socket *socket, t_buffer **buffers, int 
 }
 
 /**
- * Equivalent to rinoo_socket_class_udp_write, addrfrom and addrlen are ignored.
+ * Equivalent to rn_socket_class_udp_write, addrfrom and addrlen are ignored.
  *
  * @param socket Pointer to the socket to read
  * @param buf Buffer which stores the information to write
@@ -327,14 +327,14 @@ ssize_t	rinoo_socket_class_udp_writev(t_socket *socket, t_buffer **buffers, int 
  *
  * @return The number of bytes written on success or -1 if an error occurs
  */
-ssize_t rinoo_socket_class_udp_sendto(t_socket *socket, void *buf, size_t count, const struct sockaddr *addrto, socklen_t addrlen)
+ssize_t rn_socket_class_udp_sendto(rn_socket_t *socket, void *buf, size_t count, const struct sockaddr *addrto, socklen_t addrlen)
 {
 	size_t sent;
 	ssize_t ret;
 
 	sent = count;
 	while (count > 0) {
-		if (rinoo_socket_waitio(socket) != 0) {
+		if (rn_socket_waitio(socket) != 0) {
 			return -1;
 		}
 		errno = 0;
@@ -345,7 +345,7 @@ ssize_t rinoo_socket_class_udp_sendto(t_socket *socket, void *buf, size_t count,
 			if (errno != EAGAIN && errno != EWOULDBLOCK) {
 				return -1;
 			}
-			if (rinoo_socket_waitout(socket) != 0) {
+			if (rn_socket_waitout(socket) != 0) {
 				return -1;
 			}
 			ret = 0;
@@ -365,7 +365,7 @@ ssize_t rinoo_socket_class_udp_sendto(t_socket *socket, void *buf, size_t count,
  *
  * @return 0 on success or -1 if an error occurs (timeout is considered as an error)
  */
-int rinoo_socket_class_udp_connect(t_socket *socket, const struct sockaddr *addr, socklen_t addrlen)
+int rn_socket_class_udp_connect(rn_socket_t *socket, const struct sockaddr *addr, socklen_t addrlen)
 {
 	int val;
 	int enabled;
@@ -388,7 +388,7 @@ int rinoo_socket_class_udp_connect(t_socket *socket, const struct sockaddr *addr
 	default:
 		return -1;
 	}
-	if (rinoo_socket_waitout(socket) != 0) {
+	if (rn_socket_waitout(socket) != 0) {
 		return -1;
 	}
 	size = sizeof(val);
@@ -413,7 +413,7 @@ int rinoo_socket_class_udp_connect(t_socket *socket, const struct sockaddr *addr
  *
  * @return 0 on success or -1 if an error occurs
  */
-int rinoo_socket_class_udp_bind(t_socket *socket, const struct sockaddr *addr, socklen_t addrlen, int unused(backlog))
+int rn_socket_class_udp_bind(rn_socket_t *socket, const struct sockaddr *addr, socklen_t addrlen, int unused(backlog))
 {
 	int enabled;
 

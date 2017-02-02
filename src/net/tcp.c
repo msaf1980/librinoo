@@ -1,7 +1,7 @@
 /**
  * @file   tcp.c
  * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
- * @date   Tue Mar 20 18:06:41 2012
+ * @date   Wed Feb  1 18:56:27 2017
  *
  * @brief  TCP connection management
  *
@@ -10,8 +10,8 @@
 
 #include "rinoo/net/module.h"
 
-extern const t_socket_class socket_class_tcp;
-extern const t_socket_class socket_class_tcp6;
+extern const rn_socket_class_t socket_class_tcp;
+extern const rn_socket_class_t socket_class_tcp6;
 
 /**
  * Creates a TCP client to be connected to a specific IP, on a specific port.
@@ -23,10 +23,10 @@ extern const t_socket_class socket_class_tcp6;
  *
  * @return Socket pointer on success or NULL if an error occurs
  */
-t_socket *rinoo_tcp_client(t_sched *sched, t_ip *ip, uint16_t port, uint32_t timeout)
+rn_socket_t *rn_tcp_client(rn_sched_t *sched, rn_ip_t *ip, uint16_t port, uint32_t timeout)
 {
-	t_ip loopback;
-	t_socket *socket;
+	rn_ip_t loopback;
+	rn_socket_t *socket;
 	socklen_t addr_len;
 	struct sockaddr *addr;
 
@@ -36,12 +36,12 @@ t_socket *rinoo_tcp_client(t_sched *sched, t_ip *ip, uint16_t port, uint32_t tim
 		loopback.v4.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 		ip = &loopback;
 	}
-	socket = rinoo_socket(sched, (IS_IPV6(ip) ? &socket_class_tcp6 : &socket_class_tcp));
+	socket = rn_socket(sched, (IS_IPV6(ip) ? &socket_class_tcp6 : &socket_class_tcp));
 	if (unlikely(socket == NULL)) {
 		return NULL;
 	}
-	if (timeout != 0 && rinoo_socket_timeout(socket, timeout) != 0) {
-		rinoo_socket_destroy(socket);
+	if (timeout != 0 && rn_socket_timeout(socket, timeout) != 0) {
+		rn_socket_destroy(socket);
 		return NULL;
 	}
 	if (ip->v4.sin_family == AF_INET) {
@@ -53,8 +53,8 @@ t_socket *rinoo_tcp_client(t_sched *sched, t_ip *ip, uint16_t port, uint32_t tim
 		addr = (struct sockaddr *) &ip->v6;
 		addr_len = sizeof(ip->v6);
 	}
-	if (rinoo_socket_connect(socket, addr, addr_len) != 0) {
-		rinoo_socket_destroy(socket);
+	if (rn_socket_connect(socket, addr, addr_len) != 0) {
+		rn_socket_destroy(socket);
 		return NULL;
 	}
 	return socket;
@@ -69,10 +69,10 @@ t_socket *rinoo_tcp_client(t_sched *sched, t_ip *ip, uint16_t port, uint32_t tim
  *
  * @return Socket pointer to the server on success or NULL if an error occurs
  */
-t_socket *rinoo_tcp_server(t_sched *sched, t_ip *ip, uint16_t port)
+rn_socket_t *rn_tcp_server(rn_sched_t *sched, rn_ip_t *ip, uint16_t port)
 {
-	t_ip any;
-	t_socket *socket;
+	rn_ip_t any;
+	rn_socket_t *socket;
 	socklen_t addr_len;
 	struct sockaddr *addr;
 
@@ -82,7 +82,7 @@ t_socket *rinoo_tcp_server(t_sched *sched, t_ip *ip, uint16_t port)
 		any.v4.sin_addr.s_addr = INADDR_ANY;
 		ip = &any;
 	}
-	socket = rinoo_socket(sched, (IS_IPV6(ip) ? &socket_class_tcp6 : &socket_class_tcp));
+	socket = rn_socket(sched, (IS_IPV6(ip) ? &socket_class_tcp6 : &socket_class_tcp));
 	if (unlikely(socket == NULL)) {
 		return NULL;
 	}
@@ -95,8 +95,8 @@ t_socket *rinoo_tcp_server(t_sched *sched, t_ip *ip, uint16_t port)
 		addr = (struct sockaddr *) &ip->v6;
 		addr_len = sizeof(ip->v6);
 	}
-	if (rinoo_socket_bind(socket, addr, addr_len, RINOO_TCP_BACKLOG) != 0) {
-		rinoo_socket_destroy(socket);
+	if (rn_socket_bind(socket, addr, addr_len, RN_TCP_BACKLOG) != 0) {
+		rn_socket_destroy(socket);
 		return NULL;
 	}
 	return socket;
@@ -106,19 +106,19 @@ t_socket *rinoo_tcp_server(t_sched *sched, t_ip *ip, uint16_t port)
  * Accepts a new connection from a listening socket.
  *
  * @param socket Pointer to the socket which is listening to
- * @param fromip Pointer to a t_ip where to store the from_ip
+ * @param fromip Pointer to a rn_ip_t where to store the from_ip
  * @param fromport Pointer to a uint32_t where to store the from_port
  *
  * @return A pointer to the new socket on success or NULL if an error occurs
  */
-t_socket *rinoo_tcp_accept(t_socket *socket, t_ip *fromip, uint16_t *fromport)
+rn_socket_t *rn_tcp_accept(rn_socket_t *socket, rn_ip_t *fromip, uint16_t *fromport)
 {
-	t_ip addr;
+	rn_ip_t addr;
 	socklen_t addr_len;
-	t_socket *new;
+	rn_socket_t *new;
 
 	addr_len = sizeof(addr);
-	new = rinoo_socket_accept(socket, (struct sockaddr *) &addr, &addr_len);
+	new = rn_socket_accept(socket, (struct sockaddr *) &addr, &addr_len);
 	if (fromip != NULL) {
 		*fromip = addr;
 	}

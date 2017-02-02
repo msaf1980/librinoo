@@ -1,7 +1,7 @@
 /**
  * @file   channel.c
  * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2015
- * @date   Mon Dec  7 20:53:38 2015
+ * @date   Wed Feb  1 18:56:27 2017
  *
  * @brief Channel functions
  *
@@ -17,9 +17,9 @@
  *
  * @return Pointer to the new channel, or NULL if an error occurs.
  */
-t_channel *rinoo_channel(t_sched *sched)
+rn_channel_t *rn_channel(rn_sched_t *sched)
 {
-	t_channel *channel;
+	rn_channel_t *channel;
 
 	channel = calloc(1, sizeof(*channel));
 	if (channel == NULL) {
@@ -34,24 +34,24 @@ t_channel *rinoo_channel(t_sched *sched)
  *
  * @param channel Channel to destroy.
  */
-void rinoo_channel_destroy(t_channel *channel)
+void rn_channel_destroy(rn_channel_t *channel)
 {
 	free(channel);
 }
 
-void *rinoo_channel_get(t_channel *channel)
+void *rn_channel_get(rn_channel_t *channel)
 {
 	void *result;
-	t_task *task;
-	t_sched *sched;
+	rn_task_t *task;
+	rn_sched_t *sched;
 
-	sched = rinoo_sched_self();
+	sched = rn_sched_self();
 	if (channel->sched != sched) {
 		return NULL;
 	}
 	if (channel->buf == NULL) {
-		channel->task = rinoo_task_self();
-		rinoo_task_release(sched);
+		channel->task = rn_task_self();
+		rn_task_release(sched);
 		if (channel->buf == NULL) {
 			return NULL;
 		}
@@ -61,13 +61,13 @@ void *rinoo_channel_get(t_channel *channel)
 	channel->buf = NULL;
 	channel->size = 0;
 	channel->task = NULL;
-	rinoo_task_schedule(task, NULL);
+	rn_task_schedule(task, NULL);
 	return result;
 }
 
-int rinoo_channel_put(t_channel *channel, void *ptr)
+int rn_channel_put(rn_channel_t *channel, void *ptr)
 {
-	if (rinoo_channel_write(channel, ptr, 0) < 0) {
+	if (rn_channel_write(channel, ptr, 0) < 0) {
 		return -1;
 	}
 	return 0;
@@ -82,18 +82,18 @@ int rinoo_channel_put(t_channel *channel, void *ptr)
  *
  * @return number of bytes read on success, or -1 if an error occurs.
  */
-int rinoo_channel_read(t_channel *channel, void *dest, size_t size)
+int rn_channel_read(rn_channel_t *channel, void *dest, size_t size)
 {
-	t_task *task;
-	t_sched *sched;
+	rn_task_t *task;
+	rn_sched_t *sched;
 
-	sched = rinoo_sched_self();
+	sched = rn_sched_self();
 	if (channel->sched != sched) {
 		return -1;
 	}
 	if (channel->buf == NULL) {
-		channel->task = rinoo_task_self();
-		rinoo_task_release(sched);
+		channel->task = rn_task_self();
+		rn_task_release(sched);
 		if (channel->buf == NULL) {
 			return -1;
 		}
@@ -110,7 +110,7 @@ int rinoo_channel_read(t_channel *channel, void *dest, size_t size)
 		channel->buf = NULL;
 		channel->size = 0;
 		channel->task = NULL;
-		rinoo_task_schedule(task, NULL);
+		rn_task_schedule(task, NULL);
 	}
 	return size;
 }
@@ -124,12 +124,12 @@ int rinoo_channel_read(t_channel *channel, void *dest, size_t size)
  *
  * @return Number of bytes written on success, or -1 if an error occurs.
  */
-int rinoo_channel_write(t_channel *channel, void *buf, size_t size)
+int rn_channel_write(rn_channel_t *channel, void *buf, size_t size)
 {
-	t_task *task;
-	t_sched *sched;
+	rn_task_t *task;
+	rn_sched_t *sched;
 
-	sched = rinoo_sched_self();
+	sched = rn_sched_self();
 	if (channel->sched != sched) {
 		return -1;
 	}
@@ -137,9 +137,9 @@ int rinoo_channel_write(t_channel *channel, void *buf, size_t size)
 	channel->size = size;
 	task = channel->task;
 	if (task != NULL) {
-		rinoo_task_schedule(task, NULL);
+		rn_task_schedule(task, NULL);
 	}
-	channel->task = rinoo_task_self();
-	rinoo_task_release(sched);
+	channel->task = rn_task_self();
+	rn_task_release(sched);
 	return size;
 }

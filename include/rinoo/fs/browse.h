@@ -1,7 +1,7 @@
 /**
  * @file   browse.h
  * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2014
- * @date   Sun Jul 20 17:23:33 2014
+ * @date   Wed Feb  1 18:56:27 2017
  *
  * @brief  Header file for easy directory browsing.
  *
@@ -11,19 +11,19 @@
 #ifndef RINOO_FS_BROWSE_H_
 #define RINOO_FS_BROWSE_H_
 
-typedef struct s_fs_directory {
+typedef struct rn_fs_directory_s {
 	DIR *fd;
 	char *path;
-	t_list_node stack_node;
-} t_fs_directory;
+	rn_list_node_t stack_node;
+} rn_fs_directory_t;
 
-typedef struct s_fs_entry {
-	t_buffer *path;
+typedef struct rn_fs_entry_s {
+	rn_buffer_t *path;
 	struct stat stat;
 	struct dirent *entry;
-	t_list stack;
-} t_fs_entry;
+	rn_list_t stack;
+} rn_fs_entry_t;
 
-int rinoo_fs_browse(const char *path, t_fs_entry **last_entry);
+int rn_fs_browse(const char *path, rn_fs_entry_t **last_entry);
 
 #endif /* !RINOO_FS_BROWSE_H_ */

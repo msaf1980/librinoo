@@ -1,7 +1,7 @@
 /**
  * @file   browse.c
  * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2014
- * @date   Sun Jul 20 17:23:33 2014
+ * @date   Wed Feb  1 18:56:27 2017
  *
  * @brief  Easy directory browsing.
  *
@@ -10,9 +10,9 @@
 
 #include "rinoo/fs/module.h"
 
-static int rinoo_fs_stack_push(t_fs_entry *entry, DIR *dirfd, const char *path)
+static int rn_fs_stack_push(rn_fs_entry_t *entry, DIR *dirfd, const char *path)
 {
-	t_fs_directory *directory;
+	rn_fs_directory_t *directory;
 
 	directory = calloc(1, sizeof(*directory));
 	if (directory == NULL) {
@@ -24,49 +24,49 @@ static int rinoo_fs_stack_push(t_fs_entry *entry, DIR *dirfd, const char *path)
 		return -1;
 	}
 	directory->fd = dirfd;
-	list_put(&entry->stack, &directory->stack_node);
+	rn_list_put(&entry->stack, &directory->stack_node);
 	return 0;
 }
 
-static int rinoo_fs_stack_pop(t_fs_entry *entry)
+static int rn_fs_stack_pop(rn_fs_entry_t *entry)
 {
-	t_list_node *node;
-	t_fs_directory *directory;
+	rn_list_node_t *node;
+	rn_fs_directory_t *directory;
 
-	node = list_pop(&entry->stack);
+	node = rn_list_pop(&entry->stack);
 	if (node == NULL) {
 		return -1;
 	}
-	directory = container_of(node, t_fs_directory, stack_node);
+	directory = container_of(node, rn_fs_directory_t, stack_node);
 	free(directory->path);
 	free(directory);
 	return 0;
 }
 
-static t_fs_directory *rinoo_fs_stack_head(t_fs_entry *entry)
+static rn_fs_directory_t *rn_fs_stack_head(rn_fs_entry_t *entry)
 {
-	t_list_node *node;
-	t_fs_directory *directory;
+	rn_list_node_t *node;
+	rn_fs_directory_t *directory;
 
-	node = list_head(&entry->stack);
+	node = rn_list_head(&entry->stack);
 	if (node == NULL) {
 		return NULL;
 	}
-	directory = container_of(node, t_fs_directory, stack_node);
+	directory = container_of(node, rn_fs_directory_t, stack_node);
 	return directory;
 }
 
-static void rinoo_fs_stack_destroy_node(t_list_node *node)
+static void rn_fs_stack_destroy_node(rn_list_node_t *node)
 {
-	t_fs_directory *directory;
+	rn_fs_directory_t *directory;
 
-	directory = container_of(node, t_fs_directory, stack_node);
+	directory = container_of(node, rn_fs_directory_t, stack_node);
 	closedir(directory->fd);
 	free(directory->path);
 	free(directory);
 }
 
-static void rinoo_fs_entry_destroy(t_fs_entry *entry)
+static void rn_fs_entry_destroy(rn_fs_entry_t *entry)
 {
 	if (entry == NULL) {
 		return;
@@ -75,22 +75,22 @@ static void rinoo_fs_entry_destroy(t_fs_entry *entry)
 		free(entry->entry);
 	}
 	if (entry->path != NULL) {
-		buffer_destroy(entry->path);
+		rn_buffer_destroy(entry->path);
 	}
-	list_flush(&entry->stack, rinoo_fs_stack_destroy_node);
+	rn_list_flush(&entry->stack, rn_fs_stack_destroy_node);
 	free(entry);
 }
 
-static t_fs_entry *rinoo_fs_entry(const char *path)
+static rn_fs_entry_t *rn_fs_entry(const char *path)
 {
 	long size;
-	t_fs_entry *entry;
+	rn_fs_entry_t *entry;
 
 	entry = calloc(1, sizeof(*entry));
 	if (entry == NULL) {
 		return NULL;
 	}
-	list(&entry->stack, NULL);
+	rn_list(&entry->stack, NULL);
 	size = pathconf(path, _PC_NAME_MAX);
 	if (size < 0) {
 		size = 256;
@@ -100,7 +100,7 @@ static t_fs_entry *rinoo_fs_entry(const char *path)
 	if (entry->entry == NULL) {
 		goto entry_error;
 	}
-	entry->path = buffer_create(NULL);
+	entry->path = rn_buffer_create(NULL);
 	if (entry->path == NULL) {
 		goto entry_error;
 	}
@@ -112,23 +112,23 @@ static t_fs_entry *rinoo_fs_entry(const char *path)
 	}
 	return entry;
 entry_error:
-	rinoo_fs_entry_destroy(entry);
+	rn_fs_entry_destroy(entry);
 	return NULL;
 }
 
-int rinoo_fs_browse(const char *path, t_fs_entry **last_entry)
+int rn_fs_browse(const char *path, rn_fs_entry_t **last_entry)
 {
 	DIR *dirfd;
-	t_fs_entry *curentry;
+	rn_fs_entry_t *curentry;
 	struct dirent *result;
-	t_fs_directory *directory;
+	rn_fs_directory_t *directory;
 
 	if (last_entry == NULL) {
 		return -1;
 	}
 	curentry = *last_entry;
 	if (curentry == NULL) {
-		curentry = rinoo_fs_entry(path);
+		curentry = rn_fs_entry(path);
 		if (curentry == NULL) {
 			return -1;
 		}
@@ -136,12 +136,12 @@ int rinoo_fs_browse(const char *path, t_fs_entry **last_entry)
 		if (dirfd == NULL) {
 			goto browse_error;
 		}
-		if (rinoo_fs_stack_push(curentry, dirfd, path) != 0) {
+		if (rn_fs_stack_push(curentry, dirfd, path) != 0) {
 			closedir(dirfd);
 			goto browse_error;
 		}
 	}
-	directory = rinoo_fs_stack_head(curentry);
+	directory = rn_fs_stack_head(curentry);
 	if (directory == NULL) {
 		goto browse_error;
 	}
@@ -151,8 +151,8 @@ int rinoo_fs_browse(const char *path, t_fs_entry **last_entry)
 		}
 		if (result == NULL) {
 			closedir(directory->fd);
-			rinoo_fs_stack_pop(curentry);
-			directory = rinoo_fs_stack_head(curentry);
+			rn_fs_stack_pop(curentry);
+			directory = rn_fs_stack_head(curentry);
 			result = NULL;
 			continue;
 		}
@@ -160,33 +160,33 @@ int rinoo_fs_browse(const char *path, t_fs_entry **last_entry)
 			result = NULL;
 			continue;
 		}
-		buffer_erase(curentry->path, 0);
-		buffer_addstr(curentry->path, directory->path);
-		if (((char *) buffer_ptr(curentry->path))[curentry->path->size - 1] != '/') {
-			buffer_addstr(curentry->path, "/");
+		rn_buffer_erase(curentry->path, 0);
+		rn_buffer_addstr(curentry->path, directory->path);
+		if (((char *) rn_buffer_ptr(curentry->path))[curentry->path->size - 1] != '/') {
+			rn_buffer_addstr(curentry->path, "/");
 		}
-		buffer_addstr(curentry->path, curentry->entry->d_name);
-		buffer_addnull(curentry->path);
-		if (stat(buffer_ptr(curentry->path), &curentry->stat) != 0) {
+		rn_buffer_addstr(curentry->path, curentry->entry->d_name);
+		rn_buffer_addnull(curentry->path);
+		if (stat(rn_buffer_ptr(curentry->path), &curentry->stat) != 0) {
 			/* Try next entry */
 			result = NULL;
 			continue;
 		}
 		if (S_ISDIR(curentry->stat.st_mode)) {
-			dirfd = opendir(buffer_ptr(curentry->path));
+			dirfd = opendir(rn_buffer_ptr(curentry->path));
 			if (dirfd == NULL) {
 				/* Try next entry */
 				result = NULL;
 				continue;
 			}
-			if (rinoo_fs_stack_push(curentry, dirfd, buffer_ptr(curentry->path)) != 0) {
+			if (rn_fs_stack_push(curentry, dirfd, rn_buffer_ptr(curentry->path)) != 0) {
 				goto browse_error;
 			}
 		}
 	}
 	if (result == NULL && directory == NULL) {
 		/* End of browsing */
-		rinoo_fs_entry_destroy(curentry);
+		rn_fs_entry_destroy(curentry);
 		*last_entry = NULL;
 		return 0;
 	}
@@ -194,7 +194,7 @@ int rinoo_fs_browse(const char *path, t_fs_entry **last_entry)
 	return 0;
 browse_error:
 	if (curentry != NULL) {
-		rinoo_fs_entry_destroy(curentry);
+		rn_fs_entry_destroy(curentry);
 	}
 	return -1;
 }

@@ -1,7 +1,7 @@
 /**
  * @file   socket_class_ssl.c
- * @author reginaldl <reginald.l@gmail.com> - Copyright 2013
- * @date   Fri Mar  8 16:01:17 2013
+ * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
+ * @date   Wed Feb  1 18:56:27 2017
  *
  * @brief  Secure socket class
  *
@@ -10,42 +10,42 @@
 
 #include "rinoo/net/module.h"
 
-const t_socket_class socket_class_ssl = {
+const rn_socket_class_t socket_class_ssl = {
 	.domain = AF_INET,
 	.type = SOCK_STREAM,
-	.create = rinoo_socket_class_ssl_create,
-	.destroy = rinoo_socket_class_ssl_destroy,
-	.open = rinoo_socket_class_tcp_open,
+	.create = rn_socket_class_ssl_create,
+	.destroy = rn_socket_class_ssl_destroy,
+	.open = rn_socket_class_tcp_open,
 	.dup = NULL,
-	.close = rinoo_socket_class_tcp_close,
-	.read = rinoo_socket_class_ssl_read,
+	.close = rn_socket_class_tcp_close,
+	.read = rn_socket_class_ssl_read,
 	.recvfrom = NULL,
-	.write = rinoo_socket_class_ssl_write,
+	.write = rn_socket_class_ssl_write,
 	.writev = NULL,
 	.sendto = NULL,
 	.sendfile = NULL,
-	.connect = rinoo_socket_class_ssl_connect,
-	.bind = rinoo_socket_class_tcp_bind,
-	.accept = rinoo_socket_class_ssl_accept
+	.connect = rn_socket_class_ssl_connect,
+	.bind = rn_socket_class_tcp_bind,
+	.accept = rn_socket_class_ssl_accept
 };
 
-const t_socket_class socket_class_ssl6 = {
+const rn_socket_class_t socket_class_ssl6 = {
 	.domain = AF_INET6,
 	.type = SOCK_STREAM,
-	.create = rinoo_socket_class_ssl_create,
-	.destroy = rinoo_socket_class_ssl_destroy,
-	.open = rinoo_socket_class_tcp_open,
+	.create = rn_socket_class_ssl_create,
+	.destroy = rn_socket_class_ssl_destroy,
+	.open = rn_socket_class_tcp_open,
 	.dup = NULL,
-	.close = rinoo_socket_class_tcp_close,
-	.read = rinoo_socket_class_ssl_read,
+	.close = rn_socket_class_tcp_close,
+	.read = rn_socket_class_ssl_read,
 	.recvfrom = NULL,
-	.write = rinoo_socket_class_ssl_write,
+	.write = rn_socket_class_ssl_write,
 	.writev = NULL,
 	.sendto = NULL,
 	.sendfile = NULL,
-	.connect = rinoo_socket_class_ssl_connect,
-	.bind = rinoo_socket_class_tcp_bind,
-	.accept = rinoo_socket_class_ssl_accept
+	.connect = rn_socket_class_ssl_connect,
+	.bind = rn_socket_class_tcp_bind,
+	.accept = rn_socket_class_ssl_accept
 };
 
 /**
@@ -55,9 +55,9 @@ const t_socket_class socket_class_ssl6 = {
  *
  * @return Pointer to the new socket or NULL if an error occurs
  */
-t_socket *rinoo_socket_class_ssl_create(t_sched *sched)
+rn_socket_t *rn_socket_class_ssl_create(rn_sched_t *sched)
 {
-	t_ssl *ssl;
+	rn_ssl_t *ssl;
 
 	ssl = calloc(1, sizeof(*ssl));
 	if (unlikely(ssl == NULL)) {
@@ -72,9 +72,9 @@ t_socket *rinoo_socket_class_ssl_create(t_sched *sched)
  *
  * @param socket Socket pointer
  */
-void rinoo_socket_class_ssl_destroy(t_socket *socket)
+void rn_socket_class_ssl_destroy(rn_socket_t *socket)
 {
-	t_ssl *ssl = rinoo_ssl_get(socket);
+	rn_ssl_t *ssl = rn_ssl_get(socket);
 
 	if (ssl->ssl != NULL) {
 		SSL_free(ssl->ssl);
@@ -92,12 +92,12 @@ void rinoo_socket_class_ssl_destroy(t_socket *socket)
  *
  * @return The number of bytes read on success or -1 if an error occurs
  */
-ssize_t rinoo_socket_class_ssl_read(t_socket *socket, void *buf, size_t count)
+ssize_t rn_socket_class_ssl_read(rn_socket_t *socket, void *buf, size_t count)
 {
 	int ret;
-	t_ssl *ssl = rinoo_ssl_get(socket);
+	rn_ssl_t *ssl = rn_ssl_get(socket);
 
-	if (rinoo_socket_waitio(socket) != 0) {
+	if (rn_socket_waitio(socket) != 0) {
 		return -1;
 	}
 	/* Don't need to wait for input here as SSL is buffered */
@@ -111,14 +111,14 @@ ssize_t rinoo_socket_class_ssl_read(t_socket *socket, void *buf, size_t count)
 		case SSL_ERROR_SSL:
 			return -1;
 		case SSL_ERROR_WANT_READ:
-			if (rinoo_socket_waitin(&ssl->socket) != 0) {
+			if (rn_socket_waitin(&ssl->socket) != 0) {
 				return -1;
 			}
 			break;
 		case SSL_ERROR_WANT_WRITE:
 		case SSL_ERROR_WANT_CONNECT:
 		case SSL_ERROR_WANT_ACCEPT:
-			if (rinoo_socket_waitout(&ssl->socket) != 0) {
+			if (rn_socket_waitout(&ssl->socket) != 0) {
 				return -1;
 			}
 			break;
@@ -141,15 +141,15 @@ ssize_t rinoo_socket_class_ssl_read(t_socket *socket, void *buf, size_t count)
  *
  * @return The number of bytes written on success or -1 if an error occurs
  */
-ssize_t	rinoo_socket_class_ssl_write(t_socket *socket, const void *buf, size_t count)
+ssize_t	rn_socket_class_ssl_write(rn_socket_t *socket, const void *buf, size_t count)
 {
 	int ret;
 	size_t sent;
-	t_ssl *ssl = rinoo_ssl_get(socket);
+	rn_ssl_t *ssl = rn_ssl_get(socket);
 
 	sent = count;
 	while (count > 0) {
-		if (rinoo_socket_waitio(socket) != 0) {
+		if (rn_socket_waitio(socket) != 0) {
 			return -1;
 		}
 		while ((ret = SSL_write(ssl->ssl, buf, count)) < 0) {
@@ -162,14 +162,14 @@ ssize_t	rinoo_socket_class_ssl_write(t_socket *socket, const void *buf, size_t c
 			case SSL_ERROR_SSL:
 				return -1;
 			case SSL_ERROR_WANT_READ:
-				if (rinoo_socket_waitin(socket) != 0) {
+				if (rn_socket_waitin(socket) != 0) {
 					return -1;
 				}
 				break;
 			case SSL_ERROR_WANT_WRITE:
 			case SSL_ERROR_WANT_CONNECT:
 			case SSL_ERROR_WANT_ACCEPT:
-				if (rinoo_socket_waitout(socket) != 0) {
+				if (rn_socket_waitout(socket) != 0) {
 					return -1;
 				}
 				break;
@@ -193,13 +193,13 @@ ssize_t	rinoo_socket_class_ssl_write(t_socket *socket, const void *buf, size_t c
  *
  * @return 0 on success or -1 if an error occurs (timeout is considered as an error)
  */
-int rinoo_socket_class_ssl_connect(t_socket *socket, const struct sockaddr *addr, socklen_t addrlen)
+int rn_socket_class_ssl_connect(rn_socket_t *socket, const struct sockaddr *addr, socklen_t addrlen)
 {
 	int ret;
 	BIO *sbio;
-	t_ssl *ssl = rinoo_ssl_get(socket);
+	rn_ssl_t *ssl = rn_ssl_get(socket);
 
-	if (unlikely(rinoo_socket_class_tcp_connect(socket, addr, addrlen) != 0)) {
+	if (unlikely(rn_socket_class_tcp_connect(socket, addr, addrlen) != 0)) {
 		return -1;
 	}
 	ssl->ssl = SSL_new(ssl->ctx->ctx);
@@ -221,14 +221,14 @@ int rinoo_socket_class_ssl_connect(t_socket *socket, const struct sockaddr *addr
 		case SSL_ERROR_SSL:
 			return -1;
 		case SSL_ERROR_WANT_READ:
-			if (rinoo_socket_waitin(&ssl->socket) != 0) {
+			if (rn_socket_waitin(&ssl->socket) != 0) {
 				return -1;
 			}
 			break;
 		case SSL_ERROR_WANT_WRITE:
 		case SSL_ERROR_WANT_CONNECT:
 		case SSL_ERROR_WANT_ACCEPT:
-			if (rinoo_socket_waitout(&ssl->socket) != 0) {
+			if (rn_socket_waitout(&ssl->socket) != 0) {
 				return -1;
 			}
 			break;
@@ -251,13 +251,13 @@ int rinoo_socket_class_ssl_connect(t_socket *socket, const struct sockaddr *addr
  *
  * @return A pointer to the new client socket or NULL if an error occurs
  */
-t_socket *rinoo_socket_class_ssl_accept(t_socket *socket, struct sockaddr *addr, socklen_t *addrlen)
+rn_socket_t *rn_socket_class_ssl_accept(rn_socket_t *socket, struct sockaddr *addr, socklen_t *addrlen)
 {
 	int fd;
 	int ret;
 	BIO *sbio;
-	t_ssl *new;
-	t_ssl *ssl = rinoo_ssl_get(socket);
+	rn_ssl_t *new;
+	rn_ssl_t *ssl = rn_ssl_get(socket);
 
 	errno = 0;
 	while ((fd = accept4(ssl->socket.node.fd, addr, addrlen, SOCK_NONBLOCK)) < 0) {
@@ -275,7 +275,7 @@ t_socket *rinoo_socket_class_ssl_accept(t_socket *socket, struct sockaddr *addr,
 			default:
 				return NULL;
 		}
-		if (rinoo_socket_waitin(socket) != 0) {
+		if (rn_socket_waitin(socket) != 0) {
 			return NULL;
 		}
 		errno = 0;
@@ -292,12 +292,12 @@ t_socket *rinoo_socket_class_ssl_accept(t_socket *socket, struct sockaddr *addr,
 	new->socket.parent = socket;
 	new->ssl = SSL_new(new->ctx->ctx);
 	if (unlikely(new->ssl == NULL)) {
-		rinoo_socket_destroy(&new->socket);
+		rn_socket_destroy(&new->socket);
 		return NULL;
 	}
 	sbio = BIO_new_socket(new->socket.node.fd, BIO_NOCLOSE);
 	if (unlikely(sbio == NULL)) {
-		rinoo_socket_destroy(&new->socket);
+		rn_socket_destroy(&new->socket);
 		return NULL;
 	}
 	SSL_set_bio(new->ssl, sbio, sbio);
@@ -308,19 +308,19 @@ t_socket *rinoo_socket_class_ssl_accept(t_socket *socket, struct sockaddr *addr,
 		case SSL_ERROR_WANT_X509_LOOKUP:
 		case SSL_ERROR_SYSCALL:
 		case SSL_ERROR_SSL:
-			rinoo_socket_destroy(&new->socket);
+			rn_socket_destroy(&new->socket);
 			return NULL;
 		case SSL_ERROR_WANT_READ:
-			if (rinoo_socket_waitin(&new->socket) != 0) {
-				rinoo_socket_destroy(&new->socket);
+			if (rn_socket_waitin(&new->socket) != 0) {
+				rn_socket_destroy(&new->socket);
 				return NULL;
 			}
 			break;
 		case SSL_ERROR_WANT_WRITE:
 		case SSL_ERROR_WANT_CONNECT:
 		case SSL_ERROR_WANT_ACCEPT:
-			if (rinoo_socket_waitout(&new->socket) != 0) {
-				rinoo_socket_destroy(&new->socket);
+			if (rn_socket_waitout(&new->socket) != 0) {
+				rn_socket_destroy(&new->socket);
 				return NULL;
 			}
 			break;

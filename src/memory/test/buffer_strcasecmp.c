@@ -1,9 +1,9 @@
 /**
- * @file   buffer_strcasecmp.c
- * @author Reginald LIPS <reginald.l@gmail.com> - Copyright 2013
- * @date   Thu Jan 21 18:27:58 2010
+ * @file   rn_buffer_strcasecmp.c
+ * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
+ * @date   Wed Feb  1 18:56:27 2017
  *
- * @brief  buffer_strcasecmp unit test
+ * @brief  rn_buffer_strcasecmp unit test
  *
  *
  */
@@ -29,15 +29,15 @@ char *strings[] = {
 int main()
 {
 	uint32_t i;
-	t_buffer *buffer1;
+	rn_buffer_t *buffer1;
 
-	buffer1 = buffer_create(NULL);
+	buffer1 = rn_buffer_create(NULL);
 	XTEST(buffer1 != NULL);
 	for (i = 0; i < ARRAY_SIZE(strings) - 1; i++) {
-		buffer_add(buffer1, strings[i], strlen(strings[i]));
-		XTEST(buffer_strcasecmp(buffer1, strings[i + 1]) < 0);
-		buffer_erase(buffer1, buffer_size(buffer1));
+		rn_buffer_add(buffer1, strings[i], strlen(strings[i]));
+		XTEST(rn_buffer_strcasecmp(buffer1, strings[i + 1]) < 0);
+		rn_buffer_erase(buffer1, rn_buffer_size(buffer1));
 	}
-	buffer_destroy(buffer1);
+	rn_buffer_destroy(buffer1);
 	XPASS();
 }

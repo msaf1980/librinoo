@@ -1,7 +1,7 @@
 /**
  * @file   scheduler.c
  * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
- * @date   Fri Jan  6 16:10:07 2012
+ * @date   Wed Feb  1 18:56:27 2017
  *
  * @brief  Scheduler functions
  *
@@ -16,39 +16,39 @@
  *
  * @return Pointer to the new scheduler, or NULL if an error occurs
  */
-t_sched *rinoo_sched(void)
+rn_sched_t *rn_sched(void)
 {
-	t_sched *sched;
+	rn_sched_t *sched;
 
 	sched = calloc(1, sizeof(*sched));
 	if (sched == NULL) {
 		return NULL;
 	}
-	if (rinoo_task_driver_init(sched) != 0) {
+	if (rn_task_driver_init(sched) != 0) {
 		free(sched);
 		return NULL;
 	}
-	if (rinoo_epoll_init(sched) != 0) {
-		rinoo_sched_destroy(sched);
+	if (rn_epoll_init(sched) != 0) {
+		rn_sched_destroy(sched);
 		return NULL;
 	}
-	if (list(&sched->nodes, NULL) != 0) {
-		rinoo_sched_destroy(sched);
+	if (rn_list(&sched->nodes, NULL) != 0) {
+		rn_sched_destroy(sched);
 		return NULL;
 	}
 	gettimeofday(&sched->clock, NULL);
 	return sched;
 }
 
-static void rinoo_sched_cancel_task(t_list_node *node)
+static void rn_sched_cancel_task(rn_list_node_t *node)
 {
-	t_sched_node *sched_node;
+	rn_sched_node_t *sched_node;
 
-	sched_node = container_of(node, t_sched_node, lnode);
+	sched_node = container_of(node, rn_sched_node_t, lnode);
 	sched_node->error = ECANCELED;
 	errno = sched_node->error;
-	if (rinoo_task_resume(sched_node->task) != 0 && sched_node->task != NULL) {
-		rinoo_task_destroy(sched_node->task);
+	if (rn_task_resume(sched_node->task) != 0 && sched_node->task != NULL) {
+		rn_task_destroy(sched_node->task);
 	}
 }
 
@@ -57,17 +57,17 @@ static void rinoo_sched_cancel_task(t_list_node *node)
  *
  * @param sched Pointer to the scheduler to destroy
  */
-void rinoo_sched_destroy(t_sched *sched)
+void rn_sched_destroy(rn_sched_t *sched)
 {
 	XASSERTN(sched != NULL);
 
-	rinoo_spawn_destroy(sched);
-	rinoo_sched_stop(sched);
+	rn_spawn_destroy(sched);
+	rn_sched_stop(sched);
 	/* Destroying all pending tasks. */
-	rinoo_task_driver_stop(sched);
-	list_flush(&sched->nodes, rinoo_sched_cancel_task);
-	rinoo_task_driver_destroy(sched);
-	rinoo_epoll_destroy(sched);
+	rn_task_driver_stop(sched);
+	rn_list_flush(&sched->nodes, rn_sched_cancel_task);
+	rn_task_driver_destroy(sched);
+	rn_epoll_destroy(sched);
 	free(sched);
 }
 
@@ -77,11 +77,11 @@ void rinoo_sched_destroy(t_sched *sched)
  *
  * @return Pointer to the active scheduler or NULL if none.
  */
-t_sched *rinoo_sched_self(void)
+rn_sched_t *rn_sched_self(void)
 {
-	t_task *task;
+	rn_task_t *task;
 
-	task = rinoo_task_self();
+	task = rn_task_self();
 	if (task == NULL) {
 		return NULL;
 	}
@@ -96,7 +96,7 @@ t_sched *rinoo_sched_self(void)
  *
  * @return 0 on success, or -1 if an error occurs.
  */
-int rinoo_sched_waitfor(t_sched_node *node, t_sched_mode mode)
+int rn_sched_waitfor(rn_sched_node_t *node, rn_sched_mode_t mode)
 {
 	int error;
 
@@ -104,7 +104,7 @@ int rinoo_sched_waitfor(t_sched_node *node, t_sched_mode mode)
 
 	if (node->error != 0) {
 		error = node->error;
-		rinoo_sched_remove(node);
+		rn_sched_remove(node);
 		errno = error;
 		return -1;
 	}
@@ -114,26 +114,26 @@ int rinoo_sched_waitfor(t_sched_node *node, t_sched_mode mode)
 	}
 	if ((node->waiting & mode) != mode) {
 		if (node->waiting == RINOO_MODE_NONE) {
-			if (unlikely(rinoo_epoll_insert(node, mode) != 0)) {
+			if (unlikely(rn_epoll_insert(node, mode) != 0)) {
 				return -1;
 			}
-			list_put(&node->sched->nodes, &node->lnode);
+			rn_list_put(&node->sched->nodes, &node->lnode);
 		} else {
-			if (unlikely(rinoo_epoll_addmode(node, node->waiting | mode) != 0)) {
+			if (unlikely(rn_epoll_addmode(node, node->waiting | mode) != 0)) {
 				return -1;
 			}
 		}
 	}
 	node->mode = mode;
 	node->waiting |= mode;
-	node->task = rinoo_task_driver_getcurrent(node->sched);
+	node->task = rn_task_driver_getcurrent(node->sched);
 	node->sched->nbpending++;
 	if (unlikely(node->task == &node->sched->driver.main)) {
 		while ((node->received & mode) != mode) {
-			rinoo_sched_poll(node->sched);
+			rn_sched_poll(node->sched);
 			if (node->error != 0) {
 				error = node->error;
-				rinoo_sched_remove(node);
+				rn_sched_remove(node);
 				errno = error;
 				node->sched->nbpending--;
 				return -1;
@@ -142,7 +142,7 @@ int rinoo_sched_waitfor(t_sched_node *node, t_sched_mode mode)
 		node->sched->nbpending--;
 		return 0;
 	}
-	if (rinoo_task_release(node->sched) != 0 && node->error == 0) {
+	if (rn_task_release(node->sched) != 0 && node->error == 0) {
 		node->error = errno;
 	}
 	node->sched->nbpending--;
@@ -150,12 +150,12 @@ int rinoo_sched_waitfor(t_sched_node *node, t_sched_mode mode)
 	node->task = NULL;
 	if (node->error != 0) {
 		error = node->error;
-		rinoo_sched_remove(node);
+		rn_sched_remove(node);
 		errno = error;
 		return -1;
 	}
 	if ((node->received & mode) != mode) {
-		rinoo_sched_remove(node);
+		rn_sched_remove(node);
 		/* Task has been resumed but no event received, this is a timeout */
 		errno = ETIMEDOUT;
 		return -1;
@@ -171,13 +171,13 @@ int rinoo_sched_waitfor(t_sched_node *node, t_sched_mode mode)
  *
  * @return 0 on success, otherwise -1.
  */
-int rinoo_sched_remove(t_sched_node *node)
+int rn_sched_remove(rn_sched_node_t *node)
 {
-	if (list_remove(&node->sched->nodes, &node->lnode) != 0) {
+	if (rn_list_remove(&node->sched->nodes, &node->lnode) != 0) {
 		/* Node already removed */
 		return -1;
 	}
-	if (rinoo_epoll_remove(node) != 0) {
+	if (rn_epoll_remove(node) != 0) {
 		return -1;
 	}
 	node->task = NULL;
@@ -192,7 +192,7 @@ int rinoo_sched_remove(t_sched_node *node)
  * @param mode IO Event.
  * @param error Error flag.
  */
-void rinoo_sched_wakeup(t_sched_node *node, t_sched_mode mode, int error)
+void rn_sched_wakeup(rn_sched_node_t *node, rn_sched_mode_t mode, int error)
 {
 	if (node->error == 0) {
 		node->error = error;
@@ -202,7 +202,7 @@ void rinoo_sched_wakeup(t_sched_node *node, t_sched_mode mode, int error)
 		return;
 	}
 	if (node->mode == mode || node->error != 0) {
-		rinoo_task_resume(node->task);
+		rn_task_resume(node->task);
 	}
 }
 
@@ -212,13 +212,13 @@ void rinoo_sched_wakeup(t_sched_node *node, t_sched_mode mode, int error)
  *
  * @param sched Pointer to the scheduler to stop.
  */
-void rinoo_sched_stop(t_sched *sched)
+void rn_sched_stop(rn_sched_t *sched)
 {
 	XASSERTN(sched != NULL);
 
 	if (sched->stop == false) {
 		sched->stop = true;
-		rinoo_spawn_stop(sched);
+		rn_spawn_stop(sched);
 	}
 }
 
@@ -229,9 +229,9 @@ void rinoo_sched_stop(t_sched *sched)
  *
  * @return true if scheduling is over, otherwise false.
  */
-static bool rinoo_sched_end(t_sched *sched)
+static bool rn_sched_end(rn_sched_t *sched)
 {
-	return (sched->stop == true || (sched->nbpending == 0 && rinoo_task_driver_nbpending(sched) == 0));
+	return (sched->stop == true || (sched->nbpending == 0 && rn_task_driver_nbpending(sched) == 0));
 }
 
 /**
@@ -241,34 +241,34 @@ static bool rinoo_sched_end(t_sched *sched)
  *
  * @return 0 on success, otherwise -1.
  */
-int rinoo_sched_poll(t_sched *sched)
+int rn_sched_poll(rn_sched_t *sched)
 {
 	int timeout;
 
 	gettimeofday(&sched->clock, NULL);
-	timeout = rinoo_task_driver_run(sched);
-	if (!rinoo_sched_end(sched)) {
-		return rinoo_epoll_poll(sched, timeout);
+	timeout = rn_task_driver_run(sched);
+	if (!rn_sched_end(sched)) {
+		return rn_epoll_poll(sched, timeout);
 	}
 	return 0;
 }
 
 /**
  * Main scheduler loop.
- * This calls rinoo_sched_poll in a loop until the scheduler gets stopped.
+ * This calls rn_sched_poll in a loop until the scheduler gets stopped.
  *
  * @param sched Pointer to the scheduler to use.
  *
  */
-void rinoo_sched_loop(t_sched *sched)
+void rn_sched_loop(rn_sched_t *sched)
 {
 	sched->stop = false;
-	if (rinoo_spawn_start(sched) != 0) {
+	if (rn_spawn_start(sched) != 0) {
 		goto loop_stop;
 	}
-	while (!rinoo_sched_end(sched)) {
-		rinoo_sched_poll(sched);
+	while (!rn_sched_end(sched)) {
+		rn_sched_poll(sched);
 	}
 loop_stop:
-	rinoo_spawn_join(sched);
+	rn_spawn_join(sched);
 }

@@ -1,7 +1,7 @@
 /**
- * @file   htable.h
- * @author reginaldl <reginald.@gmail.com> - Copyright 2013
- * @date   Tue Jul 29 20:53:47 2014
+ * @file   rn_htable.h
+ * @author Reginald Lips <reginald.@gmail.com> - Copyright 2013
+ * @date   Wed Feb  1 18:56:27 2017
  *
  * @brief  Hash table structure
  *
@@ -11,26 +11,26 @@
 #ifndef RINOO_STRUCT_HTABLE_H_
 #define RINOO_STRUCT_HTABLE_H_
 
-typedef struct s_htable_node {
+typedef struct rn_htable_node_s {
 	uint32_t hash;
-	struct s_htable_node *prev;
-	struct s_htable_node *next;
-} t_htable_node;
+	struct rn_htable_node_s *prev;
+	struct rn_htable_node_s *next;
+} rn_htable_node_t;
 
-typedef struct s_htable {
+typedef struct rn_htable_s {
 	size_t size;
 	size_t table_size;
-	t_htable_node **table;
-	uint32_t (*hash)(t_htable_node *node);
-	int (*compare)(t_htable_node *node1, t_htable_node *node2);
-} t_htable;
+	rn_htable_node_t **table;
+	uint32_t (*hash)(rn_htable_node_t *node);
+	int (*compare)(rn_htable_node_t *node1, rn_htable_node_t *node2);
+} rn_htable_t;
 
-int htable(t_htable *htable, size_t size, uint32_t (*hash)(t_htable_node *node), int (*compare)(t_htable_node *node1, t_htable_node *node2));
-void htable_destroy(t_htable *htable);
-void htable_flush(t_htable *htable, void (*delete)(t_htable_node *node1));
-size_t htable_size(t_htable *htable);
-void htable_put(t_htable *htable, t_htable_node *node);
-t_htable_node *htable_get(t_htable *htable, t_htable_node *node);
-int htable_remove(t_htable *htable, t_htable_node *node);
+int rn_htable(rn_htable_t *rn_htable, size_t size, uint32_t (*hash)(rn_htable_node_t *node), int (*compare)(rn_htable_node_t *node1, rn_htable_node_t *node2));
+void rn_htable_destroy(rn_htable_t *rn_htable);
+void rn_htable_flush(rn_htable_t *rn_htable, void (*delete)(rn_htable_node_t *node1));
+size_t rn_htable_size(rn_htable_t *rn_htable);
+void rn_htable_put(rn_htable_t *rn_htable, rn_htable_node_t *node);
+rn_htable_node_t *rn_htable_get(rn_htable_t *rn_htable, rn_htable_node_t *node);
+int rn_htable_remove(rn_htable_t *rn_htable, rn_htable_node_t *node);
 
 #endif /* !RINOO_STRUCT_HTABLE_H_ */

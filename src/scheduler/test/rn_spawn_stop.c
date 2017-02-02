@@ -1,7 +1,7 @@
 /**
- * @file   rinoo_spawn_stop.c
- * @author reginaldl <reginald.l@gmail.com> - Copyright 2013
- * @date   Wed Jan  2 15:13:07 2013
+ * @file   rn_spawn_stop.c
+ * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
+ * @date   Wed Feb  1 18:56:27 2017
  *
  * @brief  RiNOO spawn stop unit test
  *
@@ -16,17 +16,17 @@ int checker[NBSPAWNS + 1];
 
 void task(void *unused(arg))
 {
-	t_sched *cur;
+	rn_sched_t *cur;
 
-	rinoo_log("%s start %d", __FUNCTION__, rinoo_sched_self()->id);
+	rn_log("%s start %d", __FUNCTION__, rn_sched_self()->id);
 	/* sleep should return as soon as we get killed by the main scheduler */
 	sleep(1000);
-	cur = rinoo_sched_self();
+	cur = rn_sched_self();
 	XTEST(cur != NULL);
 	XTEST(cur->id >= 0 && cur->id <= NBSPAWNS);
 	XTEST(checker[cur->id] == 0);
 	checker[cur->id] = 1;
-	rinoo_log("%s end %d", __FUNCTION__, rinoo_sched_self()->id);
+	rn_log("%s end %d", __FUNCTION__, rn_sched_self()->id);
 }
 
 /**
@@ -37,16 +37,16 @@ void task(void *unused(arg))
  */
 void wait_and_stop(void *sched)
 {
-	t_sched *cur;
+	rn_sched_t *cur;
 
-	cur = rinoo_sched_self();
+	cur = rn_sched_self();
 	XTEST(cur == sched);
 	XTEST(cur->id == 0);
 	checker[cur->id] = 1;
-	rinoo_log("wait & stop");
-	rinoo_task_wait(sched, 1000);
-	rinoo_log("stopping");
-	rinoo_sched_stop(sched);
+	rn_log("wait & stop");
+	rn_task_wait(sched, 1000);
+	rn_log("stopping");
+	rn_sched_stop(sched);
 }
 
 /**
@@ -58,21 +58,21 @@ void wait_and_stop(void *sched)
 int main()
 {
 	int i;
-	t_sched *cur;
-	t_sched *sched;
+	rn_sched_t *cur;
+	rn_sched_t *sched;
 
 	memset(checker, 0, sizeof(*checker) * NBSPAWNS);
-	sched = rinoo_sched();
+	sched = rn_sched();
 	XTEST(sched != NULL);
-	XTEST(rinoo_spawn(sched, NBSPAWNS) == 0);
+	XTEST(rn_spawn(sched, NBSPAWNS) == 0);
 	for (i = 1; i <= NBSPAWNS; i++) {
-		cur = rinoo_spawn_get(sched, i);
+		cur = rn_spawn_get(sched, i);
 		XTEST(cur != NULL);
-		XTEST(rinoo_task_start(cur, task, NULL) == 0);
+		XTEST(rn_task_start(cur, task, NULL) == 0);
 	}
-	XTEST(rinoo_task_start(sched, wait_and_stop, sched) == 0);
-	rinoo_sched_loop(sched);
-	rinoo_sched_destroy(sched);
+	XTEST(rn_task_start(sched, wait_and_stop, sched) == 0);
+	rn_sched_loop(sched);
+	rn_sched_destroy(sched);
 	for (i = 0; i <= NBSPAWNS; i++) {
 		XTEST(checker[i] == 1);
 	}

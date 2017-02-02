@@ -1,7 +1,7 @@
 /**
  * @file   utils.c
  * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2014
- * @date   Thu May  8 20:37:36 2014
+ * @date   Wed Feb  1 18:56:27 2017
  *
  * @brief  Murmurhash functions
  *

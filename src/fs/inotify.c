@@ -1,7 +1,7 @@
 /**
  * @file   inotify.c
  * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2014
- * @date   Tue Jul 15 19:35:23 2014
+ * @date   Wed Feb  1 18:56:27 2017
  *
  * @brief  Implementation of inotify for rinoo.
  *
@@ -10,10 +10,10 @@
 
 #include "rinoo/fs/module.h"
 
-t_inotify *rinoo_inotify(t_sched *sched)
+rn_inotify_t *rn_inotify(rn_sched_t *sched)
 {
 	int fd;
-	t_inotify *notify;
+	rn_inotify_t *notify;
 
 	fd = inotify_init1(IN_NONBLOCK);
 	if (fd < 0) {
@@ -24,7 +24,7 @@ t_inotify *rinoo_inotify(t_sched *sched)
 		close(fd);
 		return NULL;
 	}
-	notify->event.path = buffer_create(NULL);
+	notify->event.path = rn_buffer_create(NULL);
 	if (notify->event.path == NULL) {
 		close(fd);
 		free(notify);
@@ -35,27 +35,27 @@ t_inotify *rinoo_inotify(t_sched *sched)
 	return notify;
 }
 
-void rinoo_inotify_destroy(t_inotify *notify)
+void rn_inotify_destroy(rn_inotify_t *notify)
 {
 	size_t i;
 
 	for (i = 0; i < ARRAY_SIZE(notify->watches); i++) {
 		if (notify->watches[i] != NULL) {
-			rinoo_inotify_rm_watch(notify, notify->watches[i]);
+			rn_inotify_rm_watch(notify, notify->watches[i]);
 		}
 	}
-	rinoo_sched_remove(&notify->node);
+	rn_sched_remove(&notify->node);
 	close(notify->node.fd);
-	buffer_destroy(notify->event.path);
+	rn_buffer_destroy(notify->event.path);
 	free(notify);
 }
 
-t_inotify_watch *rinoo_inotify_add_watch(t_inotify *inotify, const char *path, t_inotify_type type, bool recursive)
+rn_inotify_watch_t *rn_inotify_add_watch(rn_inotify_t *inotify, const char *path, rn_inotify_type_t type, bool recursive)
 {
 	int wd;
 	int nb;
-	t_fs_entry *entry;
-	t_inotify_watch *watch;
+	rn_fs_entry_t *entry;
+	rn_inotify_watch_t *watch;
 
 	if (inotify->nb_watches >= ARRAY_SIZE(inotify->watches)) {
 		return NULL;
@@ -83,14 +83,14 @@ t_inotify_watch *rinoo_inotify_add_watch(t_inotify *inotify, const char *path, t
 	if (recursive) {
 		nb = 0;
 		entry = NULL;
-		while (rinoo_fs_browse(path, &entry) == 0 && entry != NULL) {
+		while (rn_fs_browse(path, &entry) == 0 && entry != NULL) {
 			nb++;
 			if (nb > 100) {
 				nb = 0;
-				rinoo_task_pause(inotify->node.sched);
+				rn_task_pause(inotify->node.sched);
 			}
 			if (S_ISDIR(entry->stat.st_mode)) {
-				rinoo_inotify_add_watch(inotify, buffer_ptr(entry->path), type, false);
+				rn_inotify_add_watch(inotify, rn_buffer_ptr(entry->path), type, false);
 			}
 		}
 	}
@@ -99,7 +99,7 @@ t_inotify_watch *rinoo_inotify_add_watch(t_inotify *inotify, const char *path, t
 	return watch;
 }
 
-int rinoo_inotify_rm_watch(t_inotify *inotify, t_inotify_watch *watch)
+int rn_inotify_rm_watch(rn_inotify_t *inotify, rn_inotify_watch_t *watch)
 {
 	inotify_rm_watch(inotify->node.fd, watch->wd);
 	inotify->watches[watch->wd] = NULL;
@@ -109,24 +109,24 @@ int rinoo_inotify_rm_watch(t_inotify *inotify, t_inotify_watch *watch)
 	return 0;
 }
 
-static int rinoo_inotify_waitio(t_inotify *inotify)
+static int rn_inotify_waitio(rn_inotify_t *inotify)
 {
 	inotify->io_calls++;
 	if (inotify->io_calls > 10) {
 		inotify->io_calls = 0;
-		if (rinoo_task_pause(inotify->node.sched) != 0) {
+		if (rn_task_pause(inotify->node.sched) != 0) {
 				return -1;
 		}
 	}
 	return 0;
 }
 
-t_inotify_event *rinoo_inotify_event(t_inotify *inotify)
+rn_inotify_event_t *rn_inotify_event(rn_inotify_t *inotify)
 {
 	ssize_t ret;
 	struct inotify_event *ievent;
 
-	if (rinoo_inotify_waitio(inotify) != 0) {
+	if (rn_inotify_waitio(inotify) != 0) {
 		return NULL;
 	}
 	errno = 0;
@@ -135,7 +135,7 @@ t_inotify_event *rinoo_inotify_event(t_inotify *inotify)
 			return NULL;
 		}
 		inotify->io_calls = 0;
-		if (rinoo_sched_waitfor(&inotify->node, RINOO_MODE_IN) != 0) {
+		if (rn_sched_waitfor(&inotify->node, RINOO_MODE_IN) != 0) {
 			return NULL;
 		}
 		errno = 0;
@@ -143,12 +143,12 @@ t_inotify_event *rinoo_inotify_event(t_inotify *inotify)
 	ievent = (struct inotify_event *) inotify->read_buffer;
 	inotify->event.type = ievent->mask;
 	inotify->event.watch = inotify->watches[ievent->wd];
-	buffer_erase(inotify->event.path, 0);
-	buffer_addstr(inotify->event.path, inotify->event.watch->path);
+	rn_buffer_erase(inotify->event.path, 0);
+	rn_buffer_addstr(inotify->event.path, inotify->event.watch->path);
 	if (ievent->name[0] != 0) {
-		buffer_addstr(inotify->event.path, "/");
-		buffer_addstr(inotify->event.path, ievent->name);
+		rn_buffer_addstr(inotify->event.path, "/");
+		rn_buffer_addstr(inotify->event.path, ievent->name);
 	}
-	buffer_addnull(inotify->event.path);
+	rn_buffer_addnull(inotify->event.path);
 	return &inotify->event;
 }
