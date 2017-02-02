@@ -19,7 +19,7 @@ void *server_thread(void *unused(arg))
 	rn_socket_t *client;
 	struct sockaddr_in addr;
 
-	sched = rn_sched();
+	sched = rn_scheduler();
 	XTEST(sched != NULL);
 	server = rn_socket(sched, &socket_class_tcp);
 	XTEST(server != NULL);
@@ -40,7 +40,7 @@ void *server_thread(void *unused(arg))
 	XTEST(rn_socket_read(client, &b, 1) == -1);
 	rn_socket_destroy(client);
 	rn_socket_destroy(server);
-	rn_sched_destroy(sched);
+	rn_scheduler_destroy(sched);
 	return NULL;
 }
 
@@ -60,7 +60,7 @@ int main()
 
 	pthread_create(&thread, NULL, server_thread, NULL);
 	sleep(1);
-	sched = rn_sched();
+	sched = rn_scheduler();
 	XTEST(sched != NULL);
 	socket = rn_socket(sched, &socket_class_tcp);
 	XTEST(socket != NULL);
@@ -78,7 +78,7 @@ int main()
 	rn_log("client - sending 'b'");
 	XTEST(rn_socket_write(socket, "b", 1) == 1);
 	rn_socket_destroy(socket);
-	rn_sched_destroy(sched);
+	rn_scheduler_destroy(sched);
 	pthread_join(thread, NULL);
 	XPASS();
 }

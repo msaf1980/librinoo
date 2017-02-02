@@ -25,9 +25,9 @@ int main()
 {
 	rn_sched_t *sched;
 
-	sched = rn_sched();
+	sched = rn_scheduler();
 	rn_task_start(sched, task_server, sched);
-	rn_sched_loop(sched);
-	rn_sched_destroy(sched);
+	rn_scheduler_loop(sched);
+	rn_scheduler_destroy(sched);
 	return 0;
 }

@@ -37,7 +37,7 @@ int rn_spawn(rn_sched_t *sched, int count)
 	}
 	sched->spawns.thread = thread;
 	for (i = sched->spawns.count; i < sched->spawns.count + count; i++) {
-		child = rn_sched();
+		child = rn_scheduler();
 		if (child == NULL) {
 			sched->spawns.count = i;
 			return -1;
@@ -92,8 +92,8 @@ rn_sched_t *rn_spawn_get(rn_sched_t *sched, int id)
  */
 static void *rn_spawn_loop(void *sched)
 {
-	rn_sched_loop(sched);
-	rn_sched_destroy(sched);
+	rn_scheduler_loop(sched);
+	rn_scheduler_destroy(sched);
 	return NULL;
 }
 
@@ -105,10 +105,10 @@ static void *rn_spawn_loop(void *sched)
  */
 static void rn_spawn_handler_stop(int unused(sig))
 {
-	rn_sched_t *sched = rn_sched_self();
+	rn_sched_t *sched = rn_scheduler_self();
 
 	if (sched != NULL) {
-		rn_sched_stop(sched);
+		rn_scheduler_stop(sched);
 	}
 }
 

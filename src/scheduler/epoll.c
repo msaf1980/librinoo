@@ -140,13 +140,13 @@ int rn_epoll_poll(rn_sched_t *sched, int timeout)
 		event = &sched->epoll.events[sched->epoll.curevent];
 		/* Check event->data.ptr for every event as one event could call rn_epoll_remove and destroy ptr */
 		if (event->data.ptr != NULL && (event->events & EPOLLIN) == EPOLLIN) {
-			rn_sched_wakeup(event->data.ptr, RINOO_MODE_IN, 0);
+			rn_scheduler_wakeup(event->data.ptr, RINOO_MODE_IN, 0);
 		}
 		if (event->data.ptr != NULL && (event->events & EPOLLOUT) == EPOLLOUT) {
-			rn_sched_wakeup(event->data.ptr, RINOO_MODE_OUT, 0);
+			rn_scheduler_wakeup(event->data.ptr, RINOO_MODE_OUT, 0);
 		}
 		if (event->data.ptr != NULL && (((event->events & EPOLLERR) == EPOLLERR || (event->events & EPOLLHUP) == EPOLLHUP))) {
-			rn_sched_wakeup(event->data.ptr, RINOO_MODE_NONE, ECONNRESET);
+			rn_scheduler_wakeup(event->data.ptr, RINOO_MODE_NONE, ECONNRESET);
 		}
 	}
 	sched->epoll.curevent = -1;

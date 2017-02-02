@@ -76,14 +76,14 @@ int main()
 {
 	rn_ssl_ctx_t *ssl;
 
-	sched = rn_sched();
+	sched = rn_scheduler();
 	XTEST(sched != NULL);
 	ssl = rn_ssl_context();
 	XTEST(ssl != NULL);
 	rn_task_start(sched, server_func, ssl);
 	rn_task_start(sched, client_func, ssl);
-	rn_sched_loop(sched);
+	rn_scheduler_loop(sched);
 	rn_ssl_context_destroy(ssl);
-	rn_sched_destroy(sched);
+	rn_scheduler_destroy(sched);
 	XPASS();
 }

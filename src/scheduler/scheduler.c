@@ -16,7 +16,7 @@
  *
  * @return Pointer to the new scheduler, or NULL if an error occurs
  */
-rn_sched_t *rn_sched(void)
+rn_sched_t *rn_scheduler(void)
 {
 	rn_sched_t *sched;
 
@@ -29,11 +29,11 @@ rn_sched_t *rn_sched(void)
 		return NULL;
 	}
 	if (rn_epoll_init(sched) != 0) {
-		rn_sched_destroy(sched);
+		rn_scheduler_destroy(sched);
 		return NULL;
 	}
 	if (rn_list(&sched->nodes, NULL) != 0) {
-		rn_sched_destroy(sched);
+		rn_scheduler_destroy(sched);
 		return NULL;
 	}
 	gettimeofday(&sched->clock, NULL);
@@ -57,12 +57,12 @@ static void rn_sched_cancel_task(rn_list_node_t *node)
  *
  * @param sched Pointer to the scheduler to destroy
  */
-void rn_sched_destroy(rn_sched_t *sched)
+void rn_scheduler_destroy(rn_sched_t *sched)
 {
 	XASSERTN(sched != NULL);
 
 	rn_spawn_destroy(sched);
-	rn_sched_stop(sched);
+	rn_scheduler_stop(sched);
 	/* Destroying all pending tasks. */
 	rn_task_driver_stop(sched);
 	rn_list_flush(&sched->nodes, rn_sched_cancel_task);
@@ -77,7 +77,7 @@ void rn_sched_destroy(rn_sched_t *sched)
  *
  * @return Pointer to the active scheduler or NULL if none.
  */
-rn_sched_t *rn_sched_self(void)
+rn_sched_t *rn_scheduler_self(void)
 {
 	rn_task_t *task;
 
@@ -96,7 +96,7 @@ rn_sched_t *rn_sched_self(void)
  *
  * @return 0 on success, or -1 if an error occurs.
  */
-int rn_sched_waitfor(rn_sched_node_t *node, rn_sched_mode_t mode)
+int rn_scheduler_waitfor(rn_sched_node_t *node, rn_sched_mode_t mode)
 {
 	int error;
 
@@ -104,7 +104,7 @@ int rn_sched_waitfor(rn_sched_node_t *node, rn_sched_mode_t mode)
 
 	if (node->error != 0) {
 		error = node->error;
-		rn_sched_remove(node);
+		rn_scheduler_remove(node);
 		errno = error;
 		return -1;
 	}
@@ -130,10 +130,10 @@ int rn_sched_waitfor(rn_sched_node_t *node, rn_sched_mode_t mode)
 	node->sched->nbpending++;
 	if (unlikely(node->task == &node->sched->driver.main)) {
 		while ((node->received & mode) != mode) {
-			rn_sched_poll(node->sched);
+			rn_scheduler_poll(node->sched);
 			if (node->error != 0) {
 				error = node->error;
-				rn_sched_remove(node);
+				rn_scheduler_remove(node);
 				errno = error;
 				node->sched->nbpending--;
 				return -1;
@@ -150,12 +150,12 @@ int rn_sched_waitfor(rn_sched_node_t *node, rn_sched_mode_t mode)
 	node->task = NULL;
 	if (node->error != 0) {
 		error = node->error;
-		rn_sched_remove(node);
+		rn_scheduler_remove(node);
 		errno = error;
 		return -1;
 	}
 	if ((node->received & mode) != mode) {
-		rn_sched_remove(node);
+		rn_scheduler_remove(node);
 		/* Task has been resumed but no event received, this is a timeout */
 		errno = ETIMEDOUT;
 		return -1;
@@ -171,7 +171,7 @@ int rn_sched_waitfor(rn_sched_node_t *node, rn_sched_mode_t mode)
  *
  * @return 0 on success, otherwise -1.
  */
-int rn_sched_remove(rn_sched_node_t *node)
+int rn_scheduler_remove(rn_sched_node_t *node)
 {
 	if (rn_list_remove(&node->sched->nodes, &node->lnode) != 0) {
 		/* Node already removed */
@@ -192,7 +192,7 @@ int rn_sched_remove(rn_sched_node_t *node)
  * @param mode IO Event.
  * @param error Error flag.
  */
-void rn_sched_wakeup(rn_sched_node_t *node, rn_sched_mode_t mode, int error)
+void rn_scheduler_wakeup(rn_sched_node_t *node, rn_sched_mode_t mode, int error)
 {
 	if (node->error == 0) {
 		node->error = error;
@@ -212,7 +212,7 @@ void rn_sched_wakeup(rn_sched_node_t *node, rn_sched_mode_t mode, int error)
  *
  * @param sched Pointer to the scheduler to stop.
  */
-void rn_sched_stop(rn_sched_t *sched)
+void rn_scheduler_stop(rn_sched_t *sched)
 {
 	XASSERTN(sched != NULL);
 
@@ -241,7 +241,7 @@ static bool rn_sched_end(rn_sched_t *sched)
  *
  * @return 0 on success, otherwise -1.
  */
-int rn_sched_poll(rn_sched_t *sched)
+int rn_scheduler_poll(rn_sched_t *sched)
 {
 	int timeout;
 
@@ -255,19 +255,19 @@ int rn_sched_poll(rn_sched_t *sched)
 
 /**
  * Main scheduler loop.
- * This calls rn_sched_poll in a loop until the scheduler gets stopped.
+ * This calls rn_scheduler_poll in a loop until the scheduler gets stopped.
  *
  * @param sched Pointer to the scheduler to use.
  *
  */
-void rn_sched_loop(rn_sched_t *sched)
+void rn_scheduler_loop(rn_sched_t *sched)
 {
 	sched->stop = false;
 	if (rn_spawn_start(sched) != 0) {
 		goto loop_stop;
 	}
 	while (!rn_sched_end(sched)) {
-		rn_sched_poll(sched);
+		rn_scheduler_poll(sched);
 	}
 loop_stop:
 	rn_spawn_join(sched);

@@ -18,7 +18,7 @@ void task3(void *arg)
 	printf("%s start\n", __FUNCTION__);
 	XTEST(checker == 2);
 	checker = 3;
-	rn_sched_stop(sched);
+	rn_scheduler_stop(sched);
 	printf("%s end\n", __FUNCTION__);
 }
 
@@ -57,11 +57,11 @@ int main()
 {
 	rn_sched_t *sched;
 
-	sched = rn_sched();
+	sched = rn_scheduler();
 	XTEST(sched != NULL);
 	XTEST(rn_task_start(sched, task1, sched) == 0);
-	rn_sched_loop(sched);
-	rn_sched_destroy(sched);
+	rn_scheduler_loop(sched);
+	rn_scheduler_destroy(sched);
 	XTEST(checker == 3);
 	XPASS();
 }

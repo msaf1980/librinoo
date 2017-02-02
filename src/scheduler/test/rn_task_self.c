@@ -46,9 +46,9 @@ void task1(void *unused(arg))
 int main()
 {
 	XTEST(rn_task_self() == NULL);
-	sched = rn_sched();
+	sched = rn_scheduler();
 	XTEST(sched != NULL);
 	XTEST(rn_task_run(sched, task1, sched) == 0);
-	rn_sched_destroy(sched);
+	rn_scheduler_destroy(sched);
 	XPASS();
 }

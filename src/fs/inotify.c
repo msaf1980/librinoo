@@ -44,7 +44,7 @@ void rn_inotify_destroy(rn_inotify_t *notify)
 			rn_inotify_rm_watch(notify, notify->watches[i]);
 		}
 	}
-	rn_sched_remove(&notify->node);
+	rn_scheduler_remove(&notify->node);
 	close(notify->node.fd);
 	rn_buffer_destroy(notify->event.path);
 	free(notify);
@@ -135,7 +135,7 @@ rn_inotify_event_t *rn_inotify_event(rn_inotify_t *inotify)
 			return NULL;
 		}
 		inotify->io_calls = 0;
-		if (rn_sched_waitfor(&inotify->node, RINOO_MODE_IN) != 0) {
+		if (rn_scheduler_waitfor(&inotify->node, RINOO_MODE_IN) != 0) {
 			return NULL;
 		}
 		errno = 0;

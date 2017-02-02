@@ -46,14 +46,14 @@ int main()
 	rn_channel_t *channel;
 
 
-	sched = rn_sched();
+	sched = rn_scheduler();
 	XTEST(sched != NULL);
 	channel = rn_channel(sched);
 	XTEST(channel != NULL);
 	XTEST(rn_task_start(sched, task1, channel) == 0);
 	XTEST(rn_task_start(sched, task2, channel) == 0);
-	rn_sched_loop(sched);
+	rn_scheduler_loop(sched);
 	rn_channel_destroy(channel);
-	rn_sched_destroy(sched);
+	rn_scheduler_destroy(sched);
 	XPASS();
 }

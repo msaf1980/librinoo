@@ -14,7 +14,7 @@ void task_server(void *server)
 	rn_sched_t *sched;
 	rn_socket_t *client;
 
-	sched = rn_sched_self();
+	sched = rn_scheduler_self();
 	while ((client = rn_tcp_accept(server, NULL, NULL)) != NULL) {
 		rn_log("Accepted connection on thread %d", sched->id);
 		rn_task_start(sched, task_client, client);
@@ -29,7 +29,7 @@ int main()
 	rn_sched_t *sched;
 	rn_socket_t *server;
 
-	sched = rn_sched();
+	sched = rn_scheduler();
 	/* Spawning 10 schedulers, each running in a separate thread */
 	rn_spawn(sched, 10);
 	for (i = 0; i <= 10; i++) {
@@ -37,7 +37,7 @@ int main()
 		server = rn_tcp_server(spawn, IP_ANY, 4242);
 		rn_task_start(spawn, task_server, server);
 	}
-	rn_sched_loop(sched);
-	rn_sched_destroy(sched);
+	rn_scheduler_loop(sched);
+	rn_scheduler_destroy(sched);
 	return 0;
 }

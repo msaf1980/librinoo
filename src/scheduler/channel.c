@@ -45,7 +45,7 @@ void *rn_channel_get(rn_channel_t *channel)
 	rn_task_t *task;
 	rn_sched_t *sched;
 
-	sched = rn_sched_self();
+	sched = rn_scheduler_self();
 	if (channel->sched != sched) {
 		return NULL;
 	}
@@ -87,7 +87,7 @@ int rn_channel_read(rn_channel_t *channel, void *dest, size_t size)
 	rn_task_t *task;
 	rn_sched_t *sched;
 
-	sched = rn_sched_self();
+	sched = rn_scheduler_self();
 	if (channel->sched != sched) {
 		return -1;
 	}
@@ -129,7 +129,7 @@ int rn_channel_write(rn_channel_t *channel, void *buf, size_t size)
 	rn_task_t *task;
 	rn_sched_t *sched;
 
-	sched = rn_sched_self();
+	sched = rn_scheduler_self();
 	if (channel->sched != sched) {
 		return -1;
 	}

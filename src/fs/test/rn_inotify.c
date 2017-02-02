@@ -72,12 +72,12 @@ int main()
 	rn_sched_t *sched;
 
 	mkdir(TEST_DIRECTORY, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-	sched = rn_sched();
+	sched = rn_scheduler();
 	XTEST(sched != NULL);
 	XTEST(rn_task_start(sched, check_file, sched) == 0);
 	XTEST(rn_task_start(sched, event_generator, sched) == 0);
-	rn_sched_loop(sched);
-	rn_sched_destroy(sched);
+	rn_scheduler_loop(sched);
+	rn_scheduler_destroy(sched);
 	rmdir(TEST_DIRECTORY);
 	XPASS();
 }

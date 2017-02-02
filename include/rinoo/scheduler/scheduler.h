@@ -22,16 +22,16 @@ typedef struct rn_sched_s {
 	rn_sched_spawns_t spawns;
 } rn_sched_t;
 
-rn_sched_t *rn_sched(void);
-void rn_sched_destroy(rn_sched_t *sched);
-int rn_sched_spawn(rn_sched_t *sched, int count);
-rn_sched_t *rn_sched_spawn_get(rn_sched_t *sched, int id);
-rn_sched_t *rn_sched_self(void);
-void rn_sched_stop(rn_sched_t *sched);
-int rn_sched_waitfor(rn_sched_node_t *node,  rn_sched_mode_t mode);
-int rn_sched_remove(rn_sched_node_t *node);
-void rn_sched_wakeup(rn_sched_node_t *node, rn_sched_mode_t mode, int error);
-int rn_sched_poll(rn_sched_t *sched);
-void rn_sched_loop(rn_sched_t *sched);
+rn_sched_t *rn_scheduler(void);
+void rn_scheduler_destroy(rn_sched_t *sched);
+int rn_scheduler_spawn(rn_sched_t *sched, int count);
+rn_sched_t *rn_scheduler_spawn_get(rn_sched_t *sched, int id);
+rn_sched_t *rn_scheduler_self(void);
+void rn_scheduler_stop(rn_sched_t *sched);
+int rn_scheduler_waitfor(rn_sched_node_t *node,  rn_sched_mode_t mode);
+int rn_scheduler_remove(rn_sched_node_t *node);
+void rn_scheduler_wakeup(rn_sched_node_t *node, rn_sched_mode_t mode, int error);
+int rn_scheduler_poll(rn_sched_t *sched);
+void rn_scheduler_loop(rn_sched_t *sched);
 
 #endif /* !RINOO_SCHEDULER_SCHEDULER_H */

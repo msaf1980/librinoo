@@ -127,12 +127,12 @@ int main()
 	big_buffer = malloc(sizeof(*big_buffer) * BUFFER_SIZE);
 	XTEST(big_buffer != NULL);
 	memset(big_buffer, 'x', sizeof(*big_buffer) * BUFFER_SIZE);
-	sched = rn_sched();
+	sched = rn_scheduler();
 	XTEST(sched != NULL);
 	XTEST(rn_task_start(sched, server_func, sched) == 0);
 	XTEST(rn_task_start(sched, client_func, sched) == 0);
-	rn_sched_loop(sched);
-	rn_sched_destroy(sched);
+	rn_scheduler_loop(sched);
+	rn_scheduler_destroy(sched);
 	free(big_buffer);
 	XPASS();
 }

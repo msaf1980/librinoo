@@ -35,12 +35,12 @@ void server_func(void *unused(arg))
 	rn_socket_t *server;
 	rn_socket_t *client;
 
-	server = rn_tcp_server(rn_sched_self(), IP_ANY, 4242);
+	server = rn_tcp_server(rn_scheduler_self(), IP_ANY, 4242);
 	XTEST(server != NULL);
 	client = rn_tcp_accept(server, NULL, NULL);
 	XTEST(client != NULL);
 	rn_log("client accepted");
-	rn_task_start(rn_sched_self(), process_client, client);
+	rn_task_start(rn_scheduler_self(), process_client, client);
 	rn_socket_destroy(server);
 }
 
@@ -49,7 +49,7 @@ void client_func(void *unused(arg))
 	rn_buffer_t buffer;
 	rn_socket_t *client;
 
-	client = rn_tcp_client(rn_sched_self(), IP_LOOPBACK, 4242, 0);
+	client = rn_tcp_client(rn_scheduler_self(), IP_LOOPBACK, 4242, 0);
 	XTEST(client != NULL);
 	str = malloc(sizeof(*str) * TRANSFER_SIZE);
 	XTEST(str != NULL);
@@ -69,11 +69,11 @@ int main()
 {
 	rn_sched_t *sched;
 
-	sched = rn_sched();
+	sched = rn_scheduler();
 	XTEST(sched != NULL);
 	XTEST(rn_task_start(sched, server_func, NULL) == 0);
 	XTEST(rn_task_start(sched, client_func, NULL) == 0);
-	rn_sched_loop(sched);
-	rn_sched_destroy(sched);
+	rn_scheduler_loop(sched);
+	rn_scheduler_destroy(sched);
 	XPASS();
 }

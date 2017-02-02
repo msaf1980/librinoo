@@ -70,13 +70,13 @@ int main(int argc, char **argv)
 		return -1;
 	}
 	port = atoi(argv[1]);
-	sched = rn_sched();
+	sched = rn_scheduler();
 	if (sched == NULL) {
 		return -1;
 	}
 	if (rn_spawn(sched, 9) != 0) {
 		rn_log("Could not spawn threads.");
-		rn_sched_destroy(sched);
+		rn_scheduler_destroy(sched);
 		return -1;
 	}
 	for (i = 0; i <= 9; i++) {
@@ -86,7 +86,7 @@ int main(int argc, char **argv)
 			rn_task_start(cur, process_http_client, cur);
 		}
 	}
-	rn_sched_loop(sched);
-	rn_sched_destroy(sched);
+	rn_scheduler_loop(sched);
+	rn_scheduler_destroy(sched);
 	return 0;
 }

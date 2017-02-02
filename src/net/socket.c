@@ -91,7 +91,7 @@ void rn_socket_close(rn_socket_t *socket)
 {
 	XASSERTN(socket != NULL);
 
-	rn_sched_remove(&socket->node);
+	rn_scheduler_remove(&socket->node);
 	socket->class->close(socket);
 	memset(&socket->node, 0, sizeof(socket->node));
 }
@@ -119,7 +119,7 @@ void rn_socket_destroy(rn_socket_t *socket)
 int rn_socket_waitin(rn_socket_t *socket)
 {
 	socket->io_calls = 0;
-	return rn_sched_waitfor(&socket->node, RINOO_MODE_IN);
+	return rn_scheduler_waitfor(&socket->node, RINOO_MODE_IN);
 }
 
 /**
@@ -132,7 +132,7 @@ int rn_socket_waitin(rn_socket_t *socket)
 int rn_socket_waitout(rn_socket_t *socket)
 {
 	socket->io_calls = 0;
-	return rn_sched_waitfor(&socket->node, RINOO_MODE_OUT);
+	return rn_scheduler_waitfor(&socket->node, RINOO_MODE_OUT);
 }
 
 /**
