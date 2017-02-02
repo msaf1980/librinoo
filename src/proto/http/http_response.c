@@ -48,7 +48,7 @@ bool rn_http_response_get(rn_http_t *http)
  */
 void rn_http_response_setmsg(rn_http_t *http, const char *msg)
 {
-	rn_strtobuffer(&http->response.msg, msg);
+	rn_buffer_set(&http->response.msg, msg);
 }
 
 /**

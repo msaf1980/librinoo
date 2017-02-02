@@ -52,11 +52,11 @@ int main()
 	check_buf(buffer, -12345.678);
 	rn_buffer_erase(buffer, 0);
 	rn_buffer_destroy(buffer);
-	rn_strtobuffer(&buffer2, "98765.4321");
+	rn_buffer_set(&buffer2, "98765.4321");
 	check_buf(&buffer2, 98765.4321);
-	rn_strtobuffer(&buffer2, "0");
+	rn_buffer_set(&buffer2, "0");
 	check_buf(&buffer2, 0);
-	rn_strtobuffer(&buffer2, "-9876543.21");
+	rn_buffer_set(&buffer2, "-9876543.21");
 	check_buf(&buffer2, -9876543.21);
 	XPASS();
 }

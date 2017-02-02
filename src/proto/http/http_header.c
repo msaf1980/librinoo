@@ -85,13 +85,13 @@ int rn_http_header_setdata(rn_rbtree_t *headertree, const char *key, const char 
 	XASSERT(value != NULL, -1);
 	XASSERT(size > 0, -1);
 
-	rn_strtobuffer(&dummy.key, key);
+	rn_buffer_set(&dummy.key, key);
 	new_value = strndup(value, size);
 	found = rn_rbtree_find(headertree, &dummy.node);
 	if (found != NULL) {
 		new = container_of(found, rn_http_header_t, node);
 		free(new->value.ptr);
-		rn_strtobuffer(&new->value, new_value);
+		rn_buffer_set(&new->value, new_value);
 		return 0;
 	}
 
@@ -106,8 +106,8 @@ int rn_http_header_setdata(rn_rbtree_t *headertree, const char *key, const char 
 		free(new);
 		return -1;
 	}
-	rn_strtobuffer(&new->key, key);
-	rn_strtobuffer(&new->value, new_value);
+	rn_buffer_set(&new->key, key);
+	rn_buffer_set(&new->value, new_value);
 	if (rn_rbtree_put(headertree, &new->node) != 0) {
 		rn_http_header_free(&new->node);
 		return -1;
@@ -143,7 +143,7 @@ void rn_http_header_remove(rn_rbtree_t *headertree, const char *key)
 	XASSERTN(headertree != NULL);
 	XASSERTN(key != NULL);
 
-	rn_strtobuffer(&dummy.key, key);
+	rn_buffer_set(&dummy.key, key);
 	toremove = rn_rbtree_find(headertree, &dummy.node);
 	if (toremove != NULL) {
 		rn_rbtree_remove(headertree, toremove);
@@ -166,7 +166,7 @@ rn_http_header_t *rn_http_header_get(rn_rbtree_t *headertree, const char *key)
 	XASSERT(headertree != NULL, NULL);
 	XASSERT(key != NULL, NULL);
 
-	rn_strtobuffer(&dummy.key, key);
+	rn_buffer_set(&dummy.key, key);
 	node = rn_rbtree_find(headertree, &dummy.node);
 	if (node == NULL) {
 		return NULL;

@@ -89,7 +89,7 @@ void rn_buffer_static(rn_buffer_t *buffer, void *ptr, size_t size)
  * @param ptr Pointer to the memory segment to use.
  * @param msize Size of the memory segment.
  */
-void rn_buffer_set(rn_buffer_t *buffer, void *ptr, size_t msize)
+void rn_buffer_init(rn_buffer_t *buffer, void *ptr, size_t msize)
 {
 	buffer->ptr = ptr;
 	buffer->size = 0;

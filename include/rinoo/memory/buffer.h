@@ -25,11 +25,11 @@ typedef struct rn_buffer_s {
 #define rn_buffer_msize(buffer)			((buffer)->msize)
 #define rn_buffer_isfull(buffer)			((buffer)->size == (buffer)->msize || (buffer)->msize == 0)
 #define rn_buffer_setsize(buffer, newsize)		do { (buffer)->size = newsize; } while (0)
-#define rn_strtobuffer(buffer, str)		do { rn_buffer_static(buffer, (void *)(str), strlen(str)); } while (0)
+#define rn_buffer_set(buffer, str)		do { rn_buffer_static(buffer, (void *)(str), strlen(str)); } while (0)
 
 rn_buffer_t *rn_buffer_create(rn_buffer_class_t *class);
 void rn_buffer_static(rn_buffer_t *buffer, void *ptr, size_t size);
-void rn_buffer_set(rn_buffer_t *buffer, void *ptr, size_t msize);
+void rn_buffer_init(rn_buffer_t *buffer, void *ptr, size_t msize);
 int rn_buffer_destroy(rn_buffer_t *buffer);
 int rn_buffer_extend(rn_buffer_t *buffer, size_t size);
 int rn_buffer_vprint(rn_buffer_t *buffer, const char *format, va_list ap);

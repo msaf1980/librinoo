@@ -112,7 +112,7 @@ int rn_http_request_send(rn_http_t *http, rn_http_method_t method, const char *u
 	case RINOO_HTTP_METHOD_UNKNOWN:
 		return -1;
 	}
-	rn_strtobuffer(&http->request.uri, uri);
+	rn_buffer_set(&http->request.uri, uri);
 	rn_buffer_add(http->request.buffer, rn_buffer_ptr(&http->request.uri), rn_buffer_size(&http->request.uri));
 	rn_http_request_setdefaultheaders(http);
 	switch (http->version) {

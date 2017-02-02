@@ -1,9 +1,9 @@
 /**
- * @file   rn_buffer_add.c
+ * @file   rn_buffer_init.c
  * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
  * @date   Wed Feb  1 18:56:27 2017
  *
- * @brief  rn_buffer_set unit test
+ * @brief  rn_buffer_init unit test
  *
  *
  */
@@ -21,7 +21,7 @@ int main()
 	rn_buffer_t buffer;
 	char memory[25];
 
-	rn_buffer_set(&buffer, memory, sizeof(memory));
+	rn_buffer_init(&buffer, memory, sizeof(memory));
 	XTEST(buffer.ptr == memory);
 	XTEST(buffer.class != NULL);
 	XTEST(buffer.size == 0);

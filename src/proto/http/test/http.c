@@ -36,7 +36,7 @@ void http_server_process(void *socket)
 	XTEST(rn_http_init(socket, &http) == 0);
 	XTEST(rn_http_request_get(&http));
 	http.response.code = 200;
-	rn_strtobuffer(&content, HTTP_CONTENT);
+	rn_buffer_set(&content, HTTP_CONTENT);
 	XTEST(rn_http_response_send(&http, &content) == 0);
 	rn_http_destroy(&http);
 	rn_socket_destroy(socket);

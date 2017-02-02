@@ -18,7 +18,7 @@ void rn_dns_init(rn_sched_t *sched, rn_dns_t *dns, rn_dns_type_t type, const cha
 	dns->answer = NULL;
 	dns->authority = NULL;
 	dns->additional = NULL;
-	rn_buffer_set(&dns->buffer, dns->packet, sizeof(dns->packet));
+	rn_buffer_init(&dns->buffer, dns->packet, sizeof(dns->packet));
 	dns->type = type;
 }
 
@@ -91,7 +91,7 @@ int rn_dns_get(rn_dns_t *dns, rn_dns_query_t *query, rn_ip_t *from)
 	rn_buffer_iterator_t iterator;
 
 	rn_buffer_erase(&dns->buffer, 0);
-	rn_buffer_set(&query->name.buffer, query->name.value, sizeof(query->name.value));
+	rn_buffer_init(&query->name.buffer, query->name.value, sizeof(query->name.value));
 	len = sizeof(from->v4);
 	count = rn_socket_recvfrom(dns->socket, rn_buffer_ptr(&dns->buffer), rn_buffer_msize(&dns->buffer), (struct sockaddr *) &from->v4, &len);
 	if (count <= 0) {
@@ -115,7 +115,7 @@ int rn_dns_reply_get(rn_dns_t *dns, uint32_t timeout)
 	rn_buffer_iterator_t iterator;
 
 	rn_buffer_erase(&dns->buffer, 0);
-	rn_buffer_set(&query.name.buffer, query.name.value, sizeof(query.name.value));
+	rn_buffer_init(&query.name.buffer, query.name.value, sizeof(query.name.value));
 	if (rn_socket_timeout(dns->socket, timeout) != 0) {
 		return -1;
 	}

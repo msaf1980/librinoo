@@ -179,7 +179,7 @@ int rn_dns_query_get(rn_buffer_iterator_t *iterator, rn_dns_query_t *query)
 
 int rn_dns_record_get(rn_buffer_iterator_t *iterator, rn_dns_record_t *record)
 {
-	rn_buffer_set(&record->name.buffer, record->name.value, sizeof(record->name.value));
+	rn_buffer_init(&record->name.buffer, record->name.value, sizeof(record->name.value));
 	if (rn_dns_name_get(iterator, &record->name.buffer) != 0) {
 		return -1;
 	}
@@ -190,27 +190,27 @@ int rn_dns_record_get(rn_buffer_iterator_t *iterator, rn_dns_record_t *record)
 		case DNS_TYPE_A:
 			break;
 		case DNS_TYPE_NS:
-			rn_buffer_set(&record->rdata.ns.nsname.buffer, record->rdata.ns.nsname.value, sizeof(record->rdata.ns.nsname.value));
+			rn_buffer_init(&record->rdata.ns.nsname.buffer, record->rdata.ns.nsname.value, sizeof(record->rdata.ns.nsname.value));
 			break;
 		case DNS_TYPE_CNAME:
-			rn_buffer_set(&record->rdata.cname.cname.buffer, record->rdata.cname.cname.value, sizeof(record->rdata.cname.cname.value));
+			rn_buffer_init(&record->rdata.cname.cname.buffer, record->rdata.cname.cname.value, sizeof(record->rdata.cname.cname.value));
 			break;
 		case DNS_TYPE_SOA:
-			rn_buffer_set(&record->rdata.soa.mname.buffer, record->rdata.soa.mname.value, sizeof(record->rdata.soa.mname.value));
-			rn_buffer_set(&record->rdata.soa.rname.buffer, record->rdata.soa.rname.value, sizeof(record->rdata.soa.rname.value));
+			rn_buffer_init(&record->rdata.soa.mname.buffer, record->rdata.soa.mname.value, sizeof(record->rdata.soa.mname.value));
+			rn_buffer_init(&record->rdata.soa.rname.buffer, record->rdata.soa.rname.value, sizeof(record->rdata.soa.rname.value));
 			break;
 		case DNS_TYPE_PTR:
-			rn_buffer_set(&record->rdata.ptr.ptrname.buffer, record->rdata.ptr.ptrname.value, sizeof(record->rdata.ptr.ptrname));
+			rn_buffer_init(&record->rdata.ptr.ptrname.buffer, record->rdata.ptr.ptrname.value, sizeof(record->rdata.ptr.ptrname));
 			break;
 		case DNS_TYPE_HINFO:
-			rn_buffer_set(&record->rdata.hinfo.cpu.buffer, record->rdata.hinfo.cpu.value, sizeof(record->rdata.hinfo.cpu.value));
-			rn_buffer_set(&record->rdata.hinfo.os.buffer, record->rdata.hinfo.os.value, sizeof(record->rdata.hinfo.os.value));
+			rn_buffer_init(&record->rdata.hinfo.cpu.buffer, record->rdata.hinfo.cpu.value, sizeof(record->rdata.hinfo.cpu.value));
+			rn_buffer_init(&record->rdata.hinfo.os.buffer, record->rdata.hinfo.os.value, sizeof(record->rdata.hinfo.os.value));
 			break;
 		case DNS_TYPE_MX:
-			rn_buffer_set(&record->rdata.mx.exchange.buffer, record->rdata.mx.exchange.value, sizeof(record->rdata.mx.exchange.value));
+			rn_buffer_init(&record->rdata.mx.exchange.buffer, record->rdata.mx.exchange.value, sizeof(record->rdata.mx.exchange.value));
 			break;
 		case DNS_TYPE_TXT:
-			rn_buffer_set(&record->rdata.txt.txtdata.buffer, record->rdata.txt.txtdata.value, sizeof(record->rdata.txt.txtdata.value));
+			rn_buffer_init(&record->rdata.txt.txtdata.buffer, record->rdata.txt.txtdata.value, sizeof(record->rdata.txt.txtdata.value));
 			break;
 	}
 	if (rn_buffer_iterator_gethushort(iterator, &record->aclass) != 0) {

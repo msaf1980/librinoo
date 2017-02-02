@@ -24,20 +24,20 @@ static void rn_http_easy_route_call(rn_http_t *http, rn_http_route_t *route)
 	http->response.code = route->code;
 	switch (route->type) {
 	case RINOO_HTTP_ROUTE_STATIC:
-		rn_strtobuffer(&body, route->content);
+		rn_buffer_set(&body, route->content);
 		rn_http_response_send(http, &body);
 		break;
 	case RINOO_HTTP_ROUTE_FUNC:
 		if (route->func(http, route) != 0) {
 			http->response.code = 500;
-			rn_strtobuffer(&body, RN_HTTP_ERROR_500);
+			rn_buffer_set(&body, RN_HTTP_ERROR_500);
 			rn_http_response_send(http, &body);
 		}
 		break;
 	case RINOO_HTTP_ROUTE_FILE:
 		if (rn_http_send_file(http, route->file) != 0) {
 			http->response.code = 404;
-			rn_strtobuffer(&body, RN_HTTP_ERROR_404);
+			rn_buffer_set(&body, RN_HTTP_ERROR_404);
 			rn_http_response_send(http, &body);
 		}
 		break;
@@ -49,7 +49,7 @@ static void rn_http_easy_route_call(rn_http_t *http, rn_http_route_t *route)
 		rn_buffer_addnull(uri);
 		if (rn_http_send_file(http, rn_buffer_ptr(uri)) != 0) {
 			http->response.code = 404;
-			rn_strtobuffer(&body, RN_HTTP_ERROR_404);
+			rn_buffer_set(&body, RN_HTTP_ERROR_404);
 			rn_http_response_send(http, &body);
 		}
 		rn_buffer_destroy(uri);
@@ -86,7 +86,7 @@ static void rn_http_easy_client_process(void *context)
 		}
 		if (found == false) {
 			http.response.code = 404;
-			rn_strtobuffer(&body, RN_HTTP_ERROR_404);
+			rn_buffer_set(&body, RN_HTTP_ERROR_404);
 			rn_http_response_send(&http, &body);
 		}
 		rn_http_reset(&http);
