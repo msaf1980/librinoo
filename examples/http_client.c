@@ -33,7 +33,7 @@ void process_http_client(void *sched)
 		}
 		rn_http_init(socket, &http);
 		for (j = 0; j < 10; j++) {
-			if (rn_http_request_send(&http, RINOO_HTTP_METHOD_GET, "/", NULL) != 0) {
+			if (rn_http_request_send(&http, RN_HTTP_METHOD_GET, "/", NULL) != 0) {
 				goto client_error;
 			}
 			if (!rn_http_response_get(&http)) {

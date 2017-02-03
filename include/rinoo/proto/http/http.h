@@ -14,9 +14,9 @@
 #define RN_HTTP_SIGNATURE	"RiNOO/" VERSION
 
 typedef enum rn_http_version_e {
-	RINOO_HTTP_VERSION_10 = 0,
-	RINOO_HTTP_VERSION_11,
-	RINOO_HTTP_VERSION_UNKNOWN
+	RN_HTTP_VERSION_10 = 0,
+	RN_HTTP_VERSION_11,
+	RN_HTTP_VERSION_UNKNOWN
 } rn_http_version_t;
 
 typedef struct rn_http_s {

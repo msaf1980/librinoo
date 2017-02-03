@@ -232,7 +232,7 @@ int rn_http_response_prepare(rn_http_t *http, size_t body_length)
 	rn_http_response_setdefaultheaders(http);
 	rn_http_response_setdefaultmsg(http);
 	switch (http->version) {
-	case RINOO_HTTP_VERSION_10:
+	case RN_HTTP_VERSION_10:
 		rn_buffer_add(http->response.buffer, "HTTP/1.0", 8);
 		break;
 	default:

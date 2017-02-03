@@ -15,9 +15,9 @@
 struct rn_sched_s;
 
 typedef enum rn_sched_mode_e {
-	RINOO_MODE_NONE = 0,
-	RINOO_MODE_IN = 1,
-	RINOO_MODE_OUT = 2,
+	RN_MODE_NONE = 0,
+	RN_MODE_IN = 1,
+	RN_MODE_OUT = 2,
 } rn_sched_mode_t;
 
 typedef struct rn_sched_node_s {

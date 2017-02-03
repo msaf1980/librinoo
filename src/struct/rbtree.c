@@ -88,15 +88,15 @@ static void rn_rbtree_insert_color(rn_rbtree_t *tree, rn_rbtree_node_t *node)
 
 	parent = node->parent;
 	while ((parent = node->parent) != NULL &&
-	       parent->color == RINOO_RBTREE_RED &&
+	       parent->color == RN_RBTREE_RED &&
 	       (gparent = parent->parent) != NULL) {
 
 		if (parent == gparent->left) {
 			current = gparent->right;
-			if (current != NULL && current->color == RINOO_RBTREE_RED) {
-				current->color = RINOO_RBTREE_BLACK;
-				parent->color = RINOO_RBTREE_BLACK;
-				gparent->color = RINOO_RBTREE_RED;
+			if (current != NULL && current->color == RN_RBTREE_RED) {
+				current->color = RN_RBTREE_BLACK;
+				parent->color = RN_RBTREE_BLACK;
+				gparent->color = RN_RBTREE_RED;
 				node = gparent;
 			} else {
 				if (parent->right == node) {
@@ -105,16 +105,16 @@ static void rn_rbtree_insert_color(rn_rbtree_t *tree, rn_rbtree_node_t *node)
 					parent = node;
 					node = current;
 				}
-				parent->color = RINOO_RBTREE_BLACK;
-				gparent->color = RINOO_RBTREE_RED;
+				parent->color = RN_RBTREE_BLACK;
+				gparent->color = RN_RBTREE_RED;
 				rn_rbtree_rotate_right(tree, gparent);
 			}
 		} else {
 			current = gparent->left;
-			if (current != NULL && current->color == RINOO_RBTREE_RED) {
-				current->color = RINOO_RBTREE_BLACK;
-				parent->color = RINOO_RBTREE_BLACK;
-				gparent->color = RINOO_RBTREE_RED;
+			if (current != NULL && current->color == RN_RBTREE_RED) {
+				current->color = RN_RBTREE_BLACK;
+				parent->color = RN_RBTREE_BLACK;
+				gparent->color = RN_RBTREE_RED;
 				node = gparent;
 			} else {
 				if (parent->left == node) {
@@ -123,46 +123,46 @@ static void rn_rbtree_insert_color(rn_rbtree_t *tree, rn_rbtree_node_t *node)
 					parent = node;
 					node = current;
 				}
-				parent->color = RINOO_RBTREE_BLACK;
-				gparent->color = RINOO_RBTREE_RED;
+				parent->color = RN_RBTREE_BLACK;
+				gparent->color = RN_RBTREE_RED;
 				rn_rbtree_rotate_left(tree, gparent);
 			}
 		}
 	}
-	tree->root->color = RINOO_RBTREE_BLACK;
+	tree->root->color = RN_RBTREE_BLACK;
 }
 
 static void rn_rbtree_remove_color(rn_rbtree_t *tree, rn_rbtree_node_t *parent, rn_rbtree_node_t *node)
 {
 	rn_rbtree_node_t *current;
 
-	while ((node == NULL || node->color == RINOO_RBTREE_BLACK) && node != tree->root && parent != NULL) {
+	while ((node == NULL || node->color == RN_RBTREE_BLACK) && node != tree->root && parent != NULL) {
 		if (parent->left == node) {
 			current = parent->right;
-			if (current->color == RINOO_RBTREE_RED) {
-				current->color = RINOO_RBTREE_BLACK;
-				parent->color = RINOO_RBTREE_RED;
+			if (current->color == RN_RBTREE_RED) {
+				current->color = RN_RBTREE_BLACK;
+				parent->color = RN_RBTREE_RED;
 				rn_rbtree_rotate_left(tree, parent);
 				current = parent->right;
 			}
-			if ((current->left == NULL || current->left->color == RINOO_RBTREE_BLACK) &&
-			    (current->right == NULL || current->right->color == RINOO_RBTREE_BLACK)) {
-				current->color = RINOO_RBTREE_RED;
+			if ((current->left == NULL || current->left->color == RN_RBTREE_BLACK) &&
+			    (current->right == NULL || current->right->color == RN_RBTREE_BLACK)) {
+				current->color = RN_RBTREE_RED;
 				node = parent;
 				parent = node->parent;
 			} else {
-				if (current->right == NULL || current->right->color == RINOO_RBTREE_BLACK) {
+				if (current->right == NULL || current->right->color == RN_RBTREE_BLACK) {
 					if (current->left != NULL) {
-						current->left->color = RINOO_RBTREE_BLACK;
+						current->left->color = RN_RBTREE_BLACK;
 					}
-					current->color = RINOO_RBTREE_RED;
+					current->color = RN_RBTREE_RED;
 					rn_rbtree_rotate_right(tree, current);
 					current = parent->right;
 				}
 				current->color = parent->color;
-				parent->color = RINOO_RBTREE_BLACK;
+				parent->color = RN_RBTREE_BLACK;
 				if (current->right != NULL) {
-					current->right->color = RINOO_RBTREE_BLACK;
+					current->right->color = RN_RBTREE_BLACK;
 				}
 				rn_rbtree_rotate_left(tree, parent);
 				node = tree->root;
@@ -170,30 +170,30 @@ static void rn_rbtree_remove_color(rn_rbtree_t *tree, rn_rbtree_node_t *parent, 
 			}
 		} else {
 			current = parent->left;
-			if (current->color == RINOO_RBTREE_RED) {
-				current->color = RINOO_RBTREE_BLACK;
-				parent->color = RINOO_RBTREE_RED;
+			if (current->color == RN_RBTREE_RED) {
+				current->color = RN_RBTREE_BLACK;
+				parent->color = RN_RBTREE_RED;
 				rn_rbtree_rotate_right(tree, parent);
 				current = parent->left;
 			}
-			if ((current->left == NULL || current->left->color == RINOO_RBTREE_BLACK) &&
-			    (current->right == NULL || current->right->color == RINOO_RBTREE_BLACK)) {
-				current->color = RINOO_RBTREE_RED;
+			if ((current->left == NULL || current->left->color == RN_RBTREE_BLACK) &&
+			    (current->right == NULL || current->right->color == RN_RBTREE_BLACK)) {
+				current->color = RN_RBTREE_RED;
 				node = parent;
 				parent = node->parent;
 			} else {
-				if (current->left == NULL || current->left->color == RINOO_RBTREE_BLACK) {
+				if (current->left == NULL || current->left->color == RN_RBTREE_BLACK) {
 					if (current->right != NULL) {
-						current->right->color = RINOO_RBTREE_BLACK;
+						current->right->color = RN_RBTREE_BLACK;
 					}
-					current->color = RINOO_RBTREE_RED;
+					current->color = RN_RBTREE_RED;
 					rn_rbtree_rotate_left(tree, current);
 					current = parent->left;
 				}
 				current->color = parent->color;
-				parent->color = RINOO_RBTREE_BLACK;
+				parent->color = RN_RBTREE_BLACK;
 				if (current->left != NULL) {
-					current->left->color = RINOO_RBTREE_BLACK;
+					current->left->color = RN_RBTREE_BLACK;
 				}
 				rn_rbtree_rotate_right(tree, parent);
 				node = tree->root;
@@ -203,7 +203,7 @@ static void rn_rbtree_remove_color(rn_rbtree_t *tree, rn_rbtree_node_t *parent, 
 	}
 
 	if (node != NULL) {
-		node->color = RINOO_RBTREE_BLACK;
+		node->color = RN_RBTREE_BLACK;
 	}
 }
 
@@ -286,7 +286,7 @@ int rn_rbtree_put(rn_rbtree_t *tree, rn_rbtree_node_t *node)
 	node->left = NULL;
 	node->right = NULL;
 	node->parent = parent;
-	node->color = RINOO_RBTREE_RED;
+	node->color = RN_RBTREE_RED;
 	if (parent != NULL) {
 		if (cmp < 0) {
 			parent->left = node;
@@ -384,7 +384,7 @@ void rn_rbtree_remove(rn_rbtree_t *tree, rn_rbtree_node_t *node)
 		}
 	}
 color:
-	if (color == RINOO_RBTREE_BLACK) {
+	if (color == RN_RBTREE_BLACK) {
 		rn_rbtree_remove_color(tree, parent, child);
 	}
 

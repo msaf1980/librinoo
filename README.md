@@ -107,7 +107,7 @@ RiNOO is a simple way to create high scalability client/server applications.
 
         client = rn_tcp_client(sched, IP_LOOPBACK, 80, 0);
         rn_http_init(client, &http);
-        rn_http_request_send(&http, RINOO_HTTP_METHOD_GET, "/", NULL);
+        rn_http_request_send(&http, RN_HTTP_METHOD_GET, "/", NULL);
         rn_http_response_get(&http);
         rn_log("client - %.*s", rn_buffer_size(http.response.buffer), rn_buffer_ptr(http.response.buffer));
         rn_http_destroy(&http);
@@ -130,9 +130,9 @@ RiNOO is a simple way to create high scalability client/server applications.
     #include "rinoo/rinoo.h"
 
     rn_http_route_t routes[] = {
-        { "/", 200, RINOO_HTTP_ROUTE_STATIC, .content = "<html><body><center>Welcome to RiNOO HTTP server!<br/><br/><a href=\"/motd\">motd</a></center><body></html>" },
-        { "/motd", 200, RINOO_HTTP_ROUTE_FILE, .file = "/etc/motd" },
-        { NULL, 302, RINOO_HTTP_ROUTE_REDIRECT, .location = "/" }
+        { "/", 200, RN_HTTP_ROUTE_STATIC, .content = "<html><body><center>Welcome to RiNOO HTTP server!<br/><br/><a href=\"/motd\">motd</a></center><body></html>" },
+        { "/motd", 200, RN_HTTP_ROUTE_FILE, .file = "/etc/motd" },
+        { NULL, 302, RN_HTTP_ROUTE_REDIRECT, .location = "/" }
     };
 
     int main()

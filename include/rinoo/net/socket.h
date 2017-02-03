@@ -57,4 +57,4 @@ ssize_t rn_socket_expect(rn_socket_t *socket, rn_buffer_t *buffer, const char *e
 ssize_t rn_socket_writeb(rn_socket_t *socket, rn_buffer_t *buffer);
 ssize_t rn_socket_sendfile(rn_socket_t *socket, int in_fd, off_t offset, size_t count);
 
-#endif /* !RINOO_NET_SOCKET */
+#endif /* !RINOO_NET_SOCKET_H_ */

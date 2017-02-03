@@ -100,7 +100,7 @@ int rn_scheduler_waitfor(rn_sched_node_t *node, rn_sched_mode_t mode)
 {
 	int error;
 
-	XASSERT(mode != RINOO_MODE_NONE, -1);
+	XASSERT(mode != RN_MODE_NONE, -1);
 
 	if (node->error != 0) {
 		error = node->error;
@@ -113,7 +113,7 @@ int rn_scheduler_waitfor(rn_sched_node_t *node, rn_sched_mode_t mode)
 		return 0;
 	}
 	if ((node->waiting & mode) != mode) {
-		if (node->waiting == RINOO_MODE_NONE) {
+		if (node->waiting == RN_MODE_NONE) {
 			if (unlikely(rn_epoll_insert(node, mode) != 0)) {
 				return -1;
 			}

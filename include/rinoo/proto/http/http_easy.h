@@ -15,11 +15,11 @@
 #define RN_HTTP_ERROR_404	"<div style=\"display: inline-block; border-radius: 4px; border: 1px solid orange; width: 16px; height: 16px; color: orange; font-size: 14px; text-align: center;\">?</div> <span style=\"font-family: Arial;\">404 - Not found</span>"
 
 typedef enum rn_http_route_type_e {
-	RINOO_HTTP_ROUTE_STATIC = 0,
-	RINOO_HTTP_ROUTE_FUNC,
-	RINOO_HTTP_ROUTE_FILE,
-	RINOO_HTTP_ROUTE_DIR,
-	RINOO_HTTP_ROUTE_REDIRECT,
+	RN_HTTP_ROUTE_STATIC = 0,
+	RN_HTTP_ROUTE_FUNC,
+	RN_HTTP_ROUTE_FILE,
+	RN_HTTP_ROUTE_DIR,
+	RN_HTTP_ROUTE_REDIRECT,
 } rn_http_route_type_t;
 
 typedef struct rn_http_route_s {

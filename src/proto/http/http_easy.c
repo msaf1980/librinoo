@@ -23,25 +23,25 @@ static void rn_http_easy_route_call(rn_http_t *http, rn_http_route_t *route)
 
 	http->response.code = route->code;
 	switch (route->type) {
-	case RINOO_HTTP_ROUTE_STATIC:
+	case RN_HTTP_ROUTE_STATIC:
 		rn_buffer_set(&body, route->content);
 		rn_http_response_send(http, &body);
 		break;
-	case RINOO_HTTP_ROUTE_FUNC:
+	case RN_HTTP_ROUTE_FUNC:
 		if (route->func(http, route) != 0) {
 			http->response.code = 500;
 			rn_buffer_set(&body, RN_HTTP_ERROR_500);
 			rn_http_response_send(http, &body);
 		}
 		break;
-	case RINOO_HTTP_ROUTE_FILE:
+	case RN_HTTP_ROUTE_FILE:
 		if (rn_http_send_file(http, route->file) != 0) {
 			http->response.code = 404;
 			rn_buffer_set(&body, RN_HTTP_ERROR_404);
 			rn_http_response_send(http, &body);
 		}
 		break;
-	case RINOO_HTTP_ROUTE_DIR:
+	case RN_HTTP_ROUTE_DIR:
 		uri = rn_buffer_create(NULL);
 		rn_buffer_addstr(uri, route->path);
 		rn_buffer_addstr(uri, "/");
@@ -54,7 +54,7 @@ static void rn_http_easy_route_call(rn_http_t *http, rn_http_route_t *route)
 		}
 		rn_buffer_destroy(uri);
 		break;
-	case RINOO_HTTP_ROUTE_REDIRECT:
+	case RN_HTTP_ROUTE_REDIRECT:
 		rn_http_header_set(&http->response.headers, "Location", route->location);
 		rn_http_response_send(http, NULL);
 		break;
@@ -79,7 +79,7 @@ static void rn_http_easy_client_process(void *context)
 		for (i = 0, found = false; i < econtext->nbroutes && found == false; i++) {
 			if (econtext->routes[i].uri == NULL ||
 			rn_buffer_strcmp(&http.request.uri, econtext->routes[i].uri) == 0 ||
-			(econtext->routes[i].type == RINOO_HTTP_ROUTE_DIR && rn_buffer_strncmp(&http.request.uri, econtext->routes[i].uri, strlen(econtext->routes[i].uri)) == 0)) {
+			(econtext->routes[i].type == RN_HTTP_ROUTE_DIR && rn_buffer_strncmp(&http.request.uri, econtext->routes[i].uri, strlen(econtext->routes[i].uri)) == 0)) {
 				rn_http_easy_route_call(&http, &econtext->routes[i]);
 				found = true;
 			}

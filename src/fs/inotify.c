@@ -135,7 +135,7 @@ rn_inotify_event_t *rn_inotify_event(rn_inotify_t *inotify)
 			return NULL;
 		}
 		inotify->io_calls = 0;
-		if (rn_scheduler_waitfor(&inotify->node, RINOO_MODE_IN) != 0) {
+		if (rn_scheduler_waitfor(&inotify->node, RN_MODE_IN) != 0) {
 			return NULL;
 		}
 		errno = 0;

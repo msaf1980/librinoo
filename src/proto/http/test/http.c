@@ -20,7 +20,7 @@ void http_client(void *sched)
 	client = rn_tcp_client(sched, IP_LOOPBACK, 4242, 0);
 	XTEST(client != NULL);
 	XTEST(rn_http_init(client, &http) == 0);
-	XTEST(rn_http_request_send(&http, RINOO_HTTP_METHOD_GET, "/", NULL) == 0);
+	XTEST(rn_http_request_send(&http, RN_HTTP_METHOD_GET, "/", NULL) == 0);
 	XTEST(rn_http_response_get(&http));
 	XTEST(rn_buffer_size(&http.response.content) == strlen(HTTP_CONTENT));
 	XTEST(http.response.code == 200);

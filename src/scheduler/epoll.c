@@ -58,10 +58,10 @@ int rn_epoll_insert(rn_sched_node_t *node, rn_sched_mode_t mode)
 {
 	struct epoll_event ev = { 0, { 0 } };
 
-	if ((mode & RINOO_MODE_IN) == RINOO_MODE_IN) {
+	if ((mode & RN_MODE_IN) == RN_MODE_IN) {
 		ev.events |= EPOLLIN;
 	}
-	if ((mode & RINOO_MODE_OUT) == RINOO_MODE_OUT) {
+	if ((mode & RN_MODE_OUT) == RN_MODE_OUT) {
 		ev.events |= EPOLLOUT;
 	}
 	ev.events |= EPOLLET | EPOLLRDHUP;
@@ -84,10 +84,10 @@ int rn_epoll_addmode(rn_sched_node_t *node, rn_sched_mode_t mode)
 {
 	struct epoll_event ev = { 0, { 0 } };
 
-	if ((mode & RINOO_MODE_IN) == RINOO_MODE_IN) {
+	if ((mode & RN_MODE_IN) == RN_MODE_IN) {
 		ev.events |= EPOLLIN;
 	}
-	if ((mode & RINOO_MODE_OUT) == RINOO_MODE_OUT) {
+	if ((mode & RN_MODE_OUT) == RN_MODE_OUT) {
 		ev.events |= EPOLLOUT;
 	}
 	ev.events |= EPOLLET | EPOLLRDHUP;
@@ -140,13 +140,13 @@ int rn_epoll_poll(rn_sched_t *sched, int timeout)
 		event = &sched->epoll.events[sched->epoll.curevent];
 		/* Check event->data.ptr for every event as one event could call rn_epoll_remove and destroy ptr */
 		if (event->data.ptr != NULL && (event->events & EPOLLIN) == EPOLLIN) {
-			rn_scheduler_wakeup(event->data.ptr, RINOO_MODE_IN, 0);
+			rn_scheduler_wakeup(event->data.ptr, RN_MODE_IN, 0);
 		}
 		if (event->data.ptr != NULL && (event->events & EPOLLOUT) == EPOLLOUT) {
-			rn_scheduler_wakeup(event->data.ptr, RINOO_MODE_OUT, 0);
+			rn_scheduler_wakeup(event->data.ptr, RN_MODE_OUT, 0);
 		}
 		if (event->data.ptr != NULL && (((event->events & EPOLLERR) == EPOLLERR || (event->events & EPOLLHUP) == EPOLLHUP))) {
-			rn_scheduler_wakeup(event->data.ptr, RINOO_MODE_NONE, ECONNRESET);
+			rn_scheduler_wakeup(event->data.ptr, RN_MODE_NONE, ECONNRESET);
 		}
 	}
 	sched->epoll.curevent = -1;

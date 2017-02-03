@@ -49,8 +49,8 @@
   crlf = '\r\n';
   code = digit{3};
   msg = (ascii* -- crlf);
-  http = 'HTTP/1.' ('0' %{ http->version = RINOO_HTTP_VERSION_10; } |
-		    '1' %{ http->version = RINOO_HTTP_VERSION_11; });
+  http = 'HTTP/1.' ('0' %{ http->version = RN_HTTP_VERSION_10; } |
+		    '1' %{ http->version = RN_HTTP_VERSION_11; });
   contentlength = 'Content-length: 'i (digit+) >startcl %endcl crlf;
   header = (alnum | punct)+ >starthead %endhead ': ' ((ascii* -- crlf) (crlf (' ' | '\t')+ (ascii+ -- crlf))*) >startheadv %endheadv crlf;
   main := (http ' ' code >startcode ' ' msg >startmsg %endmsg crlf

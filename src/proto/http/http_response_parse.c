@@ -308,11 +308,11 @@ _match:
 	break;
 	case 11:
 #line 52 "./http_response_parse.rl"
-	{ http->version = RINOO_HTTP_VERSION_10; }
+	{ http->version = RN_HTTP_VERSION_10; }
 	break;
 	case 12:
 #line 53 "./http_response_parse.rl"
-	{ http->version = RINOO_HTTP_VERSION_11; }
+	{ http->version = RN_HTTP_VERSION_11; }
 	break;
 #line 318 "./http_response_parse.c"
 		}

@@ -376,43 +376,43 @@ _match:
 	break;
 	case 10:
 #line 48 "http_request_parse.rl"
-	{ http->request.method = RINOO_HTTP_METHOD_OPTIONS; }
+	{ http->request.method = RN_HTTP_METHOD_OPTIONS; }
 	break;
 	case 11:
 #line 49 "http_request_parse.rl"
-	{ http->request.method = RINOO_HTTP_METHOD_GET; }
+	{ http->request.method = RN_HTTP_METHOD_GET; }
 	break;
 	case 12:
 #line 50 "http_request_parse.rl"
-	{ http->request.method = RINOO_HTTP_METHOD_HEAD; }
+	{ http->request.method = RN_HTTP_METHOD_HEAD; }
 	break;
 	case 13:
 #line 51 "http_request_parse.rl"
-	{ http->request.method = RINOO_HTTP_METHOD_POST; }
+	{ http->request.method = RN_HTTP_METHOD_POST; }
 	break;
 	case 14:
 #line 52 "http_request_parse.rl"
-	{ http->request.method = RINOO_HTTP_METHOD_PUT; }
+	{ http->request.method = RN_HTTP_METHOD_PUT; }
 	break;
 	case 15:
 #line 53 "http_request_parse.rl"
-	{ http->request.method = RINOO_HTTP_METHOD_DELETE; }
+	{ http->request.method = RN_HTTP_METHOD_DELETE; }
 	break;
 	case 16:
 #line 54 "http_request_parse.rl"
-	{ http->request.method = RINOO_HTTP_METHOD_TRACE; }
+	{ http->request.method = RN_HTTP_METHOD_TRACE; }
 	break;
 	case 17:
 #line 55 "http_request_parse.rl"
-	{ http->request.method = RINOO_HTTP_METHOD_CONNECT; }
+	{ http->request.method = RN_HTTP_METHOD_CONNECT; }
 	break;
 	case 18:
 #line 57 "http_request_parse.rl"
-	{ http->version = RINOO_HTTP_VERSION_10; }
+	{ http->version = RN_HTTP_VERSION_10; }
 	break;
 	case 19:
 #line 58 "http_request_parse.rl"
-	{ http->version = RINOO_HTTP_VERSION_11; }
+	{ http->version = RN_HTTP_VERSION_11; }
 	break;
 #line 418 "http_request_parse.c"
 		}

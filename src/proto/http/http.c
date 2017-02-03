@@ -33,7 +33,7 @@ int rn_http_init(rn_socket_t *socket, rn_http_t *http)
 		rn_buffer_destroy(http->response.buffer);
 		return -1;
 	}
-	http->version = RINOO_HTTP_VERSION_11;
+	http->version = RN_HTTP_VERSION_11;
 	return 0;
 }
 
@@ -57,7 +57,7 @@ void rn_http_reset(rn_http_t *http)
 	memset(&http->request.uri, 0, sizeof(http->request.uri));
 	http->request.headers_length = 0;
 	http->request.content_length = 0;
-	http->request.method = RINOO_HTTP_METHOD_UNKNOWN;
+	http->request.method = RN_HTTP_METHOD_UNKNOWN;
 	rn_buffer_erase(http->request.buffer, rn_buffer_size(http->request.buffer));
 	rn_http_headers_flush(&http->request.headers);
 	/* Reset response */

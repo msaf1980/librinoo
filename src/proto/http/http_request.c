@@ -85,38 +85,38 @@ int rn_http_request_send(rn_http_t *http, rn_http_method_t method, const char *u
 	}
 	http->request.method = method;
 	switch (http->request.method) {
-	case RINOO_HTTP_METHOD_OPTIONS:
+	case RN_HTTP_METHOD_OPTIONS:
 		rn_buffer_add(http->request.buffer, "OPTIONS ", 8);
 		break;
-	case RINOO_HTTP_METHOD_GET:
+	case RN_HTTP_METHOD_GET:
 		rn_buffer_add(http->request.buffer, "GET ", 4);
 		break;
-	case RINOO_HTTP_METHOD_HEAD:
+	case RN_HTTP_METHOD_HEAD:
 		rn_buffer_add(http->request.buffer, "HEAD ", 5);
 		break;
-	case RINOO_HTTP_METHOD_POST:
+	case RN_HTTP_METHOD_POST:
 		rn_buffer_add(http->request.buffer, "POST ", 5);
 		break;
-	case RINOO_HTTP_METHOD_PUT:
+	case RN_HTTP_METHOD_PUT:
 		rn_buffer_add(http->request.buffer, "PUT ", 4);
 		break;
-	case RINOO_HTTP_METHOD_DELETE:
+	case RN_HTTP_METHOD_DELETE:
 		rn_buffer_add(http->request.buffer, "DELETE ", 7);
 		break;
-	case RINOO_HTTP_METHOD_TRACE:
+	case RN_HTTP_METHOD_TRACE:
 		rn_buffer_add(http->request.buffer, "TRACE ", 6);
 		break;
-	case RINOO_HTTP_METHOD_CONNECT:
+	case RN_HTTP_METHOD_CONNECT:
 		rn_buffer_add(http->request.buffer, "CONNECT ", 8);
 		break;
-	case RINOO_HTTP_METHOD_UNKNOWN:
+	case RN_HTTP_METHOD_UNKNOWN:
 		return -1;
 	}
 	rn_buffer_set(&http->request.uri, uri);
 	rn_buffer_add(http->request.buffer, rn_buffer_ptr(&http->request.uri), rn_buffer_size(&http->request.uri));
 	rn_http_request_setdefaultheaders(http);
 	switch (http->version) {
-	case RINOO_HTTP_VERSION_10:
+	case RN_HTTP_VERSION_10:
 		rn_buffer_add(http->request.buffer, " HTTP/1.0\r\n", 11);
 		break;
 	default:

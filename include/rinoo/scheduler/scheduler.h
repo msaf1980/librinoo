@@ -34,4 +34,4 @@ void rn_scheduler_wakeup(rn_sched_node_t *node, rn_sched_mode_t mode, int error)
 int rn_scheduler_poll(rn_sched_t *sched);
 void rn_scheduler_loop(rn_sched_t *sched);
 
-#endif /* !RINOO_SCHEDULER_SCHEDULER_H */
+#endif /* !RINOO_SCHEDULER_SCHEDULER_H_ */

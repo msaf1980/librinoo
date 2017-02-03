@@ -119,7 +119,7 @@ void rn_socket_destroy(rn_socket_t *socket)
 int rn_socket_waitin(rn_socket_t *socket)
 {
 	socket->io_calls = 0;
-	return rn_scheduler_waitfor(&socket->node, RINOO_MODE_IN);
+	return rn_scheduler_waitfor(&socket->node, RN_MODE_IN);
 }
 
 /**
@@ -132,7 +132,7 @@ int rn_socket_waitin(rn_socket_t *socket)
 int rn_socket_waitout(rn_socket_t *socket)
 {
 	socket->io_calls = 0;
-	return rn_scheduler_waitfor(&socket->node, RINOO_MODE_OUT);
+	return rn_scheduler_waitfor(&socket->node, RN_MODE_OUT);
 }
 
 /**

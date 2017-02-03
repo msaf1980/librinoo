@@ -36,8 +36,8 @@
 #define RINOO_STRUCT_RBTREE_H_
 
 typedef enum rn_rbtree_color_e {
-	RINOO_RBTREE_RED = 0,
-	RINOO_RBTREE_BLACK
+	RN_RBTREE_RED = 0,
+	RN_RBTREE_BLACK
 } rn_rbtree_color_t;
 
 typedef struct rn_rbtree_node_s {
