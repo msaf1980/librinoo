@@ -14,10 +14,12 @@
 
 void http_client(void *sched)
 {
+	rn_addr_t addr;
 	rn_http_t http;
 	rn_socket_t *client;
 
-	client = rn_tcp_client(sched, IP_LOOPBACK, 4242, 0);
+	rn_addr4(&addr, "127.0.0.1", 4242);
+	client = rn_tcp_client(sched, &addr, 0);
 	XTEST(client != NULL);
 	XTEST(rn_http_init(client, &http) == 0);
 	XTEST(rn_http_request_send(&http, RN_HTTP_METHOD_GET, "/", NULL) == 0);
@@ -44,16 +46,16 @@ void http_server_process(void *socket)
 
 void http_server(void *sched)
 {
-	rn_ip_t ip;
-	uint16_t port;
+	rn_addr_t addr;
 	rn_socket_t *server;
 	rn_socket_t *client;
 
-	server = rn_tcp_server(sched, IP_ANY, 4242);
+	rn_addr4(&addr, "127.0.0.1", 4242);
+	server = rn_tcp_server(sched, &addr);
 	XTEST(server != NULL);
-	client = rn_tcp_accept(server, &ip, &port);
+	client = rn_tcp_accept(server, &addr);
 	XTEST(client != NULL);
-	rn_log("server - accepting client (%s:%d)", inet_ntoa(*(struct in_addr *) &ip), port);
+	rn_log("server - accepting client (%s:%d)", inet_ntoa(*(struct in_addr *) &addr.v4.sin_addr), ntohs(addr.v4.sin_port));
 	rn_task_start(sched, http_server_process, client);
 	rn_socket_destroy(server);
 }

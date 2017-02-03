@@ -11,11 +11,13 @@ void task_client(void *socket)
 
 void task_server(void *sched)
 {
+	rn_addr_t addr;
 	rn_socket_t *server;
 	rn_socket_t *client;
 
-	server = rn_tcp_server(sched, IP_ANY, 4242);
-	while ((client = rn_tcp_accept(server, NULL, NULL)) != NULL) {
+	rn_addr4(&addr, "127.0.0.1", 4242);
+	server = rn_tcp_server(sched, &addr);
+	while ((client = rn_tcp_accept(server, NULL)) != NULL) {
 		rn_task_start(sched, task_client, client);
 	}
 	rn_socket_destroy(server);

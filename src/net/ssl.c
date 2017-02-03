@@ -123,31 +123,21 @@ rn_ssl_t *rn_ssl_get(rn_socket_t *socket)
 }
 
 /**
- * Creates a SSL client and tries to connect to the specified IP and port.
+ * Creates a SSL client and tries to connect to the specified address.
  *
  * @param sched Scheduler pointer
  * @param ctx SSL context
- * @param ip Destination IP
- * @param port Destination port
+ * @param dst Destination address
  * @param timeout Socket timeout
  *
  * @return Socket pointer on success or NULL if an error occurs
  */
-rn_socket_t *rn_ssl_client(rn_sched_t *sched, rn_ssl_ctx_t *ctx, rn_ip_t *ip, uint32_t port, uint32_t timeout)
+rn_socket_t *rn_ssl_client(rn_sched_t *sched, rn_ssl_ctx_t *ctx, rn_addr_t *dst, uint32_t timeout)
 {
-	rn_ip_t loopback;
 	rn_ssl_t *ssl;
 	rn_socket_t *socket;
-	socklen_t addr_len;
-	struct sockaddr *addr;
 
-	if (ip == NULL) {
-		memset(&loopback, 0, sizeof(loopback));
-		loopback.v4.sin_family = AF_INET;
-		loopback.v4.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-		ip = &loopback;
-	}
-	socket = rn_socket(sched, (IS_IPV6(ip) ? &socket_class_ssl6 : &socket_class_ssl));
+	socket = rn_socket(sched, (IS_IPV6(dst) ? &socket_class_ssl6 : &socket_class_ssl));
 	if (unlikely(socket == NULL)) {
 		return NULL;
 	}
@@ -157,16 +147,7 @@ rn_socket_t *rn_ssl_client(rn_sched_t *sched, rn_ssl_ctx_t *ctx, rn_ip_t *ip, ui
 		rn_socket_destroy(socket);
 		return NULL;
 	}
-	if (ip->v4.sin_family == AF_INET) {
-		ip->v4.sin_port = htons(port);
-		addr = (struct sockaddr *) &ip->v4;
-		addr_len = sizeof(ip->v4);
-	} else {
-		ip->v6.sin6_port = htons(port);
-		addr = (struct sockaddr *) &ip->v6;
-		addr_len = sizeof(ip->v6);
-	}
-	if (rn_socket_connect(socket, addr, addr_len) != 0) {
+	if (rn_socket_connect(socket, dst) != 0) {
 		rn_socket_destroy(socket);
 		return NULL;
 	}
@@ -174,45 +155,26 @@ rn_socket_t *rn_ssl_client(rn_sched_t *sched, rn_ssl_ctx_t *ctx, rn_ip_t *ip, ui
 }
 
 /**
- * Creates a SSL server listening to a specific port, on specific IP.
+ * Creates a SSL server listening to a specific address.
  *
  * @param sched Scheduler pointer
  * @param ctx SSL context
- * @param ip IP to bind
- * @param port Port to bind
+ * @param dst Address to bind
  *
  * @return Socket pointer on success or NULL if an error occurs
  */
-rn_socket_t *rn_ssl_server(rn_sched_t *sched, rn_ssl_ctx_t *ctx, rn_ip_t *ip, uint32_t port)
+rn_socket_t *rn_ssl_server(rn_sched_t *sched, rn_ssl_ctx_t *ctx, rn_addr_t *dst)
 {
-	rn_ip_t any;
 	rn_ssl_t *ssl;
 	rn_socket_t *socket;
-	socklen_t addr_len;
-	struct sockaddr *addr;
 
-	if (ip == NULL) {
-		memset(&any, 0, sizeof(any));
-		any.v4.sin_family = AF_INET;
-		any.v4.sin_addr.s_addr = INADDR_ANY;
-		ip = &any;
-	}
-	socket = rn_socket(sched, (IS_IPV6(ip) ? &socket_class_ssl6 : &socket_class_ssl));
+	socket = rn_socket(sched, (IS_IPV6(dst) ? &socket_class_ssl6 : &socket_class_ssl));
 	if (unlikely(socket == NULL)) {
 		return NULL;
 	}
 	ssl = rn_ssl_get(socket);
 	ssl->ctx = ctx;
-	if (ip->v4.sin_family == AF_INET) {
-		ip->v4.sin_port = htons(port);
-		addr = (struct sockaddr *) &ip->v4;
-		addr_len = sizeof(ip->v4);
-	} else {
-		ip->v6.sin6_port = htons(port);
-		addr = (struct sockaddr *) &ip->v6;
-		addr_len = sizeof(ip->v6);
-	}
-	if (rn_socket_bind(socket, addr, addr_len, RN_TCP_BACKLOG) != 0) {
+	if (rn_socket_bind(socket, dst, RN_TCP_BACKLOG) != 0) {
 		rn_socket_destroy(socket);
 		return NULL;
 	}
@@ -223,29 +185,12 @@ rn_socket_t *rn_ssl_server(rn_sched_t *sched, rn_ssl_ctx_t *ctx, rn_ip_t *ip, ui
  * Accepts a new connection from a listening socket.
  *
  * @param socket Pointer to the socket which is listening to
- * @param fromip Pointer to a rn_ip_t where to store the from_ip
- * @param fromport Pointer to a uint32_t where to store the from_port
+ * @param from Pointer to a rn_addr_t where to store the originating address
  *
  * @return A pointer to the new socket on success or NULL if an error occurs
  */
-rn_socket_t *rn_ssl_accept(rn_socket_t *socket, rn_ip_t *fromip, uint32_t *fromport)
+rn_socket_t *rn_ssl_accept(rn_socket_t *socket, rn_addr_t *from)
 {
-	rn_ip_t addr;
-	socklen_t addr_len;
-	rn_socket_t *new;
-
-	addr_len = sizeof(addr);
-	new = rn_socket_accept(socket, (struct sockaddr *) &addr, &addr_len);
-	if (fromip != NULL) {
-		*fromip = addr;
-	}
-	if (fromport != NULL) {
-		if (addr.v4.sin_family == AF_INET) {
-			*fromport = ntohs(addr.v4.sin_port);
-		} else {
-			*fromport = ntohs(addr.v6.sin6_port);
-		}
-	}
-	return new;
+	return rn_socket_accept(socket, from);
 }
 

@@ -11,6 +11,69 @@
 #include "rinoo/net/module.h"
 
 /**
+ * Set an rn_addr_t structure based off a string (representing an IPv4) and a port.
+ *
+ * @param dst Pointer to the rn_addr_t to set
+ * @param src String representing an IPv4
+ * @param port Port to be used
+ *
+ * @return 0 on success, otherwise -1
+ */
+int rn_addr4(rn_addr_t *dst, const char *src, uint16_t port)
+{
+	memset(dst, 0, sizeof(*dst));
+	dst->v4.sin_family = AF_INET;
+	dst->v4.sin_port = htons(port);
+	if (inet_pton(AF_INET, src, &(dst->v4.sin_addr)) != 1) {
+		return -1;
+	}
+	return 0;
+}
+
+/**
+ * Set an rn_addr_t structure based off a string (representing an IPv6) and a port.
+ *
+ * @param dst Pointer to the rn_addr_t to set
+ * @param src String representing an IPv4
+ * @param port Port to be used
+ *
+ * @return 0 on success, otherwise -1
+ */
+int rn_addr6(rn_addr_t *dst, const char *src, uint16_t port)
+{
+	memset(dst, 0, sizeof(*dst));
+	dst->v6.sin6_family = AF_INET6;
+	dst->v6.sin6_port = htons(port);
+	if (inet_pton(AF_INET6, src, &(dst->v6.sin6_addr)) != 1) {
+		return -1;
+	}
+	return 0;
+}
+
+/**
+ * Cast an rn_addr_t structure to a struct sockaddr.
+ * Set len depending on IPv4 or IPv6.
+ *
+ * @param src Pointer to a rn_addr_t
+ * @param len Struct length
+ *
+ * @return Pointer to struct sockaddr
+ */
+struct sockaddr *rn_addr_sockaddr(const rn_addr_t *src, socklen_t *len)
+{
+	if (IS_IPV4(src)) {
+		if (len) {
+			*len = sizeof(src->v4);
+		}
+		return (struct sockaddr *)(&src->v4);
+	}
+	if (len) {
+		*len = sizeof(src->v6);
+	}
+	return (struct sockaddr *)(&src->v6);
+}
+
+/**
  * Socket initialisation function.
  * Initializes a socket depending on socket class.
  *
@@ -183,52 +246,49 @@ int rn_socket_timeout(rn_socket_t *socket, uint32_t ms)
  * Connects a socket if possible by socket class.
  *
  * @param socket Pointer to the socket to connect
- * @param addr Pointer to a sockaddr structure (see man connect)
- * @param addrlen Sockaddr structure size (see man connect)
+ * @param dst Destination address
  *
  * @return 0 on success or -1 if an error occurs (timeout is considered as an error)
  */
-int rn_socket_connect(rn_socket_t *socket, const struct sockaddr *addr, socklen_t addrlen)
+int rn_socket_connect(rn_socket_t *socket, const rn_addr_t *dst)
 {
 	XASSERT(socket != NULL, -1);
 	XASSERT(socket->class->connect != NULL, -1);
 
-	return socket->class->connect(socket, addr, addrlen);
+	return socket->class->connect(socket, dst);
 }
 
 /**
  * Marks the specified socket to be listening to new connection using socket class.
  *
  * @param socket Pointer to the socket to listen to
- * @param addr Pointer to a sockaddr structure (see man listen)
- * @param addrlen Sockaddr structure size (see man listen)
+ * @param dst Address to bind to
  * @param backlog Maximum listening queue size (see man listen)
  *
  * @return 0 on success or -1 if an error occurs
  */
-int rn_socket_bind(rn_socket_t *socket, const struct sockaddr *addr, socklen_t addrlen, int backlog)
+int rn_socket_bind(rn_socket_t *socket, const rn_addr_t *dst, int backlog)
 {
 	XASSERT(socket != NULL, -1);
 	XASSERT(socket->class->bind != NULL, -1);
 
-	return socket->class->bind(socket, addr, addrlen, backlog);
+	return socket->class->bind(socket, dst, backlog);
 }
 
 /**
  * Accepts a new connection from a listening socket.
  *
  * @param socket Pointer to the socket which is listening to
- * @param addr Address to the peer socket (see man accept)
- * @param addrlen Sockaddr structure size (see man accept)
+ * @param from Address to peer socket
  *
  * @return A pointer to the new client socket or NULL if an error occurs
  */
-rn_socket_t *rn_socket_accept(rn_socket_t *socket, struct sockaddr *addr, socklen_t *addrlen)
+rn_socket_t *rn_socket_accept(rn_socket_t *socket, rn_addr_t *from)
 {
 	XASSERT(socket != NULL, NULL);
 	XASSERT(socket->class->accept != NULL, NULL);
 
-	return socket->class->accept(socket, addr, addrlen);
+	return socket->class->accept(socket, from);
 }
 
 /**
@@ -251,16 +311,15 @@ ssize_t rn_socket_read(rn_socket_t *socket, void *buf, size_t count)
  * @param socket Pointer to the socket to read
  * @param buf Buffer where to store the information read
  * @param count Buffer size
- * @param addrfrom Sockaddr where to store the source address
- * @param addrlen Sockaddr length
+ * @param from Pointer to rn_addr_t where to store source address
  *
  * @return The number of bytes read on success or -1 if an error occurs
  */
-ssize_t rn_socket_recvfrom(rn_socket_t *socket, void *buf, size_t count, struct sockaddr *addrfrom, socklen_t *addrlen)
+ssize_t rn_socket_recvfrom(rn_socket_t *socket, void *buf, size_t count, rn_addr_t *from)
 {
 	XASSERT(socket->class->recvfrom != NULL, -1);
 
-	return socket->class->recvfrom(socket, buf, count, addrfrom, addrlen);
+	return socket->class->recvfrom(socket, buf, count, from);
 }
 
 /**
@@ -313,16 +372,15 @@ ssize_t	rn_socket_writev(rn_socket_t *socket, rn_buffer_t **buffers, int count)
  * @param socket Pointer to the socket to read
  * @param buf Buffer which stores the information to write
  * @param count Buffer size
- * @param addrto Address to send to
- * @param addrlen Sockaddr length
+ * @param dst Address to send to
  *
  * @return The number of bytes written on success or -1 if an error occurs
  */
-ssize_t rn_socket_sendto(rn_socket_t *socket, void *buf, size_t count, const struct sockaddr *addrto, socklen_t addrlen)
+ssize_t rn_socket_sendto(rn_socket_t *socket, void *buf, size_t count, const rn_addr_t *dst)
 {
 	XASSERT(socket->class->sendto != NULL, -1);
 
-	return socket->class->sendto(socket, buf, count, addrto, addrlen);
+	return socket->class->sendto(socket, buf, count, dst);
 }
 
 /**

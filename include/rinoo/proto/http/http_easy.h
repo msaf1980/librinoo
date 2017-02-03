@@ -41,6 +41,6 @@ typedef struct rn_http_easy_context_s {
 	rn_http_route_t *routes;
 } rn_http_easy_context_t;
 
-int rn_http_easy_server(rn_sched_t *sched, rn_ip_t *ip, uint16_t port, rn_http_route_t *routes, int size);
+int rn_http_easy_server(rn_sched_t *sched, rn_addr_t *dst, rn_http_route_t *routes, int size);
 
 #endif /* !RINOO_PROTO_HTTP_EASY_H_ */

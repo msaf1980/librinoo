@@ -13,8 +13,8 @@
 
 #define RN_TCP_BACKLOG	128
 
-rn_socket_t *rn_tcp_client(rn_sched_t *sched, rn_ip_t *ip, uint16_t port, uint32_t timeout);
-rn_socket_t *rn_tcp_server(rn_sched_t *sched, rn_ip_t *ip, uint16_t port);
-rn_socket_t *rn_tcp_accept(rn_socket_t *socket, rn_ip_t *fromip, uint16_t *fromport);
+rn_socket_t *rn_tcp_client(rn_sched_t *sched, rn_addr_t *dst, uint32_t timeout);
+rn_socket_t *rn_tcp_server(rn_sched_t *sched, rn_addr_t *dst);
+rn_socket_t *rn_tcp_accept(rn_socket_t *socket, rn_addr_t *from);
 
 #endif /* !RINOO_NET_TCP_H_ */

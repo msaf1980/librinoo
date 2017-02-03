@@ -32,12 +32,14 @@ void process_client(void *socket)
 
 void server_func(void *unused(arg))
 {
+	rn_addr_t addr;
 	rn_socket_t *server;
 	rn_socket_t *client;
 
-	server = rn_tcp_server(rn_scheduler_self(), IP_ANY, 4242);
+	rn_addr4(&addr, "127.0.0.1", 4242);
+	server = rn_tcp_server(rn_scheduler_self(), &addr);
 	XTEST(server != NULL);
-	client = rn_tcp_accept(server, NULL, NULL);
+	client = rn_tcp_accept(server, NULL);
 	XTEST(client != NULL);
 	rn_log("client accepted");
 	rn_task_start(rn_scheduler_self(), process_client, client);
@@ -46,10 +48,12 @@ void server_func(void *unused(arg))
 
 void client_func(void *unused(arg))
 {
+	rn_addr_t addr;
 	rn_buffer_t buffer;
 	rn_socket_t *client;
 
-	client = rn_tcp_client(rn_scheduler_self(), IP_LOOPBACK, 4242, 0);
+	rn_addr4(&addr, "127.0.0.1", 4242);
+	client = rn_tcp_client(rn_scheduler_self(), &addr, 0);
 	XTEST(client != NULL);
 	str = malloc(sizeof(*str) * TRANSFER_SIZE);
 	XTEST(str != NULL);

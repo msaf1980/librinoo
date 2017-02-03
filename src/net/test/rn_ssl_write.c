@@ -30,17 +30,17 @@ void process_client(void *arg)
 
 void server_func(void *arg)
 {
-	rn_ip_t fromip;
-	uint32_t fromport;
+	rn_addr_t addr;
 	rn_socket_t *client;
 	rn_socket_t *server;
 	rn_ssl_ctx_t *ctx = arg;
 
-	server = rn_ssl_server(sched, ctx, 0, 4242);
+	rn_addr4(&addr, "127.0.0.1", 4242);
+	server = rn_ssl_server(sched, ctx, &addr);
 	rn_log("server listening...");
-	client = rn_ssl_accept(server, &fromip, &fromport);
+	client = rn_ssl_accept(server, &addr);
 	XTEST(client != NULL);
-	rn_log("server - accepting client (%s:%d)", inet_ntoa(*(struct in_addr *) &fromip), fromport);
+	rn_log("server - accepting client (%s:%d)", inet_ntoa(addr.v4.sin_addr), ntohs(addr.v4.sin_port));
 	rn_task_start(sched, process_client, client);
 	rn_socket_destroy(server);
 }
@@ -49,11 +49,13 @@ void client_func(void *arg)
 {
 	char a;
 	char cur;
+	rn_addr_t addr;
 	rn_socket_t *client;
 	rn_ssl_ctx_t *ctx = arg;
 
 	rn_log("client - connecting...");
-	client = rn_ssl_client(sched, ctx, 0, 4242, 0);
+	rn_addr4(&addr, "127.0.0.1", 4242);
+	client = rn_ssl_client(sched, ctx, &addr, 0);
 	XTEST(client != NULL);
 	rn_log("client - connected");
 	for (cur = 'a'; cur <= 'f'; cur++) {

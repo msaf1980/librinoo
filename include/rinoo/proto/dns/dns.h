@@ -156,14 +156,14 @@ typedef struct rn_dns_s {
 
 void rn_dns_init(rn_sched_t *sched, rn_dns_t *dns, rn_dns_type_t type, const char *host);
 void rn_dns_destroy(rn_dns_t *dns);
-int rn_dns_ip_get(rn_sched_t *sched, const char *host, rn_ip_t *ip);
+int rn_dns_addr_get(rn_sched_t *sched, const char *host, rn_addr_t *addr);
 int rn_dns_query(rn_dns_t *dns, rn_dns_type_t type, const char *host);
 int rn_dns_header_get(rn_buffer_iterator_t *iterator, rn_dns_header_t *header);
 int rn_dns_name_get(rn_buffer_iterator_t *iterator, rn_buffer_t *name);
 int rn_dns_rdata_get(rn_buffer_iterator_t *iterator, size_t rdlength, rn_dns_type_t type, rn_dns_rdata_t *rdata);
 int rn_dns_query_get(rn_buffer_iterator_t *iterator, rn_dns_query_t *query);
 int rn_dns_record_get(rn_buffer_iterator_t *iterator, rn_dns_record_t *record);
-int rn_dns_get(rn_dns_t *dns, rn_dns_query_t *query, rn_ip_t *from);
+int rn_dns_get(rn_dns_t *dns, rn_dns_query_t *query, rn_addr_t *from);
 int rn_dns_reply_get(rn_dns_t *dns, uint32_t timeout);
 
 #endif /* !RINOO_PROTO_DNS_DNS_H_ */

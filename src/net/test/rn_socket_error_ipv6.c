@@ -26,19 +26,17 @@ void process_client(void *arg)
 
 void server_func(void *arg)
 {
+	rn_addr_t addr;
 	rn_socket_t *server;
 	rn_socket_t *client;
-	struct sockaddr_in6 addr = { 0 };
 	rn_sched_t *sched = arg;
 
 	server = rn_socket(sched, &socket_class_tcp6);
 	XTEST(server != NULL);
-	addr.sin6_port = htons(4242);
-	addr.sin6_family = AF_INET6;
-	addr.sin6_addr = in6addr_any;
-	XTEST(rn_socket_bind(server, (struct sockaddr *) &addr, sizeof(addr), 42) == 0);
+	rn_addr6(&addr, "::1", 4242);
+	XTEST(rn_socket_bind(server, &addr, 42) == 0);
 	rn_log("server listening...");
-	client = rn_socket_accept(server, NULL, NULL);
+	client = rn_socket_accept(server, NULL);
 	XTEST(client != NULL);
 	rn_task_start(sched, process_client, client);
 	rn_socket_destroy(server);
@@ -48,16 +46,14 @@ void client_func(void *arg)
 {
 	char a;
 	char cur;
-	struct sockaddr_in6 addr = { 0 };
+	rn_addr_t addr;
 	rn_socket_t *socket;
 	rn_sched_t *sched = arg;
 
 	socket = rn_socket(sched, &socket_class_tcp6);
 	XTEST(socket != NULL);
-	addr.sin6_port = htons(4242);
-	addr.sin6_family = AF_INET6;
-	addr.sin6_addr = in6addr_loopback;
-	XTEST(rn_socket_connect(socket, (struct sockaddr *) &addr, sizeof(addr)) == 0);
+	rn_addr6(&addr, "::1", 4242);
+	XTEST(rn_socket_connect(socket, &addr) == 0);
 	rn_log("client - connected");
 	for (cur = 'a'; cur <= 'f'; cur++) {
 		rn_log("client - receiving '%c'", cur);

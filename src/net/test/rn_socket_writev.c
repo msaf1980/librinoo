@@ -47,21 +47,19 @@ void process_client(void *arg)
 
 void server_func(void *arg)
 {
+	rn_addr_t addr;
 	rn_socket_t *server;
 	rn_socket_t *client;
-	struct sockaddr_in addr;
 	rn_sched_t *sched = arg;
 
 	server = rn_socket(sched, &socket_class_tcp);
 	XTEST(server != NULL);
-	addr.sin_port = htons(4242);
-	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = 0;
-	XTEST(rn_socket_bind(server, (struct sockaddr *) &addr, sizeof(addr), 42) == 0);
+	rn_addr4(&addr, "127.0.0.1", 4242);
+	XTEST(rn_socket_bind(server, &addr, 42) == 0);
 	rn_log("server listening...");
-	client = rn_socket_accept(server, (struct sockaddr *) &addr, (socklen_t *)(int[]){(sizeof(struct sockaddr))});
+	client = rn_socket_accept(server, &addr);
 	XTEST(client != NULL);
-	rn_log("server - accepting client (%s:%d)", inet_ntoa(addr.sin_addr), ntohs(addr.sin_port));
+	rn_log("server - accepting client (%s:%d)", inet_ntoa(addr.v4.sin_addr), ntohs(addr.v4.sin_port));
 	rn_task_start(sched, process_client, client);
 	rn_socket_destroy(server);
 }
@@ -69,19 +67,17 @@ void server_func(void *arg)
 void client_func(void *arg)
 {
 	int i;
+	char tmp[8];
 	ssize_t res;
 	ssize_t total;
-	char tmp[8];
-	struct sockaddr_in addr;
+	rn_addr_t addr;
 	rn_socket_t *socket;
 	rn_sched_t *sched = arg;
 
 	socket = rn_socket(sched, &socket_class_tcp);
 	XTEST(socket != NULL);
-	addr.sin_port = htons(4242);
-	addr.sin_family = AF_INET;
-	addr.sin_addr.s_addr = 0;
-	XTEST(rn_socket_connect(socket, (struct sockaddr *) &addr, sizeof(addr)) == 0);
+	rn_addr4(&addr, "127.0.0.1", 4242);
+	XTEST(rn_socket_connect(socket, &addr) == 0);
 	rn_log("client - connected");
 	rn_log("client - reading %d bytes", BUFFER_SIZE);
 	for (i = 0; i < BUFFER_SIZE / 8; i++) {

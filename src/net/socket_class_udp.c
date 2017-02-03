@@ -184,20 +184,21 @@ ssize_t rn_socket_class_udp_read(rn_socket_t *socket, void *buf, size_t count)
  * @param socket Pointer to the socket to read
  * @param buf Buffer where to store the information read
  * @param count Buffer size
- * @param addrfrom Sockaddr where to store the source address
- * @param addrlen Socklen where to store the size of the source address
+ * @param from Originating address
  *
  * @return The number of bytes read on success or -1 if an error occurs
  */
-ssize_t rn_socket_class_udp_recvfrom(rn_socket_t *socket, void *buf, size_t count, struct sockaddr *addrfrom, socklen_t *addrlen)
+ssize_t rn_socket_class_udp_recvfrom(rn_socket_t *socket, void *buf, size_t count, rn_addr_t *from)
 {
 	ssize_t ret;
+	socklen_t addr_len;
 
 	if (rn_socket_waitio(socket) != 0) {
 		return -1;
 	}
 	errno = 0;
-	while ((ret = recvfrom(socket->node.fd, buf, count, MSG_DONTWAIT, addrfrom, addrlen)) < 0) {
+	addr_len = sizeof(*from);
+	while ((ret = recvfrom(socket->node.fd, buf, count, MSG_DONTWAIT, (struct sockaddr *) from, &addr_len)) < 0) {
 		if (errno != EAGAIN && errno != EWOULDBLOCK) {
 			return -1;
 		}
@@ -205,6 +206,7 @@ ssize_t rn_socket_class_udp_recvfrom(rn_socket_t *socket, void *buf, size_t coun
 			return -1;
 		}
 		errno = 0;
+		addr_len = sizeof(*from);
 	}
 	if (ret <= 0) {
 		return -1;
@@ -322,12 +324,11 @@ ssize_t	rn_socket_class_udp_writev(rn_socket_t *socket, rn_buffer_t **buffers, i
  * @param socket Pointer to the socket to read
  * @param buf Buffer which stores the information to write
  * @param count Buffer size
- * @param addrto Address to send to
- * @param addrlen Sockaddr length
+ * @param dst Destination address
  *
  * @return The number of bytes written on success or -1 if an error occurs
  */
-ssize_t rn_socket_class_udp_sendto(rn_socket_t *socket, void *buf, size_t count, const struct sockaddr *addrto, socklen_t addrlen)
+ssize_t rn_socket_class_udp_sendto(rn_socket_t *socket, void *buf, size_t count, const rn_addr_t *dst)
 {
 	size_t sent;
 	ssize_t ret;
@@ -338,7 +339,7 @@ ssize_t rn_socket_class_udp_sendto(rn_socket_t *socket, void *buf, size_t count,
 			return -1;
 		}
 		errno = 0;
-		ret = sendto(socket->node.fd, buf, count, MSG_DONTWAIT, addrto, addrlen);
+		ret = sendto(socket->node.fd, buf, count, MSG_DONTWAIT, (struct sockaddr *) dst, sizeof(*dst));
 		if (ret == 0) {
 			return -1;
 		} else if (ret < 0) {
@@ -360,12 +361,11 @@ ssize_t rn_socket_class_udp_sendto(rn_socket_t *socket, void *buf, size_t count,
  * Replacement to the connect(2) syscall.
  *
  * @param socket Pointer to the socket to connect.
- * @param addr Pointer to a sockaddr structure (see man connect)
- * @param addrlen Sockaddr structure size (see man connect)
+ * @param dst Destination address
  *
  * @return 0 on success or -1 if an error occurs (timeout is considered as an error)
  */
-int rn_socket_class_udp_connect(rn_socket_t *socket, const struct sockaddr *addr, socklen_t addrlen)
+int rn_socket_class_udp_connect(rn_socket_t *socket, const rn_addr_t *dst)
 {
 	int val;
 	int enabled;
@@ -378,7 +378,7 @@ int rn_socket_class_udp_connect(rn_socket_t *socket, const struct sockaddr *addr
 	if (setsockopt(socket->node.fd, SOL_SOCKET, SO_REUSEADDR, &enabled, sizeof(enabled)) != 0) {
 		return -1;
 	}
-	if (connect(socket->node.fd, addr, addrlen) == 0) {
+	if (connect(socket->node.fd, (struct sockaddr *) dst, sizeof(*dst)) == 0) {
 		return 0;
 	}
 	switch (errno) {
@@ -407,13 +407,12 @@ int rn_socket_class_udp_connect(rn_socket_t *socket, const struct sockaddr *addr
  * This is a replacement of the bind(2) syscall in this library.
  *
  * @param socket Pointer to the socket to listen to
- * @param addr Pointer to a sockaddr structure (see man bind)
- * @param addrlen Sockaddr structure size (see man bind)
+ * @param dst Address to bind
  * @param backlog Ignored
  *
  * @return 0 on success or -1 if an error occurs
  */
-int rn_socket_class_udp_bind(rn_socket_t *socket, const struct sockaddr *addr, socklen_t addrlen, int unused(backlog))
+int rn_socket_class_udp_bind(rn_socket_t *socket, const rn_addr_t *dst, int unused(backlog))
 {
 	int enabled;
 
@@ -425,7 +424,8 @@ int rn_socket_class_udp_bind(rn_socket_t *socket, const struct sockaddr *addr, s
 	}
 #endif /* !SO_REUSEPORT */
 
-	if (setsockopt(socket->node.fd, SOL_SOCKET, SO_REUSEADDR, &enabled, sizeof(enabled)) == -1 || bind(socket->node.fd, addr, addrlen) == -1) {
+	if (setsockopt(socket->node.fd, SOL_SOCKET, SO_REUSEADDR, &enabled, sizeof(enabled)) == -1 ||
+			bind(socket->node.fd, (struct sockaddr *) dst, sizeof(*dst)) == -1) {
 		return -1;
 	}
 	return 0;

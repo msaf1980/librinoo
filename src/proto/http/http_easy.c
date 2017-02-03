@@ -107,7 +107,7 @@ static void rn_http_easy_server_process(void *context)
 	rn_http_easy_context_t *c_context;
 	rn_http_easy_context_t *s_context = context;
 
-	while ((client = rn_tcp_accept(s_context->socket, NULL, NULL)) != NULL) {
+	while ((client = rn_tcp_accept(s_context->socket, NULL)) != NULL) {
 		c_context = malloc(sizeof(*c_context));
 		if (c_context == NULL) {
 			rn_socket_destroy(client);
@@ -128,14 +128,13 @@ static void rn_http_easy_server_process(void *context)
  * Starts a HTTP server which serves the given HTTP easy routes.
  *
  * @param sched Pointer to a scheduler
- * @param ip Ip address to bind
- * @param port Port to bind
+ * @param dst Address to bind
  * @param routes Array of HTTP easy route to server
  * @param size Number of routes
  *
  * @return 0 on success, or -1 if an error occurs
  */
-int rn_http_easy_server(rn_sched_t *sched, rn_ip_t *ip, uint16_t port, rn_http_route_t *routes, int size)
+int rn_http_easy_server(rn_sched_t *sched, rn_addr_t *dst, rn_http_route_t *routes, int size)
 {
 	rn_socket_t *server;
 	rn_http_easy_context_t *context;
@@ -143,7 +142,7 @@ int rn_http_easy_server(rn_sched_t *sched, rn_ip_t *ip, uint16_t port, rn_http_r
 	if (routes == NULL) {
 		return -1;
 	}
-	server = rn_tcp_server(sched, ip, port);
+	server = rn_tcp_server(sched, dst);
 	if (server == NULL) {
 		return -1;
 	}

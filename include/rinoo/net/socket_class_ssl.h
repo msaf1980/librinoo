@@ -15,7 +15,7 @@ rn_socket_t *rn_socket_class_ssl_create(rn_sched_t *sched);
 void rn_socket_class_ssl_destroy(rn_socket_t *socket);
 ssize_t rn_socket_class_ssl_read(rn_socket_t *socket, void *buf, size_t count);
 ssize_t	rn_socket_class_ssl_write(rn_socket_t *socket, const void *buf, size_t count);
-int rn_socket_class_ssl_connect(rn_socket_t *socket, const struct sockaddr *addr, socklen_t addrlen);
-rn_socket_t *rn_socket_class_ssl_accept(rn_socket_t *socket, struct sockaddr *addr, socklen_t *addrlen);
+int rn_socket_class_ssl_connect(rn_socket_t *socket, const rn_addr_t *dst);
+rn_socket_t *rn_socket_class_ssl_accept(rn_socket_t *socket, rn_addr_t *from);
 
 #endif /* !RINOO_NET_SOCKET_CLASS_SSL_H_ */

@@ -51,7 +51,7 @@ void process_http_server(void *arg)
 	rn_socket_t *socket = arg;
 
 	rn_log("Thread %d started.", rn_scheduler_self()->id);
-	while ((client = rn_tcp_accept(socket, NULL, NULL)) != NULL) {
+	while ((client = rn_tcp_accept(socket, NULL)) != NULL) {
 		rn_task_start(rn_scheduler_self(), process_http_client, client);
 	}
 	rn_socket_destroy(socket);
@@ -75,6 +75,7 @@ void signal_handler(int unused(signal))
 int main(int argc, char **argv)
 {
 	int i;
+	rn_addr_t addr;
 	rn_sched_t *cur;
 	rn_socket_t *server;
 
@@ -86,7 +87,8 @@ int main(int argc, char **argv)
 	if (master == NULL) {
 		return -1;
 	}
-	server = rn_tcp_server(master, IP_ANY, atoi(argv[1]));
+	rn_addr4(&addr, "127.0.0.1", atoi(argv[1]));
+	server = rn_tcp_server(master, &addr);
 	if (server == NULL) {
 		rn_log("Could not create server socket on port %s.", argv[1]);
 		rn_scheduler_destroy(master);

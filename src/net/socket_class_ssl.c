@@ -188,18 +188,17 @@ ssize_t	rn_socket_class_ssl_write(rn_socket_t *socket, const void *buf, size_t c
  * Replacement to the connect(2) syscall.
  *
  * @param socket Pointer to the socket to connect.
- * @param addr Pointer to a sockaddr structure (see man connect)
- * @param addrlen Sockaddr structure size (see man connect)
+ * @param dst Destination address
  *
  * @return 0 on success or -1 if an error occurs (timeout is considered as an error)
  */
-int rn_socket_class_ssl_connect(rn_socket_t *socket, const struct sockaddr *addr, socklen_t addrlen)
+int rn_socket_class_ssl_connect(rn_socket_t *socket, const rn_addr_t *dst)
 {
 	int ret;
 	BIO *sbio;
 	rn_ssl_t *ssl = rn_ssl_get(socket);
 
-	if (unlikely(rn_socket_class_tcp_connect(socket, addr, addrlen) != 0)) {
+	if (unlikely(rn_socket_class_tcp_connect(socket, dst) != 0)) {
 		return -1;
 	}
 	ssl->ssl = SSL_new(ssl->ctx->ctx);
@@ -246,21 +245,22 @@ int rn_socket_class_ssl_connect(rn_socket_t *socket, const struct sockaddr *addr
  * This is a replacement to the accept(2) syscall in this library.
  *
  * @param socket Pointer to the socket which is listening to
- * @param addr Address to the peer socket (see man accept)
- * @param addrlen Sockaddr structure size (see man accept)
+ * @param from Peer address
  *
  * @return A pointer to the new client socket or NULL if an error occurs
  */
-rn_socket_t *rn_socket_class_ssl_accept(rn_socket_t *socket, struct sockaddr *addr, socklen_t *addrlen)
+rn_socket_t *rn_socket_class_ssl_accept(rn_socket_t *socket, rn_addr_t *from)
 {
 	int fd;
 	int ret;
 	BIO *sbio;
 	rn_ssl_t *new;
+	socklen_t addr_len;
 	rn_ssl_t *ssl = rn_ssl_get(socket);
 
 	errno = 0;
-	while ((fd = accept4(ssl->socket.node.fd, addr, addrlen, SOCK_NONBLOCK)) < 0) {
+	addr_len = sizeof(*from);
+	while ((fd = accept4(ssl->socket.node.fd, (struct sockaddr *) from, &addr_len, SOCK_NONBLOCK)) < 0) {
 		switch (errno) {
 			case EAGAIN:
 			case ENETDOWN:
@@ -279,6 +279,7 @@ rn_socket_t *rn_socket_class_ssl_accept(rn_socket_t *socket, struct sockaddr *ad
 			return NULL;
 		}
 		errno = 0;
+		addr_len = sizeof(*from);
 	}
 	new = calloc(1, sizeof(*new));
 	if (unlikely(new == NULL)) {

@@ -29,11 +29,13 @@ RiNOO is a simple way to create high scalability client/server applications.
 
     void task_server(void *sched)
     {
+	rn_addr_t addr;
     	rn_socket_t *server;
     	rn_socket_t *client;
 
-    	server = rn_tcp_server(sched, IP_ANY, 4242);
-    	while ((client = rn_tcp_accept(server, NULL, NULL)) != NULL) {
+	rn_addr4(&addr, "127.0.0.1", 4242);
+    	server = rn_tcp_server(sched, &addr);
+    	while ((client = rn_tcp_accept(server, NULL)) != NULL) {
     		rn_task_start(sched, task_client, client);
     	}
     	rn_socket_destroy(server);
@@ -69,7 +71,7 @@ RiNOO is a simple way to create high scalability client/server applications.
     	rn_socket_t *client;
 
         sched = rn_scheduler_self();
-    	while ((client = rn_tcp_accept(server, NULL, NULL)) != NULL) {
+    	while ((client = rn_tcp_accept(server, NULL)) != NULL) {
                 rn_log("Accepted connection on thread %d", sched->id);
                 rn_task_start(sched, task_client, client);
     	}
@@ -79,16 +81,18 @@ RiNOO is a simple way to create high scalability client/server applications.
     int main()
     {
         int i;
+	rn_addr_t addr;
     	rn_sched_t *spawn;
     	rn_sched_t *sched;
     	rn_socket_t *server;
 
     	sched = rn_scheduler();
+	rn_addr4(&addr, "127.0.0.1", 4242);
         /* Spawning 10 schedulers, each running in a separate thread */
         rn_spawn(sched, 10);
         for (i = 0; i <= 10; i++) {
                 spawn = rn_spawn_get(sched, i);
-                server = rn_tcp_server(spawn, IP_ANY, 4242);
+                server = rn_tcp_server(spawn, &addr);
                 rn_task_start(spawn, task_server, server);
         }
     	rn_scheduler_loop(sched);
@@ -102,10 +106,12 @@ RiNOO is a simple way to create high scalability client/server applications.
 
     void http_client(void *sched)
     {
+	rn_addr_t addr;
         rn_http_t http;
         rn_socket_t *client;
 
-        client = rn_tcp_client(sched, IP_LOOPBACK, 80, 0);
+	rn_addr4(&addr, "127.0.0.1", 4242);
+        client = rn_tcp_client(sched, &addr, 0);
         rn_http_init(client, &http);
         rn_http_request_send(&http, RN_HTTP_METHOD_GET, "/", NULL);
         rn_http_response_get(&http);
@@ -137,10 +143,12 @@ RiNOO is a simple way to create high scalability client/server applications.
 
     int main()
     {
+	rn_addr_t addr;
         rn_sched_t *sched;
 
         sched = rn_scheduler();
-        rn_http_easy_server(sched, 0, 4242, routes, sizeof(routes) / sizeof(*routes));
+	rn_addr4(&addr, "127.0.0.1", 4242);
+        rn_http_easy_server(sched, &addr, routes, sizeof(routes) / sizeof(*routes));
         rn_scheduler_loop(sched);
         rn_scheduler_destroy(sched);
         return 0;

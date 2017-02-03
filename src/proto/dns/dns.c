@@ -13,7 +13,7 @@
 void rn_dns_init(rn_sched_t *sched, rn_dns_t *dns, rn_dns_type_t type, const char *host)
 {
 	res_init();
-	dns->socket = rn_udp_client(sched, (rn_ip_t *) &(_res.nsaddr_list[0]), ntohs(_res.nsaddr_list[0].sin_port));
+	dns->socket = rn_udp_client(sched, (rn_addr_t *) &(_res.nsaddr_list[0]));
 	dns->host = host;
 	dns->answer = NULL;
 	dns->authority = NULL;
@@ -84,16 +84,14 @@ int rn_dns_query(rn_dns_t *dns, rn_dns_type_t type, const char *host)
 	return 0;
 }
 
-int rn_dns_get(rn_dns_t *dns, rn_dns_query_t *query, rn_ip_t *from)
+int rn_dns_get(rn_dns_t *dns, rn_dns_query_t *query, rn_addr_t *from)
 {
 	ssize_t count;
-	socklen_t len;
 	rn_buffer_iterator_t iterator;
 
 	rn_buffer_erase(&dns->buffer, 0);
 	rn_buffer_init(&query->name.buffer, query->name.value, sizeof(query->name.value));
-	len = sizeof(from->v4);
-	count = rn_socket_recvfrom(dns->socket, rn_buffer_ptr(&dns->buffer), rn_buffer_msize(&dns->buffer), (struct sockaddr *) &from->v4, &len);
+	count = rn_socket_recvfrom(dns->socket, rn_buffer_ptr(&dns->buffer), rn_buffer_msize(&dns->buffer), from);
 	if (count <= 0) {
 		return -1;
 	}
@@ -180,7 +178,7 @@ int rn_dns_reply_get(rn_dns_t *dns, uint32_t timeout)
 	return 0;
 }
 
-int rn_dns_ip_get(rn_sched_t *sched, const char *host, rn_ip_t *ip)
+int rn_dns_addr_get(rn_sched_t *sched, const char *host, rn_addr_t *addr)
 {
 	unsigned int i;
 	rn_dns_t dns;
@@ -202,8 +200,8 @@ int rn_dns_ip_get(rn_sched_t *sched, const char *host, rn_ip_t *ip)
 	if (i >= dns.header.ancount) {
 		goto dns_error;
 	}
-	ip->v4.sin_family = AF_INET;
-	ip->v4.sin_addr.s_addr = dns.answer[i].rdata.a.address;
+	addr->v4.sin_family = AF_INET;
+	addr->v4.sin_addr.s_addr = dns.answer[i].rdata.a.address;
 	rn_dns_destroy(&dns);
 	return 0;
 dns_error:

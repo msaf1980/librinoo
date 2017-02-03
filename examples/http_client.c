@@ -22,11 +22,13 @@ void process_http_client(void *sched)
 {
 	int i;
 	int j;
+	rn_addr_t addr;
 	rn_http_t http;
 	rn_socket_t *socket;
 
+	rn_addr4(&addr, "127.0.0.1", port);
 	for (i = 0; i < 10; i++) {
-		socket = rn_tcp_client(sched, IP_LOOPBACK, port, 0);
+		socket = rn_tcp_client(sched, &addr, 0);
 		if (socket == NULL) {
 			rn_log("Error while creating socket %d: %s", port, strerror(errno));
 			return;

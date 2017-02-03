@@ -12,10 +12,10 @@
 
 void dns_test(void *arg)
 {
-	rn_ip_t ip;
+	rn_addr_t addr;
 
-	XTEST(rn_dns_ip_get(arg, "google.com", &ip) == 0);
-	rn_log("IP: %s", inet_ntoa(ip.v4.sin_addr));
+	XTEST(rn_dns_addr_get(arg, "google.com", &addr) == 0);
+	rn_log("IP: %s", inet_ntoa(addr.v4.sin_addr));
 }
 
 /**

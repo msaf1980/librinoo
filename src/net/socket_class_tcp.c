@@ -184,20 +184,21 @@ ssize_t rn_socket_class_tcp_read(rn_socket_t *socket, void *buf, size_t count)
  * @param socket Pointer to the socket to read
  * @param buf Buffer where to store the information read
  * @param count Buffer size
- * @param addrfrom Sockaddr where to store the source address
- * @param addrlen Socklen where to store the size of the source address
+ * @param from Pointer to an rn_addr_t structure where to store source address
  *
  * @return The number of bytes read on success or -1 if an error occurs
  */
-ssize_t rn_socket_class_tcp_recvfrom(rn_socket_t *socket, void *buf, size_t count, struct sockaddr *addrfrom, socklen_t *addrlen)
+ssize_t rn_socket_class_tcp_recvfrom(rn_socket_t *socket, void *buf, size_t count, rn_addr_t *from)
 {
 	ssize_t ret;
+	socklen_t addr_len;
 
 	if (rn_socket_waitio(socket) != 0) {
 		return -1;
 	}
 	errno = 0;
-	while ((ret = recvfrom(socket->node.fd, buf, count, MSG_DONTWAIT, addrfrom, addrlen)) < 0) {
+	addr_len = sizeof(*from);
+	while ((ret = recvfrom(socket->node.fd, buf, count, MSG_DONTWAIT, (struct sockaddr *) from, &addr_len)) < 0) {
 		if (errno != EAGAIN && errno != EWOULDBLOCK) {
 			return -1;
 		}
@@ -205,6 +206,7 @@ ssize_t rn_socket_class_tcp_recvfrom(rn_socket_t *socket, void *buf, size_t coun
 			return -1;
 		}
 		errno = 0;
+		addr_len = sizeof(*from);
 	}
 	if (ret <= 0) {
 		return -1;
@@ -322,12 +324,11 @@ ssize_t	rn_socket_class_tcp_writev(rn_socket_t *socket, rn_buffer_t **buffers, i
  * @param socket Pointer to the socket to read
  * @param buf Buffer which stores the information to write
  * @param count Buffer size
- * @param addrto Ignored
- * @param addrlen Ignored
+ * @param dst Ignored
  *
  * @return The number of bytes written on success or -1 if an error occurs
  */
-ssize_t rn_socket_class_tcp_sendto(rn_socket_t *socket, void *buf, size_t count, const struct sockaddr *unused(addrto), socklen_t unused(addrlen))
+ssize_t rn_socket_class_tcp_sendto(rn_socket_t *socket, void *buf, size_t count, const rn_addr_t *unused(dst))
 {
 	return rn_socket_class_tcp_write(socket, buf, count);
 }
@@ -375,17 +376,18 @@ ssize_t rn_socket_class_tcp_sendfile(rn_socket_t *socket, int in_fd, off_t offse
 /**
  * Replacement to the connect(2) syscall.
  *
- * @param socket Pointer to the socket to connect.
- * @param addr Pointer to a sockaddr structure (see man connect)
- * @param addrlen Sockaddr structure size (see man connect)
+ * @param socket Pointer to the socket to connect
+ * @param dst Destination address
  *
  * @return 0 on success or -1 if an error occurs (timeout is considered as an error)
  */
-int rn_socket_class_tcp_connect(rn_socket_t *socket, const struct sockaddr *addr, socklen_t addrlen)
+int rn_socket_class_tcp_connect(rn_socket_t *socket, const rn_addr_t *dst)
 {
 	int val;
 	int enabled;
 	socklen_t size;
+	socklen_t addr_len;
+	struct sockaddr *addr;
 
 	XASSERT(socket != NULL, -1);
 
@@ -394,7 +396,8 @@ int rn_socket_class_tcp_connect(rn_socket_t *socket, const struct sockaddr *addr
 	if (setsockopt(socket->node.fd, SOL_SOCKET, SO_REUSEADDR, &enabled, sizeof(enabled)) != 0) {
 		return -1;
 	}
-	if (connect(socket->node.fd, addr, addrlen) == 0) {
+	addr = rn_addr_sockaddr(dst, &addr_len);
+	if (connect(socket->node.fd, (struct sockaddr *) addr, addr_len) == 0) {
 		return 0;
 	}
 	switch (errno) {
@@ -424,15 +427,16 @@ int rn_socket_class_tcp_connect(rn_socket_t *socket, const struct sockaddr *addr
  * This is a replacement of the listen(2) syscall in this library.
  *
  * @param socket Pointer to the socket to listen to
- * @param addr Pointer to a sockaddr structure (see man listen)
- * @param addrlen Sockaddr structure size (see man listen)
+ * @param dst Address to bind
  * @param backlog Maximum listening queue size (see man listen)
  *
  * @return 0 on success or -1 if an error occurs
  */
-int rn_socket_class_tcp_bind(rn_socket_t *socket, const struct sockaddr *addr, socklen_t addrlen, int backlog)
+int rn_socket_class_tcp_bind(rn_socket_t *socket, const rn_addr_t *dst, int backlog)
 {
 	int enabled;
+	socklen_t addr_len;
+	struct sockaddr *addr;
 
 	enabled = 1;
 
@@ -445,7 +449,8 @@ int rn_socket_class_tcp_bind(rn_socket_t *socket, const struct sockaddr *addr, s
 	if (setsockopt(socket->node.fd, SOL_SOCKET, SO_REUSEADDR, &enabled, sizeof(enabled)) == -1) {
 		return -1;
 	}
-	if (bind(socket->node.fd, addr, addrlen) == -1) {
+	addr = rn_addr_sockaddr(dst, &addr_len);
+	if (bind(socket->node.fd, addr, addr_len) == -1) {
 		return -1;
 	}
 	if (listen(socket->node.fd, backlog) == -1) {
@@ -459,21 +464,22 @@ int rn_socket_class_tcp_bind(rn_socket_t *socket, const struct sockaddr *addr, s
  * This is a replacement to the accept(2) syscall in this library.
  *
  * @param socket Pointer to the socket which is listening to
- * @param addr Address to the peer socket (see man accept)
- * @param addrlen Sockaddr structure size (see man accept)
+ * @param from Address to peer socket
  *
  * @return A pointer to the new client socket or NULL if an error occurs
  */
-rn_socket_t *rn_socket_class_tcp_accept(rn_socket_t *socket, struct sockaddr *addr, socklen_t *addrlen)
+rn_socket_t *rn_socket_class_tcp_accept(rn_socket_t *socket, rn_addr_t *from)
 {
 	int fd;
 	rn_socket_t *new;
+	socklen_t addr_len;
 
 	if (rn_socket_waitio(socket) != 0) {
 		return NULL;
 	}
 	errno = 0;
-	while ((fd = accept4(socket->node.fd, addr, addrlen, SOCK_NONBLOCK)) < 0) {
+	addr_len = sizeof(*from);
+	while ((fd = accept4(socket->node.fd, (struct sockaddr *) from, &addr_len, SOCK_NONBLOCK)) < 0) {
 		switch (errno) {
 			case EAGAIN:
 			case ENETDOWN:
@@ -492,6 +498,7 @@ rn_socket_t *rn_socket_class_tcp_accept(rn_socket_t *socket, struct sockaddr *ad
 			return NULL;
 		}
 		errno = 0;
+		addr_len = sizeof(*from);
 	}
 	new = calloc(1, sizeof(*new));
 	if (unlikely(new == NULL)) {
