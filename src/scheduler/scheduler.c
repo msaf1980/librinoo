@@ -108,28 +108,28 @@ int rn_scheduler_waitfor(rn_sched_node_t *node, rn_sched_mode_t mode)
 		errno = error;
 		return -1;
 	}
-	if ((node->received & mode) == mode) {
-		node->received -= mode;
+	if (rn_mode_received(node, mode)) {
+		rn_mode_received_unset(node, mode);
 		return 0;
 	}
-	if ((node->waiting & mode) != mode) {
-		if (node->waiting == RN_MODE_NONE) {
+	if (!rn_mode_registered(node, mode)) {
+		if (rn_mode_registered_get(node) == RN_MODE_NONE) {
 			if (unlikely(rn_epoll_insert(node, mode) != 0)) {
 				return -1;
 			}
 			rn_list_put(&node->sched->nodes, &node->lnode);
 		} else {
-			if (unlikely(rn_epoll_addmode(node, node->waiting | mode) != 0)) {
+			if (unlikely(rn_epoll_addmode(node, rn_mode_registered_get(node) | mode) != 0)) {
 				return -1;
 			}
 		}
+		rn_mode_registered_set(node, mode);
 	}
-	node->mode = mode;
-	node->waiting |= mode;
+	rn_mode_waiting_set(node, mode);
 	node->task = rn_task_driver_getcurrent(node->sched);
 	node->sched->nbpending++;
 	if (unlikely(node->task == &node->sched->driver.main)) {
-		while ((node->received & mode) != mode) {
+		while (!rn_mode_received(node, mode)) {
 			rn_scheduler_poll(node->sched);
 			if (node->error != 0) {
 				error = node->error;
@@ -154,13 +154,14 @@ int rn_scheduler_waitfor(rn_sched_node_t *node, rn_sched_mode_t mode)
 		errno = error;
 		return -1;
 	}
-	if ((node->received & mode) != mode) {
+	if (!rn_mode_received(node, mode)) {
 		rn_scheduler_remove(node);
 		/* Task has been resumed but no event received, this is a timeout */
 		errno = ETIMEDOUT;
 		return -1;
 	}
-	node->received -= mode;
+	rn_mode_waiting_unset(node, mode);
+	rn_mode_received_unset(node, mode);
 	return 0;
 }
 
@@ -197,11 +198,11 @@ void rn_scheduler_wakeup(rn_sched_node_t *node, rn_sched_mode_t mode, int error)
 	if (node->error == 0) {
 		node->error = error;
 	}
-	node->received |= mode;
+	rn_mode_received_set(node, mode);
 	if (node->task == NULL || node->task == &node->sched->driver.main) {
 		return;
 	}
-	if (node->mode == mode || node->error != 0) {
+	if (rn_mode_waiting(node, mode) || node->error != 0) {
 		rn_task_resume(node->task);
 	}
 }
