@@ -65,7 +65,7 @@ int main(int argc, char **argv)
 	return 0;
 }
 ```
-The example above starts 2 tasks, each prints *Hello*, pauses and prints *World*:
+The above example starts 2 tasks, each prints *Hello*, pauses and prints *World*:
 ```
 $ ./a.out
 Task1 - Hello
