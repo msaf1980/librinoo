@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://github.com/reginaldl/librinoo/blob/master/doc/logo.png?raw=true" alt="RiNOO Logo"/>
+</p>
+
 # RiNOO
 [![Build Status](https://drone.io/github.com/reginaldl/librinoo/status.png)](https://drone.io/github.com/reginaldl/librinoo/latest)
 [![Coverity](https://scan.coverity.com/projects/2835/badge.svg)](https://scan.coverity.com/projects/2835)
@@ -6,10 +10,6 @@ RiNOO is a socket management library. RiNOO sockets are asynchronous but "appear
 This is possible by using fast-contexts (see fcontext project). Code looks simple. The complexity
 of asynchronous sockets is hidden.
 RiNOO is a simple way to create high scalability client/server applications.
-
-<p align="center">
-  <img src="https://github.com/reginaldl/librinoo/blob/master/doc/logo.png?raw=true" alt="RiNOO Logo"/>
-</p>
 
 ## Documentation
 
