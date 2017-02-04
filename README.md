@@ -7,6 +7,10 @@ This is possible by using fast-contexts (see fcontext project). Code looks simpl
 of asynchronous sockets is hidden.
 RiNOO is a simple way to create high scalability client/server applications.
 
+<p align="center">
+  <img src="https://github.com/reginaldl/librinoo/blob/master/doc/logo.png?raw=true" alt="RiNOO Logo"/>
+</p>
+
 ## Documentation
 
 * [Using librinoo for fun and profit](https://github.com/reginaldl/librinoo/wiki/Using-librinoo-for-fun-and-profit)
