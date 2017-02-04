@@ -16,140 +16,148 @@ RiNOO is a simple way to create high scalability client/server applications.
 
 ### Hello world!
 
-    #include "rinoo/rinoo.h"
+```C
+#include "rinoo/rinoo.h"
 
-    void task_client(void *socket)
-    {
-    	char a;
+void task_client(void *socket)
+{
+	char a;
 
-    	rn_socket_write(socket, "Hello world!\n", 13);
-    	rn_socket_read(socket, &a, 1);
-    	rn_socket_destroy(socket);
-    }
+	rn_socket_write(socket, "Hello world!\n", 13);
+	rn_socket_read(socket, &a, 1);
+	rn_socket_destroy(socket);
+}
 
-    void task_server(void *sched)
-    {
-        rn_addr_t addr;
-    	rn_socket_t *server;
-    	rn_socket_t *client;
+void task_server(void *sched)
+{
+    rn_addr_t addr;
+	rn_socket_t *server;
+	rn_socket_t *client;
 
-        rn_addr4(&addr, "127.0.0.1", 4242);
-    	server = rn_tcp_server(sched, &addr);
-    	while ((client = rn_tcp_accept(server, NULL)) != NULL) {
-    		rn_task_start(sched, task_client, client);
-    	}
-    	rn_socket_destroy(server);
-    }
+    rn_addr4(&addr, "127.0.0.1", 4242);
+	server = rn_tcp_server(sched, &addr);
+	while ((client = rn_tcp_accept(server, NULL)) != NULL) {
+		rn_task_start(sched, task_client, client);
+	}
+	rn_socket_destroy(server);
+}
 
-    int main()
-    {
-    	rn_sched_t *sched;
+int main()
+{
+	rn_sched_t *sched;
 
-    	sched = rn_scheduler();
-    	rn_task_start(sched, task_server, sched);
-    	rn_scheduler_loop(sched);
-    	rn_scheduler_destroy(sched);
-    	return 0;
-    }
+	sched = rn_scheduler();
+	rn_task_start(sched, task_server, sched);
+	rn_scheduler_loop(sched);
+	rn_scheduler_destroy(sched);
+	return 0;
+}
+```
 
 ### Multi-threading
 
-    #include "rinoo/rinoo.h"
+```C
+#include "rinoo/rinoo.h"
 
-    void task_client(void *socket)
-    {
-    	char a;
+void task_client(void *socket)
+{
+	char a;
 
-    	rn_socket_write(socket, "Hello world!\n", 13);
-    	rn_socket_read(socket, &a, 1);
-    	rn_socket_destroy(socket);
+	rn_socket_write(socket, "Hello world!\n", 13);
+	rn_socket_read(socket, &a, 1);
+	rn_socket_destroy(socket);
+}
+
+void task_server(void *server)
+{
+    rn_sched_t *sched;
+	rn_socket_t *client;
+
+    sched = rn_scheduler_self();
+	while ((client = rn_tcp_accept(server, NULL)) != NULL) {
+            rn_log("Accepted connection on thread %d", sched->id);
+            rn_task_start(sched, task_client, client);
+	}
+	rn_socket_destroy(server);
+}
+
+int main()
+{
+    int i;
+    rn_addr_t addr;
+	rn_sched_t *spawn;
+	rn_sched_t *sched;
+	rn_socket_t *server;
+
+	sched = rn_scheduler();
+    rn_addr4(&addr, "127.0.0.1", 4242);
+    /* Spawning 10 schedulers, each running in a separate thread */
+    rn_spawn(sched, 10);
+    for (i = 0; i <= 10; i++) {
+            spawn = rn_spawn_get(sched, i);
+            server = rn_tcp_server(spawn, &addr);
+            rn_task_start(spawn, task_server, server);
     }
-
-    void task_server(void *server)
-    {
-        rn_sched_t *sched;
-    	rn_socket_t *client;
-
-        sched = rn_scheduler_self();
-    	while ((client = rn_tcp_accept(server, NULL)) != NULL) {
-                rn_log("Accepted connection on thread %d", sched->id);
-                rn_task_start(sched, task_client, client);
-    	}
-    	rn_socket_destroy(server);
-    }
-
-    int main()
-    {
-        int i;
-        rn_addr_t addr;
-    	rn_sched_t *spawn;
-    	rn_sched_t *sched;
-    	rn_socket_t *server;
-
-    	sched = rn_scheduler();
-        rn_addr4(&addr, "127.0.0.1", 4242);
-        /* Spawning 10 schedulers, each running in a separate thread */
-        rn_spawn(sched, 10);
-        for (i = 0; i <= 10; i++) {
-                spawn = rn_spawn_get(sched, i);
-                server = rn_tcp_server(spawn, &addr);
-                rn_task_start(spawn, task_server, server);
-        }
-    	rn_scheduler_loop(sched);
-    	rn_scheduler_destroy(sched);
-    	return 0;
-    }
+	rn_scheduler_loop(sched);
+	rn_scheduler_destroy(sched);
+	return 0;
+}
+```
 
 ### HTTP
 
-    #include "rinoo/rinoo.h"
+```C
+#include "rinoo/rinoo.h"
 
-    void http_client(void *sched)
-    {
-        rn_addr_t addr;
-        rn_http_t http;
-        rn_socket_t *client;
+void http_client(void *sched)
+{
+    rn_addr_t addr;
+    rn_http_t http;
+    rn_socket_t *client;
 
-        rn_addr4(&addr, "127.0.0.1", 4242);
-        client = rn_tcp_client(sched, &addr, 0);
-        rn_http_init(client, &http);
-        rn_http_request_send(&http, RN_HTTP_METHOD_GET, "/", NULL);
-        rn_http_response_get(&http);
-        rn_log("client - %.*s", rn_buffer_size(http.response.buffer), rn_buffer_ptr(http.response.buffer));
-        rn_http_destroy(&http);
-        rn_socket_destroy(client);
-    }
+    rn_addr4(&addr, "127.0.0.1", 4242);
+    client = rn_tcp_client(sched, &addr, 0);
+    rn_http_init(client, &http);
+    rn_http_request_send(&http, RN_HTTP_METHOD_GET, "/", NULL);
+    rn_http_response_get(&http);
+    rn_log("client - %.*s", rn_buffer_size(http.response.buffer), rn_buffer_ptr(http.response.buffer));
+    rn_http_destroy(&http);
+    rn_socket_destroy(client);
+}
 
-    int main()
-    {
-        rn_sched_t *sched;
+int main()
+{
+    rn_sched_t *sched;
 
-        sched = rn_scheduler();
-        rn_task_start(sched, http_client, sched);
-        rn_scheduler_loop(sched);
-        rn_scheduler_destroy(sched);
-        return 0;
-    }
+    sched = rn_scheduler();
+    rn_task_start(sched, http_client, sched);
+    rn_scheduler_loop(sched);
+    rn_scheduler_destroy(sched);
+    return 0;
+}
+```
 
 ### HTTP easy server
 
-    #include "rinoo/rinoo.h"
+```C
+#include "rinoo/rinoo.h"
 
-    rn_http_route_t routes[] = {
-        { "/", 200, RN_HTTP_ROUTE_STATIC, .content = "<html><body><center>Welcome to RiNOO HTTP server!<br/><br/><a href=\"/motd\">motd</a></center><body></html>" },
-        { "/motd", 200, RN_HTTP_ROUTE_FILE, .file = "/etc/motd" },
-        { NULL, 302, RN_HTTP_ROUTE_REDIRECT, .location = "/" }
-    };
+rn_http_route_t routes[] = {
+    { "/", 200, RN_HTTP_ROUTE_STATIC, .content = "<html><body><center>Welcome to RiNOO HTTP server!<br/><br/><a href=\"/motd\">motd</a></center><body></html>" },
+    { "/motd", 200, RN_HTTP_ROUTE_FILE, .file = "/etc/motd" },
+    { NULL, 302, RN_HTTP_ROUTE_REDIRECT, .location = "/" }
+};
 
-    int main()
-    {
-        rn_addr_t addr;
-        rn_sched_t *sched;
+int main()
+{
+    rn_addr_t addr;
+    rn_sched_t *sched;
 
-        sched = rn_scheduler();
-        rn_addr4(&addr, "127.0.0.1", 4242);
-        rn_http_easy_server(sched, &addr, routes, sizeof(routes) / sizeof(*routes));
-        rn_scheduler_loop(sched);
-        rn_scheduler_destroy(sched);
-        return 0;
-    }
+    sched = rn_scheduler();
+    rn_addr4(&addr, "127.0.0.1", 4242);
+    rn_http_easy_server(sched, &addr, routes, sizeof(routes) / sizeof(*routes));
+    rn_scheduler_loop(sched);
+    rn_scheduler_destroy(sched);
+    return 0;
+}
+```
