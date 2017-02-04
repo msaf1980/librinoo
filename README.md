@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/reginaldl/librinoo/blob/master/doc/logo.png?raw=true" alt="RiNOO Logo"/>
+  <img src="https://github.com/reginaldl/librinoo/blob/master/doc/logo.svg?raw=true" alt="RiNOO Logo" width="50%"/>
 </p>
 
 # Overview
