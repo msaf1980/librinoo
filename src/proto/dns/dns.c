@@ -180,8 +180,8 @@ int rn_dns_reply_get(rn_dns_t *dns, uint32_t timeout)
 
 int rn_dns_addr_get(rn_sched_t *sched, const char *host, rn_addr_t *addr)
 {
-	unsigned int i;
 	rn_dns_t dns;
+	unsigned int i;
 
 	rn_dns_init(sched, &dns, DNS_TYPE_A, host);
 	if (rn_dns_query(&dns, DNS_TYPE_A, host) != 0) {
@@ -200,6 +200,7 @@ int rn_dns_addr_get(rn_sched_t *sched, const char *host, rn_addr_t *addr)
 	if (i >= dns.header.ancount) {
 		goto dns_error;
 	}
+	memset(addr, 0, sizeof(*addr));
 	addr->v4.sin_family = AF_INET;
 	addr->v4.sin_addr.s_addr = dns.answer[i].rdata.a.address;
 	rn_dns_destroy(&dns);

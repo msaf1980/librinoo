@@ -260,7 +260,7 @@ rn_socket_t *rn_socket_class_ssl_accept(rn_socket_t *socket, rn_addr_t *from)
 
 	errno = 0;
 	addr_len = sizeof(*from);
-	while ((fd = accept4(ssl->socket.node.fd, (struct sockaddr *) from, &addr_len, SOCK_NONBLOCK)) < 0) {
+	while ((fd = accept4(ssl->socket.node.fd, &from->sa, &addr_len, SOCK_NONBLOCK)) < 0) {
 		switch (errno) {
 			case EAGAIN:
 			case ENETDOWN:

@@ -198,7 +198,7 @@ ssize_t rn_socket_class_udp_recvfrom(rn_socket_t *socket, void *buf, size_t coun
 	}
 	errno = 0;
 	addr_len = sizeof(*from);
-	while ((ret = recvfrom(socket->node.fd, buf, count, MSG_DONTWAIT, (struct sockaddr *) from, &addr_len)) < 0) {
+	while ((ret = recvfrom(socket->node.fd, buf, count, MSG_DONTWAIT, &from->sa, &addr_len)) < 0) {
 		if (errno != EAGAIN && errno != EWOULDBLOCK) {
 			return -1;
 		}
@@ -339,7 +339,7 @@ ssize_t rn_socket_class_udp_sendto(rn_socket_t *socket, void *buf, size_t count,
 			return -1;
 		}
 		errno = 0;
-		ret = sendto(socket->node.fd, buf, count, MSG_DONTWAIT, (struct sockaddr *) dst, sizeof(*dst));
+		ret = sendto(socket->node.fd, buf, count, MSG_DONTWAIT, &dst->sa, sizeof(*dst));
 		if (ret == 0) {
 			return -1;
 		} else if (ret < 0) {
@@ -378,7 +378,7 @@ int rn_socket_class_udp_connect(rn_socket_t *socket, const rn_addr_t *dst)
 	if (setsockopt(socket->node.fd, SOL_SOCKET, SO_REUSEADDR, &enabled, sizeof(enabled)) != 0) {
 		return -1;
 	}
-	if (connect(socket->node.fd, (struct sockaddr *) dst, sizeof(*dst)) == 0) {
+	if (connect(socket->node.fd, &dst->sa, sizeof(*dst)) == 0) {
 		return 0;
 	}
 	switch (errno) {
@@ -425,7 +425,7 @@ int rn_socket_class_udp_bind(rn_socket_t *socket, const rn_addr_t *dst, int unus
 #endif /* !SO_REUSEPORT */
 
 	if (setsockopt(socket->node.fd, SOL_SOCKET, SO_REUSEADDR, &enabled, sizeof(enabled)) == -1 ||
-			bind(socket->node.fd, (struct sockaddr *) dst, sizeof(*dst)) == -1) {
+			bind(socket->node.fd, &dst->sa, sizeof(*dst)) == -1) {
 		return -1;
 	}
 	return 0;

@@ -198,7 +198,7 @@ ssize_t rn_socket_class_tcp_recvfrom(rn_socket_t *socket, void *buf, size_t coun
 	}
 	errno = 0;
 	addr_len = sizeof(*from);
-	while ((ret = recvfrom(socket->node.fd, buf, count, MSG_DONTWAIT, (struct sockaddr *) from, &addr_len)) < 0) {
+	while ((ret = recvfrom(socket->node.fd, buf, count, MSG_DONTWAIT, &from->sa, &addr_len)) < 0) {
 		if (errno != EAGAIN && errno != EWOULDBLOCK) {
 			return -1;
 		}
@@ -386,8 +386,6 @@ int rn_socket_class_tcp_connect(rn_socket_t *socket, const rn_addr_t *dst)
 	int val;
 	int enabled;
 	socklen_t size;
-	socklen_t addr_len;
-	struct sockaddr *addr;
 
 	XASSERT(socket != NULL, -1);
 
@@ -396,8 +394,7 @@ int rn_socket_class_tcp_connect(rn_socket_t *socket, const rn_addr_t *dst)
 	if (setsockopt(socket->node.fd, SOL_SOCKET, SO_REUSEADDR, &enabled, sizeof(enabled)) != 0) {
 		return -1;
 	}
-	addr = rn_addr_sockaddr(dst, &addr_len);
-	if (connect(socket->node.fd, (struct sockaddr *) addr, addr_len) == 0) {
+	if (connect(socket->node.fd, &dst->sa, sizeof(*dst)) == 0) {
 		return 0;
 	}
 	switch (errno) {
@@ -435,8 +432,6 @@ int rn_socket_class_tcp_connect(rn_socket_t *socket, const rn_addr_t *dst)
 int rn_socket_class_tcp_bind(rn_socket_t *socket, const rn_addr_t *dst, int backlog)
 {
 	int enabled;
-	socklen_t addr_len;
-	struct sockaddr *addr;
 
 	enabled = 1;
 
@@ -449,8 +444,7 @@ int rn_socket_class_tcp_bind(rn_socket_t *socket, const rn_addr_t *dst, int back
 	if (setsockopt(socket->node.fd, SOL_SOCKET, SO_REUSEADDR, &enabled, sizeof(enabled)) == -1) {
 		return -1;
 	}
-	addr = rn_addr_sockaddr(dst, &addr_len);
-	if (bind(socket->node.fd, addr, addr_len) == -1) {
+	if (bind(socket->node.fd, &dst->sa, sizeof(*dst)) == -1) {
 		return -1;
 	}
 	if (listen(socket->node.fd, backlog) == -1) {
@@ -479,7 +473,7 @@ rn_socket_t *rn_socket_class_tcp_accept(rn_socket_t *socket, rn_addr_t *from)
 	}
 	errno = 0;
 	addr_len = sizeof(*from);
-	while ((fd = accept4(socket->node.fd, (struct sockaddr *) from, &addr_len, SOCK_NONBLOCK)) < 0) {
+	while ((fd = accept4(socket->node.fd, &from->sa, &addr_len, SOCK_NONBLOCK)) < 0) {
 		switch (errno) {
 			case EAGAIN:
 			case ENETDOWN:

@@ -29,6 +29,7 @@ void process_client(void *arg)
 
 void server_func(void *arg)
 {
+	char buf[42];
 	rn_addr_t addr;
 	rn_socket_t *server;
 	rn_socket_t *client;
@@ -41,7 +42,7 @@ void server_func(void *arg)
 	rn_log("server listening...");
 	client = rn_socket_accept(server, &addr);
 	XTEST(client != NULL);
-	rn_log("server - accepting client (%s:%d)", inet_ntoa(addr.v4.sin_addr), ntohs(addr.v4.sin_port));
+	rn_log("server - accepting client (%s:%d)", rn_addr_getip(&addr, buf, sizeof(buf)), rn_addr_getport(&addr));
 	rn_task_start(sched, process_client, client);
 	rn_socket_destroy(server);
 }

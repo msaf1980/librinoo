@@ -21,16 +21,18 @@ typedef struct rn_socket_s {
 } rn_socket_t;
 
 typedef union rn_addr_u {
+	struct sockaddr sa;
 	struct sockaddr_in v4;
 	struct sockaddr_in6 v6;
 } rn_addr_t;
 
-#define IS_IPV4(ip)	((ip)->v4.sin_family == AF_INET)
-#define IS_IPV6(ip)	((ip)->v6.sin6_family == AF_INET6)
+#define IS_IPV4(addr)			((addr)->sa.sa_family == AF_INET)
+#define IS_IPV6(addr)			((addr)->sa.sa_family == AF_INET6)
+#define rn_addr_getip(addr, dst, len)	(inet_ntop((addr)->sa.sa_family, (addr), (dst), (len)))
+#define rn_addr_getport(addr)		(IS_IPV4(addr) ? (addr)->v4.sin_port : (addr)->v6.sin6_port)
 
 int rn_addr4(rn_addr_t *dest, const char *src, uint16_t port);
 int rn_addr6(rn_addr_t *dest, const char *src, uint16_t port);
-struct sockaddr *rn_addr_sockaddr(const rn_addr_t *src, socklen_t *len);
 
 int rn_socket_init(rn_sched_t *sched, rn_socket_t *sock, const rn_socket_class_t *class);
 rn_socket_t *rn_socket(rn_sched_t *sched, const rn_socket_class_t *class);

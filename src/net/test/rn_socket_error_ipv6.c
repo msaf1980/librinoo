@@ -33,7 +33,7 @@ void server_func(void *arg)
 
 	server = rn_socket(sched, &socket_class_tcp6);
 	XTEST(server != NULL);
-	rn_addr6(&addr, "::1", 4242);
+	XTEST(rn_addr6(&addr, "::1", 4242) == 0);
 	XTEST(rn_socket_bind(server, &addr, 42) == 0);
 	rn_log("server listening...");
 	client = rn_socket_accept(server, NULL);

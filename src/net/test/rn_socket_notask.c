@@ -14,6 +14,7 @@ extern const rn_socket_class_t socket_class_tcp;
 void *server_thread(void *unused(arg))
 {
 	char b;
+	char buf[42];
 	rn_addr_t addr;
 	rn_sched_t *sched;
 	rn_socket_t *server;
@@ -28,7 +29,7 @@ void *server_thread(void *unused(arg))
 	rn_log("server listening...");
 	client = rn_socket_accept(server, &addr);
 	XTEST(client != NULL);
-	rn_log("server - accepting client (%s:%d)", inet_ntoa(addr.v4.sin_addr), ntohs(addr.v4.sin_port));
+	rn_log("server - accepting client (%s:%d)", rn_addr_getip(&addr, buf, sizeof(buf)), rn_addr_getport(&addr));
 	rn_log("server - sending 'abcdef'");
 	XTEST(rn_socket_write(client, "abcdef", 6) == 6);
 	rn_log("server - receiving 'b'");

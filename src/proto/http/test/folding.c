@@ -91,6 +91,7 @@ void http_server_process(void *socket)
 
 void http_server(void *sched)
 {
+	char buf[42];
 	rn_addr_t addr;
 	rn_socket_t *server;
 	rn_socket_t *client;
@@ -100,7 +101,7 @@ void http_server(void *sched)
 	XTEST(server != NULL);
 	client = rn_tcp_accept(server, &addr);
 	XTEST(client != NULL);
-	rn_log("server - accepting client (%s:%d)", inet_ntoa(addr.v4.sin_addr), ntohs(addr.v4.sin_port));
+	rn_log("server - accepting client (%s:%d)", rn_addr_getip(&addr, buf, sizeof(buf)), rn_addr_getport(&addr));
 	rn_task_start(sched, http_server_process, client);
 	rn_socket_destroy(server);
 }

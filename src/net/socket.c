@@ -22,9 +22,9 @@
 int rn_addr4(rn_addr_t *dst, const char *src, uint16_t port)
 {
 	memset(dst, 0, sizeof(*dst));
-	dst->v4.sin_family = AF_INET;
+	dst->sa.sa_family = AF_INET;
 	dst->v4.sin_port = htons(port);
-	if (inet_pton(AF_INET, src, &(dst->v4.sin_addr)) != 1) {
+	if (inet_pton(AF_INET, src, &dst->v4.sin_addr) != 1) {
 		return -1;
 	}
 	return 0;
@@ -34,7 +34,7 @@ int rn_addr4(rn_addr_t *dst, const char *src, uint16_t port)
  * Set an rn_addr_t structure based off a string (representing an IPv6) and a port.
  *
  * @param dst Pointer to the rn_addr_t to set
- * @param src String representing an IPv4
+ * @param src String representing an IPv6
  * @param port Port to be used
  *
  * @return 0 on success, otherwise -1
@@ -42,35 +42,13 @@ int rn_addr4(rn_addr_t *dst, const char *src, uint16_t port)
 int rn_addr6(rn_addr_t *dst, const char *src, uint16_t port)
 {
 	memset(dst, 0, sizeof(*dst));
-	dst->v6.sin6_family = AF_INET6;
+	dst->sa.sa_family = AF_INET6;
 	dst->v6.sin6_port = htons(port);
-	if (inet_pton(AF_INET6, src, &(dst->v6.sin6_addr)) != 1) {
+	//FIXME: Set dst->v6.sin6_scope_id
+	if (inet_pton(AF_INET6, src, &dst->v6.sin6_addr) != 1) {
 		return -1;
 	}
 	return 0;
-}
-
-/**
- * Cast an rn_addr_t structure to a struct sockaddr.
- * Set len depending on IPv4 or IPv6.
- *
- * @param src Pointer to a rn_addr_t
- * @param len Struct length
- *
- * @return Pointer to struct sockaddr
- */
-struct sockaddr *rn_addr_sockaddr(const rn_addr_t *src, socklen_t *len)
-{
-	if (IS_IPV4(src)) {
-		if (len) {
-			*len = sizeof(src->v4);
-		}
-		return (struct sockaddr *)(&src->v4);
-	}
-	if (len) {
-		*len = sizeof(src->v6);
-	}
-	return (struct sockaddr *)(&src->v6);
 }
 
 /**
