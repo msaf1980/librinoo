@@ -2,23 +2,81 @@
   <img src="https://github.com/reginaldl/librinoo/blob/master/doc/logo.png?raw=true" alt="RiNOO Logo"/>
 </p>
 
-# RiNOO
-[![Build Status](https://drone.io/github.com/reginaldl/librinoo/status.png)](https://drone.io/github.com/reginaldl/librinoo/latest)
-[![Coverity](https://scan.coverity.com/projects/2835/badge.svg)](https://scan.coverity.com/projects/2835)
+# Overview
 
-RiNOO is a socket management library. RiNOO sockets are asynchronous but "appear" synchronous.
+RiNOO is an asynchronous socket management library which leverages coroutines to make socket "appear" synchronous.
 This is possible by using fast-contexts (see fcontext project). Code looks simple. The complexity
 of asynchronous sockets is hidden.
 RiNOO is a simple way to create high scalability client/server applications.
 
-## Documentation
+# Documentation
 
 * [Using librinoo for fun and profit](https://github.com/reginaldl/librinoo/wiki/Using-librinoo-for-fun-and-profit)
 * [Libevent vs. RiNOO](https://github.com/reginaldl/librinoo/wiki/Libevent-vs.-RiNOO)
 
-## Examples
+# Build
 
-### Hello world!
+```
+$ cmake .
+$ make
+$ make install
+```
+
+# Test
+
+This repository contains a number of tests. After building RiNOO, tests can be executed by running either `make test` or `ctest` (provided by CMake).
+Each test is a standalone binary which will be executed twice:
+ 1. To validate the test
+ 2. To check memory leaks and overflows using `valgrind`
+
+# Coroutines
+
+Coroutines allow collaborative multitasking in a process. Each coroutine runs on its own stack and may decide to suspend its processing to allow another coroutine to run.
+RiNOO provides a simple API to create and schedule coroutines, named *tasks*.
+
+## Create tasks
+
+```C
+#include "rinoo/rinoo.h"
+
+void task1(void *sched)
+{
+	printf("Task1 - Hello\n");
+	rn_task_pause(sched);
+	printf("Task1 - World\n");
+}
+
+void task2(void *sched)
+{
+	printf("Task2 - Hello\n");
+	rn_task_pause(sched);
+	printf("Task2 - World\n");
+}
+
+int main(int argc, char **argv)
+{
+	rn_sched_t *sched;
+
+	sched = rn_scheduler();
+	rn_task_start(sched, task1, sched);
+	rn_task_start(sched, task2, sched);
+	rn_scheduler_loop();
+	rn_scheduler_destroy(sched);
+	return 0;
+}
+```
+The example above starts 2 tasks, each prints *Hello*, pauses and prints *World*:
+```
+$ ./a.out
+Task1 - Hello
+Task2 - Hello
+Task1 - World
+Task2 - World
+```
+
+# Coroutines combined with asynchronous sockets
+
+## Hello world!
 
 ```C
 #include "rinoo/rinoo.h"
@@ -34,11 +92,11 @@ void task_client(void *socket)
 
 void task_server(void *sched)
 {
-    rn_addr_t addr;
+	rn_addr_t addr;
 	rn_socket_t *server;
 	rn_socket_t *client;
 
-    rn_addr4(&addr, "127.0.0.1", 4242);
+	rn_addr4(&addr, "127.0.0.1", 4242);
 	server = rn_tcp_server(sched, &addr);
 	while ((client = rn_tcp_accept(server, NULL)) != NULL) {
 		rn_task_start(sched, task_client, client);
@@ -58,7 +116,7 @@ int main()
 }
 ```
 
-### Multi-threading
+## Multi-threading
 
 ```C
 #include "rinoo/rinoo.h"
@@ -108,7 +166,7 @@ int main()
 }
 ```
 
-### HTTP
+## HTTP
 
 ```C
 #include "rinoo/rinoo.h"
@@ -135,31 +193,6 @@ int main()
 
     sched = rn_scheduler();
     rn_task_start(sched, http_client, sched);
-    rn_scheduler_loop(sched);
-    rn_scheduler_destroy(sched);
-    return 0;
-}
-```
-
-### HTTP easy server
-
-```C
-#include "rinoo/rinoo.h"
-
-rn_http_route_t routes[] = {
-    { "/", 200, RN_HTTP_ROUTE_STATIC, .content = "<html><body><center>Welcome to RiNOO HTTP server!<br/><br/><a href=\"/motd\">motd</a></center><body></html>" },
-    { "/motd", 200, RN_HTTP_ROUTE_FILE, .file = "/etc/motd" },
-    { NULL, 302, RN_HTTP_ROUTE_REDIRECT, .location = "/" }
-};
-
-int main()
-{
-    rn_addr_t addr;
-    rn_sched_t *sched;
-
-    sched = rn_scheduler();
-    rn_addr4(&addr, "127.0.0.1", 4242);
-    rn_http_easy_server(sched, &addr, routes, sizeof(routes) / sizeof(*routes));
     rn_scheduler_loop(sched);
     rn_scheduler_destroy(sched);
     return 0;
