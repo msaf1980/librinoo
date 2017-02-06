@@ -24,6 +24,7 @@
 #include "rinoo/debug/module.h"
 
 #include "rinoo/global/macros.h"
+#include "rinoo/global/error.h"
 #include "rinoo/global/utils.h"
 #include "rinoo/global/murmurhash3.h"
 

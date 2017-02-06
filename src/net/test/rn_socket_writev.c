@@ -88,7 +88,7 @@ void client_func(void *arg)
 			total += res;
 		}
 		if (res < 0) {
-			rn_log("Error: %s", strerror(errno));
+			rn_log("Error: %s", strerror(rn_error));
 		}
 		XTEST(res > 0);
 		XTEST(memcmp(tmp, "xxxxxxxx", 8) == 0);
@@ -103,7 +103,7 @@ void client_func(void *arg)
 			total += res;
 		}
 		if (res < 0) {
-			rn_log("Error: %s", strerror(errno));
+			rn_log("Error: %s", strerror(rn_error));
 		}
 		XTEST(res > 0);
 		XTEST(memcmp(tmp, "xxxxxxxx", 8) == 0);

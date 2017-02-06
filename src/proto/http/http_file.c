@@ -25,19 +25,21 @@ int rn_http_send_dir(rn_http_t *http, const char *path)
 	XASSERT(path != NULL, -1);
 
 	if (stat(path, &stats) != 0) {
+		rn_error_set(errno);
 		return -1;
 	}
 	if (S_ISDIR(stats.st_mode) == 0) {
+		rn_error_set(EINVAL);
 		return -1;
 	}
 	dir = opendir(path);
 	if (dir == NULL) {
+		rn_error_set(errno);
 		return -1;
 	}
 	result = rn_buffer_create(NULL);
 	if (result == NULL) {
 		closedir(dir);
-		errno = ENOMEM;
 		return -1;
 	}
 	rn_buffer_print(result,
@@ -126,12 +128,14 @@ int rn_http_send_file(rn_http_t *http, const char *path)
 	XASSERT(path != NULL, -1);
 
 	if (stat(path, &stats) != 0) {
+		rn_error_set(errno);
 		return -1;
 	}
 	if (S_ISDIR(stats.st_mode)) {
 		return rn_http_send_dir(http, path);
 	}
 	if (S_ISREG(stats.st_mode) == 0) {
+		rn_error_set(EINVAL);
 		return -1;
 	}
 	if (stats.st_size == 0) {
@@ -140,13 +144,13 @@ int rn_http_send_file(rn_http_t *http, const char *path)
 	}
 	fd = open(path, O_RDONLY);
 	if (fd < 0) {
+		rn_error_set(errno);
 		return -1;
 	}
 	ptr = mmap(NULL, stats.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
 	if (ptr == MAP_FAILED) {
-		ret = errno;
+		rn_error_set(errno);
 		close(fd);
-		errno = ret;
 		return -1;
 	}
 	http->response.code = 200;

@@ -22,7 +22,6 @@ bool rn_http_request_get(rn_http_t *http)
 	int ret;
 
 	rn_http_reset(http);
-	errno = 0;
 	while (rn_socket_readb(http->socket, http->request.buffer) > 0) {
 		ret = rn_http_request_parse(http);
 		if (ret == 1) {
@@ -35,12 +34,11 @@ bool rn_http_request_get(rn_http_t *http)
 			return true;
 		} else if (ret == -1) {
 			http->response.code = 400;
-			if (rn_http_response_send(http, NULL) != 0 && errno == ESHUTDOWN) {
+			if (rn_http_response_send(http, NULL) != 0) {
 				return false;
 			}
 			rn_http_reset(http);
 		}
-		errno = 0;
 	}
 	return false;
 }
@@ -110,6 +108,7 @@ int rn_http_request_send(rn_http_t *http, rn_http_method_t method, const char *u
 		rn_buffer_add(http->request.buffer, "CONNECT ", 8);
 		break;
 	case RN_HTTP_METHOD_UNKNOWN:
+		rn_error_set(EINVAL);
 		return -1;
 	}
 	rn_buffer_set(&http->request.uri, uri);
@@ -137,9 +136,11 @@ int rn_http_request_send(rn_http_t *http, rn_http_method_t method, const char *u
 	rn_buffer_add(http->request.buffer, "\r\n", 2);
 	ret = rn_socket_writeb(http->socket, http->request.buffer);
 	if (ret != (ssize_t) rn_buffer_size(http->request.buffer)) {
+		rn_error_set(ECOMM);
 		return -1;
 	}
 	if (body != NULL && rn_socket_writeb(http->socket, body) != (ssize_t) rn_buffer_size(body)) {
+		rn_error_set(ECOMM);
 		return -1;
 	}
 	return 0;

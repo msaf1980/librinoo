@@ -161,17 +161,17 @@ ssize_t rn_socket_class_tcp_read(rn_socket_t *socket, void *buf, size_t count)
 	if (rn_socket_waitio(socket) != 0) {
 		return -1;
 	}
-	errno = 0;
 	while ((ret = read(socket->node.fd, buf, count)) < 0) {
 		if (errno != EAGAIN && errno != EWOULDBLOCK) {
+			rn_error_set(errno);
 			return -1;
 		}
 		if (rn_socket_waitin(socket) != 0) {
 			return -1;
 		}
-		errno = 0;
 	}
 	if (ret <= 0) {
+		//FIXME: set rn_error
 		return -1;
 	}
 	return ret;
@@ -196,19 +196,19 @@ ssize_t rn_socket_class_tcp_recvfrom(rn_socket_t *socket, void *buf, size_t coun
 	if (rn_socket_waitio(socket) != 0) {
 		return -1;
 	}
-	errno = 0;
 	addr_len = sizeof(*from);
 	while ((ret = recvfrom(socket->node.fd, buf, count, MSG_DONTWAIT, &from->sa, &addr_len)) < 0) {
 		if (errno != EAGAIN && errno != EWOULDBLOCK) {
+			rn_error_set(errno);
 			return -1;
 		}
 		if (rn_socket_waitin(socket) != 0) {
 			return -1;
 		}
-		errno = 0;
 		addr_len = sizeof(*from);
 	}
 	if (ret <= 0) {
+		//FIXME: set rn_error
 		return -1;
 	}
 	return ret;
@@ -234,12 +234,13 @@ ssize_t	rn_socket_class_tcp_write(rn_socket_t *socket, const void *buf, size_t c
 		if (rn_socket_waitio(socket) != 0) {
 			return -1;
 		}
-		errno = 0;
 		ret = write(socket->node.fd, buf, count);
 		if (ret == 0) {
+			//FIXME: set rn_error
 			return -1;
 		} else if (ret < 0) {
 			if (errno != EAGAIN && errno != EWOULDBLOCK) {
+				rn_error_set(errno);
 				return -1;
 			}
 			if (rn_socket_waitout(socket) != 0) {
@@ -272,7 +273,7 @@ ssize_t	rn_socket_class_tcp_writev(rn_socket_t *socket, rn_buffer_t **buffers, i
 	struct iovec *iov;
 
 	if (count > IOV_MAX) {
-		errno = EINVAL;
+		rn_error_set(EINVAL);
 		return -1;
 	}
 	iov = alloca(sizeof(*iov) * count);
@@ -286,12 +287,13 @@ ssize_t	rn_socket_class_tcp_writev(rn_socket_t *socket, rn_buffer_t **buffers, i
 		if (rn_socket_waitio(socket) != 0) {
 			return -1;
 		}
-		errno = 0;
 		ret = writev(socket->node.fd, iov, count);
 		if (ret == 0) {
+			//FIXME: set rn_error
 			return -1;
 		} else if (ret < 0) {
 			if (errno != EAGAIN && errno != EWOULDBLOCK) {
+				rn_error_set(errno);
 				return -1;
 			}
 			if (rn_socket_waitout(socket) != 0) {
@@ -353,12 +355,13 @@ ssize_t rn_socket_class_tcp_sendfile(rn_socket_t *socket, int in_fd, off_t offse
 	}
 	sent = count;
 	while (count > 0) {
-		errno = 0;
 		ret = sendfile(socket->node.fd, in_fd, &offset, count);
 		if (ret == 0) {
+			//FIXME: set rn_error
 			return -1;
 		} else if (ret < 0) {
 			if (errno != EAGAIN && errno != EWOULDBLOCK) {
+				rn_error_set(errno);
 				return -1;
 			}
 			if (rn_socket_waitout(socket) != 0) {
@@ -389,9 +392,9 @@ int rn_socket_class_tcp_connect(rn_socket_t *socket, const rn_addr_t *dst)
 
 	XASSERT(socket != NULL, -1);
 
-	errno = 0;
 	enabled = 1;
 	if (setsockopt(socket->node.fd, SOL_SOCKET, SO_REUSEADDR, &enabled, sizeof(enabled)) != 0) {
+		rn_error_set(errno);
 		return -1;
 	}
 	if (connect(socket->node.fd, &dst->sa, sizeof(*dst)) == 0) {
@@ -402,6 +405,7 @@ int rn_socket_class_tcp_connect(rn_socket_t *socket, const rn_addr_t *dst)
 	case EALREADY:
 		break;
 	default:
+		rn_error_set(errno);
 		return -1;
 	}
 	if (rn_socket_waitout(socket) != 0) {
@@ -409,10 +413,11 @@ int rn_socket_class_tcp_connect(rn_socket_t *socket, const rn_addr_t *dst)
 	}
 	size = sizeof(val);
 	if (getsockopt(socket->node.fd, SOL_SOCKET, SO_ERROR, (void *) &val, &size) < 0) {
+		rn_error_set(errno);
 		return -1;
 	}
 	if (val != 0) {
-		errno = val;
+		rn_error_set(val);
 		return -1;
 	}
 	return 0;
@@ -471,7 +476,6 @@ rn_socket_t *rn_socket_class_tcp_accept(rn_socket_t *socket, rn_addr_t *from)
 	if (rn_socket_waitio(socket) != 0) {
 		return NULL;
 	}
-	errno = 0;
 	addr_len = sizeof(*from);
 	while ((fd = accept4(socket->node.fd, &from->sa, &addr_len, SOCK_NONBLOCK)) < 0) {
 		switch (errno) {
@@ -486,16 +490,17 @@ rn_socket_t *rn_socket_class_tcp_accept(rn_socket_t *socket, rn_addr_t *from)
 			case ENETUNREACH:
 				break;
 			default:
+				rn_error_set(errno);
 				return NULL;
 		}
 		if (rn_socket_waitin(socket) != 0) {
 			return NULL;
 		}
-		errno = 0;
 		addr_len = sizeof(*from);
 	}
 	new = calloc(1, sizeof(*new));
 	if (unlikely(new == NULL)) {
+		rn_error_set(errno);
 		close(fd);
 		return NULL;
 	}

@@ -278,7 +278,7 @@ int rn_task_release(rn_sched_t *sched)
 
 	fcontext_swap(&sched->driver.current->context, &sched->driver.main.context);
 	if (sched->stop == true) {
-		errno = ECANCELED;
+		rn_error_set(ECANCELED);
 		return -1;
 	}
 	return 0;

@@ -46,7 +46,7 @@ static void rn_sched_cancel_task(rn_list_node_t *node)
 
 	sched_node = container_of(node, rn_sched_node_t, lnode);
 	sched_node->error = ECANCELED;
-	errno = sched_node->error;
+	rn_error_set(sched_node->error);
 	if (rn_task_resume(sched_node->task) != 0 && sched_node->task != NULL) {
 		rn_task_destroy(sched_node->task);
 	}
@@ -98,14 +98,11 @@ rn_sched_t *rn_scheduler_self(void)
  */
 int rn_scheduler_waitfor(rn_sched_node_t *node, rn_sched_mode_t mode)
 {
-	int error;
-
 	XASSERT(mode != RN_MODE_NONE, -1);
 
 	if (node->error != 0) {
-		error = node->error;
+		rn_error_set(node->error);
 		rn_scheduler_remove(node);
-		errno = error;
 		return -1;
 	}
 	if (rn_mode_received(node, mode)) {
@@ -132,9 +129,8 @@ int rn_scheduler_waitfor(rn_sched_node_t *node, rn_sched_mode_t mode)
 		while (!rn_mode_received(node, mode)) {
 			rn_scheduler_poll(node->sched);
 			if (node->error != 0) {
-				error = node->error;
+				rn_error_set(node->error);
 				rn_scheduler_remove(node);
-				errno = error;
 				node->sched->nbpending--;
 				return -1;
 			}
@@ -143,21 +139,20 @@ int rn_scheduler_waitfor(rn_sched_node_t *node, rn_sched_mode_t mode)
 		return 0;
 	}
 	if (rn_task_release(node->sched) != 0 && node->error == 0) {
-		node->error = errno;
+		node->error = rn_error;
 	}
 	node->sched->nbpending--;
 	/* Detach task */
 	node->task = NULL;
 	if (node->error != 0) {
-		error = node->error;
+		rn_error_set(node->error);
 		rn_scheduler_remove(node);
-		errno = error;
 		return -1;
 	}
 	if (!rn_mode_received(node, mode)) {
-		rn_scheduler_remove(node);
 		/* Task has been resumed but no event received, this is a timeout */
-		errno = ETIMEDOUT;
+		rn_error_set(ETIMEDOUT);
+		rn_scheduler_remove(node);
 		return -1;
 	}
 	rn_mode_waiting_unset(node, mode);

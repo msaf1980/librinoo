@@ -258,7 +258,6 @@ rn_socket_t *rn_socket_class_ssl_accept(rn_socket_t *socket, rn_addr_t *from)
 	socklen_t addr_len;
 	rn_ssl_t *ssl = rn_ssl_get(socket);
 
-	errno = 0;
 	addr_len = sizeof(*from);
 	while ((fd = accept4(ssl->socket.node.fd, &from->sa, &addr_len, SOCK_NONBLOCK)) < 0) {
 		switch (errno) {
@@ -273,16 +272,17 @@ rn_socket_t *rn_socket_class_ssl_accept(rn_socket_t *socket, rn_addr_t *from)
 			case ENETUNREACH:
 				break;
 			default:
+				rn_error_set(errno);
 				return NULL;
 		}
 		if (rn_socket_waitin(socket) != 0) {
 			return NULL;
 		}
-		errno = 0;
 		addr_len = sizeof(*from);
 	}
 	new = calloc(1, sizeof(*new));
 	if (unlikely(new == NULL)) {
+		rn_error_set(errno);
 		close(fd);
 		return NULL;
 	}
@@ -298,17 +298,18 @@ rn_socket_t *rn_socket_class_ssl_accept(rn_socket_t *socket, rn_addr_t *from)
 	}
 	sbio = BIO_new_socket(new->socket.node.fd, BIO_NOCLOSE);
 	if (unlikely(sbio == NULL)) {
+		//FIXME set rn_error
 		rn_socket_destroy(&new->socket);
 		return NULL;
 	}
 	SSL_set_bio(new->ssl, sbio, sbio);
 	while ((ret = SSL_accept(new->ssl)) <= 0) {
 		switch(SSL_get_error(new->ssl, ret)) {
-		case SSL_ERROR_NONE:
 		case SSL_ERROR_ZERO_RETURN:
 		case SSL_ERROR_WANT_X509_LOOKUP:
 		case SSL_ERROR_SYSCALL:
 		case SSL_ERROR_SSL:
+			//FIXME set rn_error
 			rn_socket_destroy(&new->socket);
 			return NULL;
 		case SSL_ERROR_WANT_READ:

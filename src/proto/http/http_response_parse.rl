@@ -44,7 +44,7 @@
 	  http->response.headers_length = fpc - ((char *) buffer_ptr(http->response.buffer)) + 1;
 	  return 1;
   }
-  action parseerror	{ return -1; }
+  action parseerror	{ rn_error_set(EBADMSG); return -1; }
 
   crlf = '\r\n';
   code = digit{3};

@@ -129,16 +129,15 @@ rn_inotify_event_t *rn_inotify_event(rn_inotify_t *inotify)
 	if (rn_inotify_waitio(inotify) != 0) {
 		return NULL;
 	}
-	errno = 0;
 	while ((ret = read(inotify->node.fd, inotify->read_buffer, sizeof(inotify->read_buffer))) < 0) {
 		if (errno != EAGAIN && errno != EWOULDBLOCK) {
+			rn_error_set(errno);
 			return NULL;
 		}
 		inotify->io_calls = 0;
 		if (rn_scheduler_waitfor(&inotify->node, RN_MODE_IN) != 0) {
 			return NULL;
 		}
-		errno = 0;
 	}
 	ievent = (struct inotify_event *) inotify->read_buffer;
 	inotify->event.type = ievent->mask;
