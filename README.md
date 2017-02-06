@@ -2,6 +2,8 @@
   <img src="https://github.com/reginaldl/librinoo/blob/master/doc/logo.png?raw=true" alt="RiNOO Logo" />
 </p>
 
+[![Build Status](https://travis-ci.org/reginaldl/librinoo.svg?branch=master)](https://travis-ci.org/reginaldl/librinoo)
+
 # Overview
 
 RiNOO is an asynchronous socket management library which leverages coroutines to make socket "appear" synchronous.
