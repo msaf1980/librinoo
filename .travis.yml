@@ -1,0 +1,7 @@
+language: c
+addons:
+  apt:
+    packages:
+    - cmake
+    - valgrind 
+script: cmake -DMODE=debug . && make -j 2 && make test
