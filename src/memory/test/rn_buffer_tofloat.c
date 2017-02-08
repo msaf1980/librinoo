@@ -44,13 +44,13 @@ int main()
 	XTEST(buffer != NULL);
 	XTEST(rn_buffer_add(buffer, "12345.6789", 10) == 10);
 	check_buf(buffer, 12345.6789);
-	rn_buffer_erase(buffer, rn_buffer_size(buffer));
+	rn_buffer_reset(buffer);
 	XTEST(rn_buffer_add(buffer, "1", 1) == 1);
 	check_buf(buffer, 1);
-	rn_buffer_erase(buffer, rn_buffer_size(buffer));
+	rn_buffer_reset(buffer);
 	XTEST(rn_buffer_add(buffer, "-12345.678", 10) == 10);
 	check_buf(buffer, -12345.678);
-	rn_buffer_erase(buffer, rn_buffer_size(buffer));
+	rn_buffer_reset(buffer);
 	rn_buffer_destroy(buffer);
 	rn_buffer_set(&buffer2, "98765.4321");
 	check_buf(&buffer2, 98765.4321);

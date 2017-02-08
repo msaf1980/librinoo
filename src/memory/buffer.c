@@ -260,11 +260,11 @@ int rn_buffer_erase(rn_buffer_t *buffer, size_t size)
 		return -1;
 	}
 	if (size == 0 || size >= buffer->size) {
-		size = buffer->size;
+		buffer->size = 0;
 	} else {
 		memmove(buffer->ptr, buffer->ptr + size, buffer->size - size);
+		buffer->size -= size;
 	}
-	buffer->size -= size;
 	return 0;
 }
 
@@ -338,6 +338,43 @@ int rn_buffer_cmp(rn_buffer_t *buffer1, rn_buffer_t *buffer2)
 	return ret;
 }
 
+/* Compares two buffers, ignoring the case of characters.
+ *
+ * @param buffer1 Pointer to a buffer.
+ * @param buffer2 Pointer to a buffer.
+ *
+ * @return An integer less than, equal to, or greater than zero if buffer1 is found, respectively, to be less than, to match, or be greater than buffer2
+ */
+int rn_buffer_casecmp(rn_buffer_t *buffer1, rn_buffer_t *buffer2)
+{
+	char c1;
+	char c2;
+	size_t i;
+	size_t min;
+
+	min = (rn_buffer_size(buffer1) < rn_buffer_size(buffer2) ? rn_buffer_size(buffer1) : rn_buffer_size(buffer2));
+	for (i = 0; i < min; i++) {
+		c1 = ((const char *) rn_buffer_ptr(buffer1))[i];
+		c2 = ((const char *) rn_buffer_ptr(buffer2))[i];
+		switch (c1) {
+			case 'a' ... 'z':
+				if (c2 >= 'A' && c2 <= 'Z') {
+					c2 += 'a' - 'A';
+				}
+				break;
+			case 'A' ... 'Z':
+				if (c2 >= 'a' && c2 <= 'z') {
+					c1 += 'a' - 'A';
+				}
+				break;
+		}
+		if (c1 != c2) {
+			return c1 - c2;
+		}
+	}
+	return rn_buffer_size(buffer1) - rn_buffer_size(buffer2);
+}
+
 /**
  * Compares a buffer with a string.
  *
@@ -348,17 +385,17 @@ int rn_buffer_cmp(rn_buffer_t *buffer1, rn_buffer_t *buffer2)
  */
 int rn_buffer_strcmp(rn_buffer_t *buffer, const char *str)
 {
-	int ret;
-	size_t min;
-	size_t len;
+	size_t i;
+	char *ptr;
 
-	len = strlen(str);
-	min = (rn_buffer_size(buffer) < len ? rn_buffer_size(buffer) : len);
-	ret = memcmp(rn_buffer_ptr(buffer), str, min);
-	if (ret == 0) {
-		ret = rn_buffer_size(buffer) - len;
+	ptr = rn_buffer_ptr(buffer);
+	for (i = 0; i < rn_buffer_size(buffer) && str[i] != 0 && ptr[i] == str[i]; i++) {
 	}
-	return ret;
+	if (i >= rn_buffer_size(buffer)) {
+		return -str[i];
+	}
+	return ptr[i] - str[i];
+
 }
 
 /**
@@ -601,4 +638,39 @@ char *rn_buffer_tostr(rn_buffer_t *buffer)
 		return NULL;
 	}
 	return buffer->ptr;
+}
+
+/**
+ * Encodes a buffer to base64.
+ *
+ * @param dst Pointer to the buffer to store the encoded string.
+ * @param src Pointer to the buffer to encode.
+ *
+ * @return 0 on success, or -1 if an error occurs
+ */
+int rn_buffer_b64encode(rn_buffer_t *dst, rn_buffer_t *src)
+{
+	static const char b64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+	size_t i;
+	char cur;
+	int shift;
+	unsigned int bits;
+
+	bits = 0;
+	shift = 0;
+	for (i = 0; i < rn_buffer_size(src); i++)
+	{
+		bits = (bits << 8) + ((unsigned char *) rn_buffer_ptr(src))[i];
+		shift += 8;
+		do {
+			cur = b64[(bits << 6 >> shift) & 0x3f];
+			rn_buffer_add(dst, &cur, 1);
+			shift -= 6;
+		}
+		while (shift > 6 || (i == rn_buffer_size(src) - 1 && shift > 0));
+	}
+	while (rn_buffer_size(dst) & 3) {
+		rn_buffer_add(dst, "=", 1);
+	}
+	return 0;
 }

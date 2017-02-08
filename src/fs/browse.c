@@ -160,7 +160,7 @@ int rn_fs_browse(const char *path, rn_fs_entry_t **last_entry)
 			result = NULL;
 			continue;
 		}
-		rn_buffer_erase(curentry->path, 0);
+		rn_buffer_reset(curentry->path);
 		rn_buffer_addstr(curentry->path, directory->path);
 		if (((char *) rn_buffer_ptr(curentry->path))[curentry->path->size - 1] != '/') {
 			rn_buffer_addstr(curentry->path, "/");

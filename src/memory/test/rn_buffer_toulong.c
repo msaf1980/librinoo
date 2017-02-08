@@ -44,7 +44,7 @@ int main()
 	XTEST(buffer != NULL);
 	XTEST(rn_buffer_add(buffer, "123456789", 9) == 9);
 	check_buf(buffer, 123456789);
-	rn_buffer_erase(buffer, rn_buffer_size(buffer));
+	rn_buffer_reset(buffer);
 	XTEST(rn_buffer_add(buffer, "1", 1) == 1);
 	check_buf(buffer, 1);
 	rn_buffer_destroy(buffer);

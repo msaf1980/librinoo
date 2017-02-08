@@ -80,6 +80,8 @@ rn_inotify_watch_t *rn_inotify_add_watch(rn_inotify_t *inotify, const char *path
 		free(watch);
 		return NULL;
 	}
+	inotify->watches[wd] = watch;
+	inotify->nb_watches++;
 	if (recursive) {
 		nb = 0;
 		entry = NULL;
@@ -94,8 +96,6 @@ rn_inotify_watch_t *rn_inotify_add_watch(rn_inotify_t *inotify, const char *path
 			}
 		}
 	}
-	inotify->watches[wd] = watch;
-	inotify->nb_watches++;
 	return watch;
 }
 
@@ -126,23 +126,25 @@ rn_inotify_event_t *rn_inotify_event(rn_inotify_t *inotify)
 	ssize_t ret;
 	struct inotify_event *ievent;
 
-	if (rn_inotify_waitio(inotify) != 0) {
-		return NULL;
-	}
-	while ((ret = read(inotify->node.fd, inotify->read_buffer, sizeof(inotify->read_buffer))) < 0) {
-		if (errno != EAGAIN && errno != EWOULDBLOCK) {
-			rn_error_set(errno);
+	for (ievent = NULL; ievent == NULL || (ievent->mask & IN_IGNORED);) {
+		if (rn_inotify_waitio(inotify) != 0) {
 			return NULL;
 		}
-		inotify->io_calls = 0;
-		if (rn_scheduler_waitfor(&inotify->node, RN_MODE_IN) != 0) {
-			return NULL;
+		while ((ret = read(inotify->node.fd, inotify->read_buffer, sizeof(inotify->read_buffer))) < 0) {
+			if (errno != EAGAIN && errno != EWOULDBLOCK) {
+				rn_error_set(errno);
+				return NULL;
+			}
+			inotify->io_calls = 0;
+			if (rn_scheduler_waitfor(&inotify->node, RN_MODE_IN) != 0) {
+				return NULL;
+			}
 		}
+		ievent = (struct inotify_event *) inotify->read_buffer;
 	}
-	ievent = (struct inotify_event *) inotify->read_buffer;
 	inotify->event.type = ievent->mask;
 	inotify->event.watch = inotify->watches[ievent->wd];
-	rn_buffer_erase(inotify->event.path, 0);
+	rn_buffer_reset(inotify->event.path);
 	rn_buffer_addstr(inotify->event.path, inotify->event.watch->path);
 	if (ievent->name[0] != 0) {
 		rn_buffer_addstr(inotify->event.path, "/");

@@ -23,9 +23,10 @@ typedef struct rn_buffer_s {
 #define rn_buffer_ptr(buffer)			((buffer)->ptr)
 #define rn_buffer_size(buffer)			((buffer)->size)
 #define rn_buffer_msize(buffer)			((buffer)->msize)
-#define rn_buffer_isfull(buffer)			((buffer)->size == (buffer)->msize || (buffer)->msize == 0)
-#define rn_buffer_setsize(buffer, newsize)		do { (buffer)->size = newsize; } while (0)
+#define rn_buffer_isfull(buffer)		((buffer)->size == (buffer)->msize || (buffer)->msize == 0)
+#define rn_buffer_setsize(buffer, newsize)	do { (buffer)->size = newsize; } while (0)
 #define rn_buffer_set(buffer, str)		do { rn_buffer_static(buffer, (void *)(str), strlen(str)); } while (0)
+#define rn_buffer_reset(buffer)		  	rn_buffer_setsize(buffer, 0)
 
 rn_buffer_t *rn_buffer_create(rn_buffer_class_t *class);
 void rn_buffer_static(rn_buffer_t *buffer, void *ptr, size_t size);
@@ -40,6 +41,7 @@ int rn_buffer_addnull(rn_buffer_t *buf);
 int rn_buffer_erase(rn_buffer_t *buffer, size_t size);
 rn_buffer_t *rn_buffer_dup(rn_buffer_t *buffer);
 int rn_buffer_cmp(rn_buffer_t *buffer1, rn_buffer_t *buffer2);
+int rn_buffer_casecmp(rn_buffer_t *buffer1, rn_buffer_t *buffer2);
 int rn_buffer_strcmp(rn_buffer_t *buffer, const char *str);
 int rn_buffer_strncmp(rn_buffer_t *buffer, const char *str, size_t len);
 int rn_buffer_strcasecmp(rn_buffer_t *buffer, const char *str);
@@ -49,5 +51,6 @@ unsigned long int rn_buffer_toulong(rn_buffer_t *buffer, size_t *len, int base);
 float rn_buffer_tofloat(rn_buffer_t *buffer, size_t *len);
 double rn_buffer_todouble(rn_buffer_t *buffer, size_t *len);
 char *rn_buffer_tostr(rn_buffer_t *buffer);
+int rn_buffer_b64encode(rn_buffer_t *dst, rn_buffer_t *src);
 
 #endif /* !RINOO_MEMORY_BUFFER_H_ */

@@ -89,7 +89,7 @@ int rn_dns_get(rn_dns_t *dns, rn_dns_query_t *query, rn_addr_t *from)
 	ssize_t count;
 	rn_buffer_iterator_t iterator;
 
-	rn_buffer_erase(&dns->buffer, 0);
+	rn_buffer_reset(&dns->buffer);
 	rn_buffer_init(&query->name.buffer, query->name.value, sizeof(query->name.value));
 	count = rn_socket_recvfrom(dns->socket, rn_buffer_ptr(&dns->buffer), rn_buffer_msize(&dns->buffer), from);
 	if (count <= 0) {
@@ -112,7 +112,7 @@ int rn_dns_reply_get(rn_dns_t *dns, uint32_t timeout)
 	rn_dns_query_t query;
 	rn_buffer_iterator_t iterator;
 
-	rn_buffer_erase(&dns->buffer, 0);
+	rn_buffer_reset(&dns->buffer);
 	rn_buffer_init(&query.name.buffer, query.name.value, sizeof(query.name.value));
 	if (rn_socket_timeout(dns->socket, timeout) != 0) {
 		return -1;

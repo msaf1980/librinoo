@@ -58,13 +58,13 @@ void rn_http_reset(rn_http_t *http)
 	http->request.headers_length = 0;
 	http->request.content_length = 0;
 	http->request.method = RN_HTTP_METHOD_UNKNOWN;
-	rn_buffer_erase(http->request.buffer, rn_buffer_size(http->request.buffer));
+	rn_buffer_reset(http->request.buffer);
 	rn_http_headers_flush(&http->request.headers);
 	/* Reset response */
 	memset(&http->response.msg, 0, sizeof(http->response.msg));
 	http->response.code = 0;
 	http->response.headers_length = 0;
 	http->response.content_length = 0;
-	rn_buffer_erase(http->response.buffer, rn_buffer_size(http->response.buffer));
+	rn_buffer_reset(http->response.buffer);
 	rn_http_headers_flush(&http->response.headers);
 }

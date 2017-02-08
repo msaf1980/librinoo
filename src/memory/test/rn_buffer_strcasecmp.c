@@ -36,7 +36,7 @@ int main()
 	for (i = 0; i < ARRAY_SIZE(strings) - 1; i++) {
 		rn_buffer_add(buffer1, strings[i], strlen(strings[i]));
 		XTEST(rn_buffer_strcasecmp(buffer1, strings[i + 1]) < 0);
-		rn_buffer_erase(buffer1, rn_buffer_size(buffer1));
+		rn_buffer_reset(buffer1);
 	}
 	rn_buffer_destroy(buffer1);
 	XPASS();
