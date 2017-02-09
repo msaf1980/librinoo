@@ -3,14 +3,14 @@
 /**
  * @file   http_request_parse.rl
  * @author Reginald Lips <reginald.l@gmail.com> - Copyright 2013
- * @date   Wed Feb  1 18:56:27 2017
+ * @date   Sun Apr 15 22:29:07 2012
  *
  * @brief  HTTP request parsing
  *
  *
  */
 
-#include "rinoo/rinoo.h"
+#include "rinoo/proto/http/module.h"
 
 
 #line 17 "http_request_parse.c"
@@ -363,10 +363,10 @@ _match:
 	  {
 		  tmp = *cl_end;
 		  *cl_end = 0;
-		  http->request.content_length = atoi(cl_start);
+		  http->request.headers.content_length = atoi(cl_start);
 		  *cl_end = tmp;
 	  }
-	  http->request.headers_length = p - ((char *) rn_buffer_ptr(http->request.buffer)) + 1;
+	  http->request.headers.length = p - ((char *) rn_buffer_ptr(http->request.buffer)) + 1;
 	  return 1;
   }
 	break;

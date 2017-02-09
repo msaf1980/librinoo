@@ -30,10 +30,8 @@ typedef struct rn_http_request_s {
 	rn_buffer_t uri;
 	rn_buffer_t content;
 	rn_buffer_t *buffer;
-	size_t headers_length;
-	size_t content_length;
-	rn_rbtree_t headers;
 	rn_http_method_t method;
+	rn_http_header_set_t headers;
 } rn_http_request_t;
 
 int rn_http_request_parse(struct rn_http_s *http);

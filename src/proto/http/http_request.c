@@ -25,12 +25,12 @@ bool rn_http_request_get(rn_http_t *http)
 	while (rn_socket_readb(http->socket, http->request.buffer) > 0) {
 		ret = rn_http_request_parse(http);
 		if (ret == 1) {
-			while (rn_buffer_size(http->request.buffer) < http->request.headers_length + http->request.content_length) {
+			while (rn_buffer_size(http->request.buffer) < http->request.headers.length + http->request.headers.content_length) {
 				if (rn_socket_readb(http->socket, http->request.buffer) <= 0) {
 					return false;
 				}
 			}
-			rn_buffer_static(&http->request.content, rn_buffer_ptr(http->request.buffer) + http->request.headers_length, http->request.content_length);
+			rn_buffer_static(&http->request.content, rn_buffer_ptr(http->request.buffer) + http->request.headers.length, http->request.headers.content_length);
 			return true;
 		} else if (ret == -1) {
 			http->response.code = 400;
@@ -53,7 +53,7 @@ void rn_http_request_setdefaultheaders(rn_http_t *http)
 	char tmp[24];
 
 	if (rn_http_header_get(&http->request.headers, "Content-Length") == NULL) {
-		if (snprintf(tmp, 24, "%lu", http->request.content_length) > 0) {
+		if (snprintf(tmp, 24, "%lu", http->request.headers.content_length) > 0) {
 			rn_http_header_set(&http->request.headers, "Content-Length", tmp);
 		}
 	}
@@ -72,14 +72,13 @@ void rn_http_request_setdefaultheaders(rn_http_t *http)
 int rn_http_request_send(rn_http_t *http, rn_http_method_t method, const char *uri, rn_buffer_t *body)
 {
 	ssize_t ret;
-	rn_rbtree_node_t *cur_node;
 	rn_http_header_t *cur_header;
 
 	XASSERT(http != NULL, -1);
 	XASSERT(rn_buffer_size(http->request.buffer) == 0, -1);
 
 	if (body != NULL) {
-		http->request.content_length = rn_buffer_size(body);
+		http->request.headers.content_length = rn_buffer_size(body);
 	}
 	http->request.method = method;
 	switch (http->request.method) {
@@ -122,10 +121,9 @@ int rn_http_request_send(rn_http_t *http, rn_http_method_t method, const char *u
 		rn_buffer_add(http->request.buffer, " HTTP/1.1\r\n", 11);
 		break;
 	}
-	for (cur_node = rn_rbtree_head(&http->request.headers);
-	     cur_node != NULL;
-	     cur_node = rn_rbtree_next(cur_node)) {
-		cur_header = container_of(cur_node, rn_http_header_t, node);
+	for (cur_header = rn_http_header_first(&http->request.headers);
+	     cur_header != NULL;
+	     cur_header = rn_http_header_next(cur_header)) {
 		rn_buffer_print(http->request.buffer,
 			     "%.*s: %.*s\r\n",
 			     rn_buffer_size(&cur_header->key),

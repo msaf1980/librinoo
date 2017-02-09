@@ -26,20 +26,20 @@
 	  if (hd_start != NULL && hd_end != NULL && hdv_start != NULL) {
 		  tmp = *hd_end;
 		  *hd_end = 0;
-		  rinoo_http_header_setdata(&http->request.headers, hd_start, hdv_start, (hdv_end - hdv_start));
+		  rn_http_header_setdata(&http->request.headers, hd_start, hdv_start, (hdv_end - hdv_start));
 		  *hd_end = tmp;
 	  }
   }
   action okac		{
-	  buffer_static(&http->request.uri, uri_start, uri_end - uri_start);
+	  rn_buffer_static(&http->request.uri, uri_start, uri_end - uri_start);
 	  if (cl_start != NULL && cl_end != NULL)
 	  {
 		  tmp = *cl_end;
 		  *cl_end = 0;
-		  http->request.content_length = atoi(cl_start);
+		  http->request.headers.content_length = atoi(cl_start);
 		  *cl_end = tmp;
 	  }
-	  http->request.headers_length = fpc - ((char *) buffer_ptr(http->request.buffer)) + 1;
+	  http->request.headers.length = fpc - ((char *) rn_buffer_ptr(http->request.buffer)) + 1;
 	  return 1;
   }
   action parseerror	{ return -1; }
@@ -67,11 +67,11 @@
   }%%
 
 
-int rinoo_http_request_parse(t_http *http)
+int rn_http_request_parse(rn_http_t *http)
 {
 	int cs = 0;
-	char *p = buffer_ptr(http->request.buffer);
-	char *pe = (char *) buffer_ptr(http->request.buffer) + buffer_size(http->request.buffer);
+	char *p = rn_buffer_ptr(http->request.buffer);
+	char *pe = (char *) rn_buffer_ptr(http->request.buffer) + rn_buffer_size(http->request.buffer);
 	char *eof = NULL;
 	char *uri_start = NULL;
 	char *uri_end = NULL;

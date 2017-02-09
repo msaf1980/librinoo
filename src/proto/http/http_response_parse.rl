@@ -27,21 +27,21 @@
 	  if (hd_start != NULL && hd_end != NULL && hdv_start != NULL) {
 		  tmp = *hd_end;
 		  *hd_end = 0;
-		  rinoo_http_header_setdata(&http->response.headers, hd_start, hdv_start, (hdv_end - hdv_start));
+		  rn_http_header_setdata(&http->response.headers, hd_start, hdv_start, (hdv_end - hdv_start));
 		  *hd_end = tmp;
 	  }
   }
   action okac		{
 	  http->response.code = atoi(code_start);
-	  buffer_static(&http->response.msg, msg_start, msg_end - msg_start);
+	  rn_buffer_static(&http->response.msg, msg_start, msg_end - msg_start);
 	  if (cl_start != NULL && cl_end != NULL)
 	  {
 		  tmp = *cl_end;
 		  *cl_end = 0;
-		  http->response.content_length = atoi(cl_start);
+		  http->response.headers.content_length = atoi(cl_start);
 		  *cl_end = tmp;
 	  }
-	  http->response.headers_length = fpc - ((char *) buffer_ptr(http->response.buffer)) + 1;
+	  http->response.headers.length = fpc - ((char *) rn_buffer_ptr(http->response.buffer)) + 1;
 	  return 1;
   }
   action parseerror	{ rn_error_set(EBADMSG); return -1; }
@@ -62,11 +62,11 @@
   }%%
 
 
-int rinoo_http_response_parse(t_http *http)
+int rn_http_response_parse(rn_http_t *http)
 {
 	int cs = 0;
-	char *p = buffer_ptr(http->response.buffer);
-	char *pe = (char *) buffer_ptr(http->response.buffer) + buffer_size(http->response.buffer);
+	char *p = rn_buffer_ptr(http->response.buffer);
+	char *pe = (char *) rn_buffer_ptr(http->response.buffer) + rn_buffer_size(http->response.buffer);
 	char *eof = NULL;
 	char *code_start = NULL;
 	char *msg_start = NULL;
