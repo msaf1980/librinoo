@@ -28,6 +28,5 @@ void rn_ssl_context_destroy(rn_ssl_ctx_t *ctx);
 rn_ssl_t *rn_ssl_get(rn_socket_t *socket);
 rn_socket_t *rn_ssl_client(rn_sched_t *sched, rn_ssl_ctx_t *ctx, rn_addr_t *dst, uint32_t timeout);
 rn_socket_t *rn_ssl_server(rn_sched_t *sched, rn_ssl_ctx_t *ctx, rn_addr_t *dst);
-rn_socket_t *rn_ssl_accept(rn_socket_t *socket, rn_addr_t *from);
 
 #endif /* !RINOO_NET_SSL_H_ */

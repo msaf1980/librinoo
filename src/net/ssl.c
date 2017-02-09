@@ -180,17 +180,3 @@ rn_socket_t *rn_ssl_server(rn_sched_t *sched, rn_ssl_ctx_t *ctx, rn_addr_t *dst)
 	}
 	return socket;
 }
-
-/**
- * Accepts a new connection from a listening socket.
- *
- * @param socket Pointer to the socket which is listening to
- * @param from Pointer to a rn_addr_t where to store the originating address
- *
- * @return A pointer to the new socket on success or NULL if an error occurs
- */
-rn_socket_t *rn_ssl_accept(rn_socket_t *socket, rn_addr_t *from)
-{
-	return rn_socket_accept(socket, from);
-}
-

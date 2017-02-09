@@ -15,7 +15,7 @@ void task_server(void *server)
 	rn_socket_t *client;
 
 	sched = rn_scheduler_self();
-	while ((client = rn_tcp_accept(server, NULL)) != NULL) {
+	while ((client = rn_socket_accept(server, NULL)) != NULL) {
 		rn_log("Accepted connection on thread %d", sched->id);
 		rn_task_start(sched, task_client, client);
 	}

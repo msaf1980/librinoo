@@ -39,7 +39,7 @@ void server_func(void *unused(arg))
 	rn_addr4(&addr, "127.0.0.1", 4242);
 	server = rn_tcp_server(rn_scheduler_self(), &addr);
 	XTEST(server != NULL);
-	client = rn_tcp_accept(server, NULL);
+	client = rn_socket_accept(server, NULL);
 	XTEST(client != NULL);
 	rn_log("client accepted");
 	rn_task_start(rn_scheduler_self(), process_client, client);

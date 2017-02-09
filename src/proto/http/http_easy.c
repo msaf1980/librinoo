@@ -107,7 +107,7 @@ static void rn_http_easy_server_process(void *context)
 	rn_http_easy_context_t *c_context;
 	rn_http_easy_context_t *s_context = context;
 
-	while ((client = rn_tcp_accept(s_context->socket, NULL)) != NULL) {
+	while ((client = rn_socket_accept(s_context->socket, NULL)) != NULL) {
 		c_context = malloc(sizeof(*c_context));
 		if (c_context == NULL) {
 			rn_socket_destroy(client);

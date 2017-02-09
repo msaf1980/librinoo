@@ -54,7 +54,7 @@ void http_server(void *sched)
 	rn_addr4(&addr, "127.0.0.1", 4242);
 	server = rn_tcp_server(sched, &addr);
 	XTEST(server != NULL);
-	client = rn_tcp_accept(server, &addr);
+	client = rn_socket_accept(server, &addr);
 	XTEST(client != NULL);
 	rn_log("server - accepting client (%s:%d)", rn_addr_getip(&addr, buf, sizeof(buf)), rn_addr_getport(&addr));
 	rn_task_start(sched, http_server_process, client);

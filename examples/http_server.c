@@ -51,7 +51,7 @@ void process_http_server(void *arg)
 	rn_socket_t *socket = arg;
 
 	rn_log("Thread %d started.", rn_scheduler_self()->id);
-	while ((client = rn_tcp_accept(socket, NULL)) != NULL) {
+	while ((client = rn_socket_accept(socket, NULL)) != NULL) {
 		rn_task_start(rn_scheduler_self(), process_http_client, client);
 	}
 	rn_socket_destroy(socket);
