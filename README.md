@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/reginaldl/librinoo/blob/master/doc/logo.png?raw=true" alt="RiNOO Logo" />
+  <img src="https://cdn.rawgit.com/reginaldl/librinoo/master/doc/logo.svg" alt="RiNOO Logo" width="50%"/>
 </p>
 
 [![Build Status](https://travis-ci.org/reginaldl/librinoo.svg?branch=master)](https://travis-ci.org/reginaldl/librinoo)
