@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://cdn.rawgit.com/reginaldl/librinoo/master/doc/rinoo.svg" alt="RiNOO Logo" width="50%"/>
+  <img src="https://gitlab.com/reginaldl/librinoo/raw/master/doc/rinoo.svg" alt="RiNOO Logo" width="50%"/>
 </p>
 
 [![Build Status](https://travis-ci.org/reginaldl/librinoo.svg?branch=master)](https://travis-ci.org/reginaldl/librinoo)
@@ -11,10 +11,6 @@ This is possible by using fast-contexts (see fcontext project). Code looks simpl
 of asynchronous sockets is hidden.
 RiNOO is a simple way to create high scalability client/server applications.
 
-# Documentation
-
-* [Using librinoo for fun and profit](https://github.com/reginaldl/librinoo/wiki/Using-librinoo-for-fun-and-profit)
-* [Libevent vs. RiNOO](https://github.com/reginaldl/librinoo/wiki/Libevent-vs.-RiNOO)
 
 # Build
 
