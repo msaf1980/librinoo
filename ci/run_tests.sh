@@ -13,7 +13,7 @@ mkdir _build_ci
 pushd _build_ci
 
 
-${CMAKE} -DCMAKE_BUILD_TYPE=Release $@ ..
+${CMAKE} $@ ..
 echo "======================================"
 echo "                Build"
 echo "======================================"
