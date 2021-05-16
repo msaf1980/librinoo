@@ -12,6 +12,7 @@
 #define RINOO_DEBUG_TEST_H_
 
 #define XTEST(expr)	if (!(expr)) { fprintf(stderr, "Test failed in function '%s' - %s:%d - %s\n", __FUNCTION__, __FILE__, __LINE__, #expr); XFAIL(); }
+#define XTEST_MSG(expr, message)	if (!(expr)) { fprintf(stderr, "Test failed in function '%s' - %s:%d - %s (%s)\n", __FUNCTION__, __FILE__, __LINE__, #expr, message); XFAIL(); }
 #define XPASS()		do { fprintf(stderr, "Passed\n"); return 0; } while (0)
 #define XFAIL()		do { fprintf(stderr, "Failed\n"); exit(1); } while (0)
 

@@ -27,6 +27,7 @@
 #include <openssl/pem.h>
 #include <openssl/conf.h>
 #include <openssl/x509v3.h>
+#include <openssl/err.h>
 
 #include "rinoo/global/module.h"
 #include "rinoo/memory/module.h"

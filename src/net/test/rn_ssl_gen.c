@@ -19,8 +19,10 @@ int main()
 {
 	rn_ssl_ctx_t *ssl;
 
-	ssl = rn_ssl_context();
-	XTEST(ssl != NULL);
+	rn_ssl_init();
+
+	ssl = rn_ssl_context(4096);
+	XTEST_MSG(ssl != NULL, rn_error_string());
 	rn_ssl_context_destroy(ssl);
 	XPASS();
 }

@@ -9,3 +9,8 @@
  */
 
 __thread int rn_error;
+__thread char rn_error_buf[4096];
+
+const char *rn_error_string(void) {
+    return rn_error_buf;
+}

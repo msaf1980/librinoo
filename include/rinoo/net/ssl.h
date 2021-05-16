@@ -23,7 +23,9 @@ typedef struct rn_ssl_s {
 	rn_socket_t socket;
 } rn_ssl_t;
 
-rn_ssl_ctx_t *rn_ssl_context(void);
+void rn_ssl_init();
+rn_ssl_ctx_t *rn_ssl_context(unsigned short keysize);
+rn_ssl_ctx_t *rn_ssl_context_load(const char *cert_file, const char *key_file);
 void rn_ssl_context_destroy(rn_ssl_ctx_t *ctx);
 rn_ssl_t *rn_ssl_get(rn_socket_t *socket);
 rn_socket_t *rn_ssl_client(rn_sched_t *sched, rn_ssl_ctx_t *ctx, rn_addr_t *dst, uint32_t timeout);

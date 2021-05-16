@@ -79,9 +79,11 @@ int main()
 {
 	rn_ssl_ctx_t *ssl;
 
+	rn_ssl_init();
+
 	sched = rn_scheduler();
 	XTEST(sched != NULL);
-	ssl = rn_ssl_context();
+	ssl = rn_ssl_context(4096);
 	XTEST(ssl != NULL);
 	rn_task_start(sched, server_func, ssl);
 	rn_task_start(sched, client_func, ssl);

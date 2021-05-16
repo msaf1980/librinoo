@@ -14,8 +14,11 @@
 /* GLOBAL */
 #include "rinoo/global/module.h"
 
+/* ERROR HANDLING */
+#include "rinoo/global/error.h"
+
 /* DEBUG */
-#include "rinoo/debug/module.h"
+/* #include "rinoo/debug/module.h" */
 
 /* MEMORY */
 #include "rinoo/memory/module.h"
