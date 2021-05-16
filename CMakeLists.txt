@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8.12)
 project(rinoo)
 
+option(DEBUGINFO "Add debuginfo to all builds" ON)
+
 include(rinoo.cmake)
 set_version(2 0 0)
 
