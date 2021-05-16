@@ -4,6 +4,7 @@ project(rinoo)
 option(DEBUGINFO "Add debuginfo to all builds" ON)
 option(BUILD_TEST "build tests" ON)
 option(BUILD_TEST_IPV6 "build tests for IPv6" ON)
+option(RUN_TEST_VALGRIND "run tests with valgrind" ON)
 
 include(rinoo.cmake)
 set_version(2 0 1)
