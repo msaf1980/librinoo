@@ -1,10 +1,12 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.5)
 project(rinoo)
 
 option(DEBUGINFO "Add debuginfo to all builds" ON)
+option(BUILD_TEST "build tests" ON)
+option(BUILD_TEST_IPV6 "build tests for IPv6" ON)
 
 include(rinoo.cmake)
-set_version(2 0 0)
+set_version(2 0 1)
 
 set (CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
