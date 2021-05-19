@@ -13,6 +13,14 @@
 
 #define RN_TASK_STACK_SIZE	(16 * 1024)
 
+#if defined(RINOO_JUMP_BOOST)
+#include <fcontext/fcontext.h>
+# elif defined(RINOO_JUMP_FCONTEXT)
+#include "rinoo/scheduler/fcontext.h"
+#else
+#error wrong RINOO_JUMP  
+#endif
+
 /* Defined in scheduler.h */
 struct rn_sched_s;
 
@@ -21,7 +29,18 @@ typedef struct rn_task_s {
 	struct timeval tv;
 	struct rn_sched_s *sched;
 	rn_rbtree_node_t proc_node;
-	rn_fcontext_t context;
+
+#if defined(RINOO_JUMP_BOOST)
+	void (*start_func)(void *arg);
+	void *arg;
+	int active;
+	transfer_t transfer;
+	struct rn_task_s *parent;
+# elif defined(RINOO_JUMP_FCONTEXT)
+	rn_fcontext_t fctx;
+#else
+#error wrong RINOO_CONTEXT    
+#endif	
 	char stack[RN_TASK_STACK_SIZE];
 
 #ifdef RINOO_DEBUG

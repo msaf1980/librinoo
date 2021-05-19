@@ -27,7 +27,6 @@ elseif (MODE STREQUAL "release")
   if (DEBUGINFO)
     append_flag(CMAKE_C_FLAGS "-g" "-g")
   endif()
-  append_flag(CMAKE_C_FLAGS "-O3" "-O")
   message("Build mode: production")
 elseif (DEBUGINFO)
   append_flag(CMAKE_C_FLAGS "-g" "-g")
@@ -80,8 +79,6 @@ endmacro(check_dependency_sym)
 ## Source files ##
 
 macro(list_source_files var path)
-  set(test_files "")
-  set(bench_files "")
   file(GLOB_RECURSE tmp_src_files "${path}")
   ## Split source files and test files
   foreach (loop_var ${tmp_src_files})

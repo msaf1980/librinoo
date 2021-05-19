@@ -51,12 +51,11 @@ typedef struct rn_fstack_s {
 
 typedef struct rn_fcontext_s {
 	long int reg[NB_FREG];
-	struct rn_fcontext_s *link;
+	struct rn_fcontext_s *parent;
 	rn_fstack_t stack;
 } rn_fcontext_t;
 
 void fcontext(rn_fcontext_t *ctx, void (*func)(void *ptr), void *arg);
-void fcontext_jump(void);
 int fcontext_swap(rn_fcontext_t *octx, rn_fcontext_t *nctx);
 
 #endif /* !FCONTEXT_H_ */

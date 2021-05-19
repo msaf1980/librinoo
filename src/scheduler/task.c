@@ -139,6 +139,37 @@ rn_task_t *rn_task_driver_getcurrent(rn_sched_t *sched)
 	return sched->driver.current;
 }
 
+#if defined(RINOO_JUMP_BOOST)
+typedef struct {
+        rn_task_t *from;
+        rn_task_t *to;
+} s_jump_t;
+
+static int fcontext_swap(rn_task_t *from, rn_task_t *to)
+{
+        s_jump_t jump, *jmp;
+        transfer_t t;
+
+        jump.from  = from;
+        jump.to    = to;
+        t      = jump_fcontext(to->transfer.fctx, &jump);
+        jmp    = (s_jump_t*) t.data;
+        jmp->from->transfer = t;
+
+		return to->active;
+}
+
+static void _task_start(transfer_t t)
+{
+	s_jump_t *jmp = (s_jump_t*) t.data;
+	jmp->from->transfer = t;
+	jmp->to->start_func(jmp->to->arg);
+	jmp->to->active = 0;
+	jump_fcontext(t.fctx, t.data);
+}
+#endif
+
+
 /**
  * Create a new task.
  *
@@ -162,12 +193,24 @@ rn_task_t *rn_task(rn_sched_t *sched, rn_task_t *parent, void (*function)(void *
 	}
 	task->sched = sched;
 	task->scheduled = false;
-	task->context.stack.sp = task->stack;
-	task->context.stack.size = sizeof(task->stack);
-	task->context.link = &parent->context;
 	memset(&task->tv, 0, sizeof(task->tv));
 	memset(&task->proc_node, 0, sizeof(task->proc_node));
-	fcontext(&task->context, function, arg);
+
+#if defined(RINOO_JUMP_BOOST)
+	task->active = 1;
+	task->start_func = function;
+	task->arg = arg;
+	task->parent = parent;
+	task->transfer.fctx = make_fcontext(task->stack + sizeof(task->stack), sizeof(task->stack),
+                (void(*)(transfer_t)) _task_start);
+# elif defined(RINOO_JUMP_FCONTEXT)
+	task->fctx.stack.sp = task->stack;
+	task->fctx.stack.size = sizeof(task->stack);
+	task->fctx.parent = &parent->fctx;
+	fcontext(&task->fctx, function, arg);
+#else
+	#error unhandled RINOO_CONTEXT type
+#endif		
 
 #ifdef RINOO_DEBUG
 	/* This code avoids valgrind to mix stack switches */
@@ -255,7 +298,15 @@ int rn_task_resume(rn_task_t *task)
 	old = driver->current;
 	driver->current = task;
 	current_task = task;
-	ret = fcontext_swap(&old->context, &task->context);
+
+#if defined(RINOO_JUMP_BOOST)
+	ret = fcontext_swap(old, task);
+# elif defined(RINOO_JUMP_FCONTEXT)
+	ret = fcontext_swap(&old->fctx, &task->fctx);
+#else
+	#error unhandled RINOO_CONTEXT type
+#endif	
+
 	driver->current = old;
 	current_task = old;
 	if (ret == 0) {
@@ -276,7 +327,14 @@ int rn_task_release(rn_sched_t *sched)
 {
 	XASSERT(sched != NULL, -1);
 
-	fcontext_swap(&sched->driver.current->context, &sched->driver.main.context);
+#if defined(RINOO_JUMP_BOOST)
+	fcontext_swap(sched->driver.current, &sched->driver.main);
+# elif defined(RINOO_JUMP_FCONTEXT)
+	fcontext_swap(&sched->driver.current->fctx, &sched->driver.main.fctx);
+#else
+	#error unhandled RINOO_CONTEXT type
+#endif
+
 	if (sched->stop == true) {
 		rn_error_set(ECANCELED);
 		return -1;

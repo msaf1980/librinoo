@@ -2,20 +2,28 @@
   <img src="https://gitlab.com/reginaldl/librinoo/raw/master/doc/rinoo.svg" alt="RiNOO Logo" width="50%"/>
 </p>
 
-[![Build Status](https://travis-ci.org/reginaldl/librinoo.svg?branch=master)](https://travis-ci.org/reginaldl/librinoo)
-
 # Overview
 
 RiNOO is an asynchronous socket management library which leverages coroutines to make socket "appear" synchronous.
-This is possible by using fast-contexts (see fcontext project). Code looks simple. The complexity
+This is possible by using fast-contexts (see fcontext project or https://github.com/msaf1980/fcontext). Code looks simple. The complexity
 of asynchronous sockets is hidden.
 RiNOO is a simple way to create high scalability client/server applications.
 
 
 # Build
 
+Build with builtin fcontext
 ```
-$ cmake .
+$ mkdir _build && cd _build
+$ cmake ..
+$ make
+$ make install
+```
+
+Build with external fcontext (https://github.com/msaf1980/fcontext)
+```
+$ mkdir _build && cd _build
+$ cmake -DRINOO_JUMP=boost ..
 $ make
 $ make install
 ```
