@@ -4,7 +4,7 @@
 
 #include "rinoo/global/benchmark.h"
 
-long long count = 10000000000;
+long long count = 10000000;
 
 rn_sched_t *sched;
 
@@ -12,11 +12,12 @@ void consumer(void *pargs)
 {
 	while(1) {
 		count--;
-		if (count < 1) {
+		if (count < 0) {
 			count = 0;			
 			break;
 		}
-		rn_task_release(sched);
+		rn_task_pause(sched);
+		
 	}
 	free(pargs);
 }
@@ -69,9 +70,10 @@ int main(int argc, char* argv[])
 	start = clock_ns();
 	rn_scheduler_loop(sched);
 	duration = clock_ns() - start;
+	XTEST(count == 0);
 
-	printf("rn_task_release (%lld yields, %d coroutines): %llu ns (%f/s)\n",
-		iterations, nfibers, duration, 1000000000.0f * iterations / duration
+	printf("rn_task_release (%lld yields, %d coroutines): %.4f ns (%f.2/s)\n",
+		iterations, nfibers, (double) duration / iterations, 1000000000.0f * iterations / duration
 	);
 
 	rn_scheduler_destroy(sched);
