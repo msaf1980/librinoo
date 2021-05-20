@@ -1,33 +1,39 @@
-#!/bin/bash
+#!/bin/sh
 
 set -e
 
 CMAKE=${CMAKE:-cmake}
 CTEST=${CTEST:-ctest}
 
+for JUMP in fcontext boost
+do
+
 if [ -d _build_ci ] ; then
-        rm -rf _build_ci
+    rm -rf _build_ci || exit 1
 fi
-mkdir _build_ci
+mkdir _build_ci || exit 1
 
-pushd _build_ci
-
+cd _build_ci || exit 1
 
 ${CMAKE} $@ ..
 echo "======================================"
-echo "                Build"
+echo "                Build (${JUMP})"
 echo "======================================"
-${CMAKE} --build .
+${CMAKE} --build . || exit 1
 
 make
 
 echo "======================================"
-echo "         Running unit tests"
+echo "         Running unit tests (${JUMP})"
 echo "======================================"
 echo
 
-${CTEST} -V
+if ${CTEST} -V ; then
+    echo "Test run has finished successfully (${JUMP})"
+    cd ..
+else
+    echo "Test run failed (${JUMP})" >&2
+    exit 1
+fi
 
-popd
-
-echo "Test run has finished successfully"
+done
